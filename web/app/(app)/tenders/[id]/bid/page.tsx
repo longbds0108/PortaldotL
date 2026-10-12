@@ -90,6 +90,9 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
   const [backedUp, setBackedUp] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [localSaved, setLocalSaved] = useState<boolean>();
+  // What the confirmed transaction did. `isUpdate` flips to true as soon as the new bid is refetched,
+  // so the success screen must not read it.
+  const [completed, setCompleted] = useState<"submitted" | "updated">();
 
   const amount6 = isValidAmountInput(amountInput) ? parseUsdc6(amountInput) : undefined;
   const outsideBudget = amount6 !== undefined && (amount6 < tender.budgetMin || amount6 > tender.budgetMax);
@@ -148,18 +151,22 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
 
   async function submit() {
     if (!prepared) return;
-    const receipt = isUpdate
+    const wasUpdate = isUpdate;
+    const receipt = wasUpdate
       ? await tx.send("updateBid", [id, prepared.commitment, prepared.encryptedDocURI])
       : await tx.send("submitBid", [id, prepared.commitment, prepared.encryptedDocURI], tender.bidBond);
-    if (receipt) onDone();
+    if (receipt) {
+      setCompleted(wasUpdate ? "updated" : "submitted");
+      onDone();
+    }
   }
 
-  if (tx.status === "success") {
+  if (tx.status === "success" && completed) {
     return (
       <Card>
         <CardContent className="space-y-4 py-10 text-center">
           <CheckCircle2 className="mx-auto size-10 text-success" />
-          <p className="text-lg font-semibold">Sealed bid {isUpdate ? "updated" : "submitted"}</p>
+          <p className="text-lg font-semibold">Sealed bid {completed}</p>
           <p className="mx-auto max-w-md text-sm text-muted-foreground">
             Keep your backup file safe. When the reveal window opens (
             <Countdown className="inline-flex" deadline={tender.submissionDeadline} label="in" passedLabel="now" />) reveal from{" "}

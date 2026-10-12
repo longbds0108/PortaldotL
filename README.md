@@ -40,3 +40,25 @@ pnpm lint && pnpm typecheck && pnpm test
 Without `PINATA_JWT`, uploads in development are stored in `web/.dev-ipfs/` (production refuses).
 Without a WalletConnect project id, only browser-injected wallets are offered.
 E2E: see [web/e2e/README.md](web/e2e/README.md).
+
+## Deploy the web app to Vercel
+
+1. **Import** the GitHub repo in Vercel and set **Root Directory = `web`** (the Next.js app lives there).
+   Framework preset: Next.js. Install / build commands: defaults (`pnpm install`, `next build`) —
+   the pnpm version is pinned through `packageManager` in `web/package.json`. Node.js ≥ 20.
+2. **Environment variables** (Project → Settings → Environment Variables, for Production and Preview):
+
+   | Name | Value |
+   |---|---|
+   | `NEXT_PUBLIC_BLINDBID_ADDRESS` | `0xb240ac942940d5695c6d280916a9c3bb6d31ff64` |
+   | `NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK` | `66823410` |
+   | `NEXT_PUBLIC_ARC_RPC_URL` | `https://rpc.testnet.arc.io` |
+   | `NEXT_PUBLIC_EXPLORER_URL` | `https://explorer.testnet.arc.io` |
+   | `NEXT_PUBLIC_IPFS_GATEWAY` | `https://gateway.pinata.cloud/ipfs/` |
+   | `PINATA_JWT` | your Pinata JWT (server only, mark as **Sensitive**) |
+   | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | optional — Reown project id (add the Vercel domain to its allowlist) |
+
+   `NEXT_PUBLIC_*` values are baked in at build time — redeploy after changing them. Do **not** set `ALLOW_LOCAL_IPFS` on Vercel.
+3. **Deploy.** Uploads go from the browser straight to Pinata through short-lived presigned URLs
+   (`/api/ipfs/sign`), so they are not limited by Vercel's 4.5 MB function body limit.
+
