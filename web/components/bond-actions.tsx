@@ -37,7 +37,8 @@ export function ClaimForfeitsButton({ tenderId }: { tenderId: bigint }) {
     args: [tenderId],
     query: { enabled: !!blindBidAddress, refetchInterval: 15_000 },
   });
-  if (!amount) return null;
+  // After a successful claim the claimable amount refetches to 0; keep the confirmation visible.
+  if (!amount) return tx.status === "success" ? <TxStatus status={tx.status} hash={tx.hash} /> : null;
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted-foreground">

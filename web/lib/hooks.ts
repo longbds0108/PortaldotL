@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import {
   BaseError,
   ContractFunctionRevertedError,
+  HttpRequestError,
+  LimitExceededRpcError,
   UserRejectedRequestError,
   parseGwei,
   type Address,
@@ -25,7 +27,8 @@ import {
 import { fetchJson } from "./ipfs";
 import { tenderMetadataSchema, type TenderMetadata } from "./metadata";
 
-const REFRESH_MS = 8_000;
+/** Background refresh of on-chain reads. Kept moderate: public Arc RPCs rate-limit aggressive polling. */
+const REFRESH_MS = 15_000;
 
 // ───────────────────────── chain time ─────────────────────────
 
@@ -288,6 +291,11 @@ export function useBlindBidTx() {
 export function describeError(e: unknown): string {
   if (e instanceof BaseError) {
     if (e.walk((x) => x instanceof UserRejectedRequestError)) return "Request rejected in wallet.";
+    if (
+      e.walk((x) => x instanceof LimitExceededRpcError || (x instanceof HttpRequestError && x.status === 429))
+    ) {
+      return "The Arc RPC is rate-limiting requests right now. Wait a few seconds and try again.";
+    }
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
     if (revert instanceof ContractFunctionRevertedError) {
       const name = revert.data?.errorName;
