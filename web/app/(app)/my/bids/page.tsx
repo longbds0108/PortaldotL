@@ -1,10 +1,12 @@
 "use client";
 
-import { ChevronDown, Lock, Trophy } from "lucide-react";
+import { CheckCircle2, ChevronDown, Lock, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useAccount } from "wagmi";
+import type { Hash } from "viem";
 import { WithdrawBondButton } from "@/components/bond-actions";
+import { ExplorerLink } from "@/components/explorer-link";
 import { Countdown } from "@/components/countdown";
 import { EmptyState } from "@/components/empty-state";
 import { ConfigGate, WalletGate } from "@/components/gates";
@@ -69,6 +71,7 @@ function MyBidCard({ row }: { row: TenderRow }) {
   const bid = myBid.data;
   const needsReveal = state === TenderState.Reveal && bid && !bid.revealed;
   const [open, setOpen] = useState(false);
+  const [revealTx, setRevealTx] = useState<Hash>();
   const isWinner = state === TenderState.Awarded && tender.winner.toLowerCase() === address?.toLowerCase();
 
   return (
@@ -112,8 +115,22 @@ function MyBidCard({ row }: { row: TenderRow }) {
         </div>
         {needsReveal && open && bid && (
           <div className="well rounded-[15px] p-4">
-            <RevealPanel tenderId={id} bid={bid} onRevealed={() => void myBid.refetch()} />
+            <RevealPanel
+              tenderId={id}
+              bid={bid}
+              onRevealed={(hash) => {
+                setRevealTx(hash);
+                void myBid.refetch();
+              }}
+            />
           </div>
+        )}
+        {state === TenderState.Reveal && bid?.revealed && (
+          // The reveal panel unmounts once the refetched bid is revealed, so confirm here.
+          <p className="flex flex-wrap items-center gap-2 text-sm text-success">
+            <CheckCircle2 className="size-4" /> Your bid is revealed. It will be compared after the reveal deadline.
+            {revealTx && <ExplorerLink type="tx" value={revealTx} />}
+          </p>
         )}
         {bid && <WithdrawBondButton tenderId={id} bid={bid} onDone={() => void myBid.refetch()} />}
         {state !== TenderState.Open && state !== TenderState.Reveal && bid && !bid.revealed && bid.bond > 0n && (

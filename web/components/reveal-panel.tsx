@@ -2,6 +2,7 @@
 
 import { CheckCircle2, FileUp, KeyRound, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import type { Hash } from "viem";
 import { useAccount } from "wagmi";
 import { TxStatus } from "@/components/tx-status";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ import { chain } from "@/lib/wagmi";
  * file, are checked against the on-chain commitment locally first, and only then sent in revealBid.
  * The amount is intentionally not displayed here (prices are shown only from Evaluation on).
  */
-export function RevealPanel({ tenderId, bid, onRevealed }: { tenderId: bigint; bid: Bid; onRevealed?: () => void }) {
+export function RevealPanel({ tenderId, bid, onRevealed }: { tenderId: bigint; bid: Bid; onRevealed?: (txHash: Hash) => void }) {
   const { address } = useAccount();
   const tx = useBlindBidTx();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -56,7 +57,7 @@ export function RevealPanel({ tenderId, bid, onRevealed }: { tenderId: bigint; b
     if (!entry) return;
     const { amount6, salt, docKey } = entrySecrets(entry);
     const receipt = await tx.send("revealBid", [tenderId, amount6, salt, docKey]);
-    if (receipt) onRevealed?.();
+    if (receipt) onRevealed?.(receipt.transactionHash);
   }
 
   return (
