@@ -2,7 +2,6 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
-  EyeOff,
   FilePlus2,
   FolderKanban,
   Gavel,
@@ -19,6 +18,7 @@ import { AnimatePresence, LayoutGroup, motion, type Transition } from "motion/re
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { cn } from "@/lib/utils";
 import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
@@ -47,11 +47,8 @@ function useIsActive() {
 
 function Brand() {
   return (
-    <Link href="/" className="flex min-h-10 items-center gap-2.5" aria-label="BlindBid home">
-      <span className="grid size-8 place-items-center rounded-full bg-[linear-gradient(135deg,#e8e3d5,#83aaff)] text-[#100e13]">
-        <EyeOff className="size-4" />
-      </span>
-      <span className="text-[1.05rem] font-semibold tracking-[-0.02em]">BlindBid</span>
+    <Link href="/" className="flex min-h-10 items-center" aria-label="Hedgora home">
+      <BrandLogo priority className="h-7 sm:h-8" />
     </Link>
   );
 }

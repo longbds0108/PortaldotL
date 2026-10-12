@@ -4,7 +4,7 @@
  * Visual language follows the Hedgora app (github.com/longbds0108/Defi):
  * dark ink surface, cream accent (#e8e3d5) that turns Arc blue (#0b53bf) on hover,
  * Inter Tight, pill buttons, gradient cards with an animated gradient border.
- * Hedgora is dark-only, so BlindBid is too.
+ * Dark-only, like the Hedgora reference.
  */
 :root {
   color-scheme: dark;
@@ -83,7 +83,7 @@
 }
 
 @layer components {
-  /* Small uppercase label above titles ("BLINDBID · ARC TESTNET") */
+  /* Small uppercase label above titles ("HEDGORA · ARC TESTNET") */
   .eyebrow {
     color: #8e8597;
     font-size: 0.68rem;

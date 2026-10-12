@@ -18,11 +18,11 @@ export default function DashboardPage() {
   return (
     <div className="space-y-10">
       <section>
-        <p className="eyebrow">BlindBid · {NETWORK_NAME}</p>
+        <p className="eyebrow">Hedgora · {NETWORK_NAME}</p>
         <h1 className="title-sheen mt-3 max-w-[900px] text-[clamp(2.35rem,6vw,4.25rem)]">Public tenders. Sealed bids.</h1>
         <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-muted-foreground">
           Any wallet except the buyer can bid, but prices stay cryptographically hidden until the submission deadline —
-          enforced by the BlindBid smart contract, not by a promise.
+          enforced by the Hedgora smart contract, not by a promise.
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Button asChild size="lg">

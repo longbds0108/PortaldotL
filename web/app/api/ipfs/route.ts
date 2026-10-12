@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   if (jwt) {
     const body = new FormData();
     body.append("file", file, file.name || "blob");
-    body.append("pinataMetadata", JSON.stringify({ name: file.name || "blindbid" }));
+    body.append("pinataMetadata", JSON.stringify({ name: file.name || "hedgora" }));
     const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
       method: "POST",
       headers: { Authorization: `Bearer ${jwt}` },

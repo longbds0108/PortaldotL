@@ -142,7 +142,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
 
   function downloadBackup() {
     if (!prepared || !address) return;
-    downloadTextFile(`blindbid-tender-${id}-${shortAddress(address).replace("…", "-")}.json`, toBackupJson([prepared.entry]));
+    downloadTextFile(`hedgora-tender-${id}-${shortAddress(address).replace("…", "-")}.json`, toBackupJson([prepared.entry]));
     setBackedUp(true);
   }
 

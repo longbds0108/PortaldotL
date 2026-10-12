@@ -11,7 +11,7 @@ const connectors = connectorsForWallets(
   WALLETCONNECT_PROJECT_ID
     ? getDefaultWallets().wallets
     : [{ groupName: "Browser wallet", wallets: [injectedWallet] }],
-  { appName: "BlindBid", projectId: WALLETCONNECT_PROJECT_ID || "blindbid-local" },
+  { appName: "Hedgora", projectId: WALLETCONNECT_PROJECT_ID || "blindbid-local" },
 );
 
 export const wagmiConfig = createConfig({

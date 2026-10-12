@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
  * Footer wave of glyphs that meets in the middle; hover lights it, click/Enter sends a colour pulse.
  * Ported from Hedgora's FooterAsciiField (github.com/longbds0108/Defi, src/landing/landingInit.ts).
  */
-const GLYPHS = "BLINDBID0123456789abcdef$#◆+*:";
+const GLYPHS = "HEDGORA0123456789abcdef$#◆+*:";
 const FONT = 'ui-monospace, SFMono-Regular, Menlo, "JetBrains Mono", monospace';
 
 type Pt = { x: number; y: number };

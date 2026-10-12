@@ -6,7 +6,7 @@ export function PageHeader({
   title,
   description,
   actions,
-  eyebrow = `BlindBid · ${NETWORK_NAME}`,
+  eyebrow = `Hedgora · ${NETWORK_NAME}`,
 }: {
   title: ReactNode;
   description?: ReactNode;

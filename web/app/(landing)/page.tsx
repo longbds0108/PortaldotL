@@ -4,6 +4,7 @@ import { EyeOff, FileLock2, Gavel, KeyRound, Lock, ScanEye, ShieldCheck, Trophy 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { AsciiSeal } from "@/components/landing/ascii-seal";
 import { FooterAscii } from "@/components/landing/footer-ascii";
 import { Scramble } from "@/components/landing/scramble";
@@ -19,8 +20,12 @@ import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
  * "protocol" section, four connected steps, "safe by design" panel, ASCII footer and route curtain.
  */
 
+/** Sections tracked while scrolling (protocol is tracked so the pill hides there instead of lingering). */
 const SECTIONS = ["lifecycle", "protocol", "how"] as const;
 type SectionId = (typeof SECTIONS)[number];
+/** Sections that have a nav item, in nav order. */
+const NAV_SECTIONS: readonly SectionId[] = ["lifecycle", "how"];
+
 
 const PHASES = [
   {
@@ -172,31 +177,23 @@ export default function LandingPage() {
     window.setTimeout(() => (pendingNav.current = false), 700);
   };
 
-  const activeIndex = active ? SECTIONS.indexOf(active) : -1;
+  const activeIndex = active ? NAV_SECTIONS.indexOf(active) : -1;
 
   return (
     <div className="bb-landing">
       <header ref={headerRef} className={`bb-lheader ${light ? "bb-lheader--light" : "bb-lheader--dark"}`}>
-        <button type="button" className="bb-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-          <span className="bb-brand__mark">
-            <EyeOff />
-          </span>
-          BlindBid
+        <button type="button" className="bb-brand" aria-label="Hedgora — back to top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          <BrandLogo onLight={light} priority className="bb-brand__logo" />
         </button>
         <nav className="bb-lnav" aria-label="Landing page" style={{ ["--nav-index" as string]: Math.max(0, activeIndex) }}>
           <span className={`bb-lnav__pill${activeIndex < 0 ? " is-hidden" : ""}`} aria-hidden="true" />
           <a href="#lifecycle" className={active === "lifecycle" ? "is-active" : undefined} onClick={goTo("lifecycle")}>
             LIFECYCLE
           </a>
-          <a href="#protocol" className={active === "protocol" ? "is-active" : undefined} onClick={goTo("protocol")}>
-            PROTOCOL
-          </a>
           <a href="#how" className={active === "how" ? "is-active" : undefined} onClick={goTo("how")}>
             HOW IT WORKS
           </a>
-          <a href="/marketplace" onClick={(e) => launch(e, "/marketplace")}>
-            MARKET
-          </a>
+          <Link href="/docs">DOCS</Link>
         </nav>
         <div className="bb-lheader__right">
           <a href="/dashboard" className="bb-action bb-action--compact bb-ring" onClick={(e) => launch(e)}>
@@ -219,7 +216,7 @@ export default function LandingPage() {
             </h1>
             <p className="bb-hero__body js-rise d1">
               Publish a public tender. Any wallet except the buyer can submit a bid, and every price stays a sealed hash
-              until the submission deadline — enforced by the BlindBid smart contract, not by a promise.
+              until the submission deadline — enforced by the Hedgora smart contract, not by a promise.
             </p>
             <div className="bb-hero__actions js-rise d2">
               <a href="/dashboard" className="bb-action bb-ring" onClick={(e) => launch(e)}>
@@ -248,7 +245,7 @@ export default function LandingPage() {
               everyone
             </h2>
             <p>
-              Every phase change is decided by block time inside the BlindBid contract. The website only shows the clock —
+              Every phase change is decided by block time inside the Hedgora contract. The website only shows the clock —
               it can&apos;t open a bid early, and neither can the buyer. Eligibility is described by the buyer and checked
               at evaluation, not on-chain.
             </p>
@@ -299,7 +296,7 @@ export default function LandingPage() {
               </a>
             </div>
             <p className="bb-proto__lead">
-              BlindBid replaces &ldquo;trust the portal&rdquo; with cryptography: a commitment fixes each price before the
+              Hedgora replaces &ldquo;trust the portal&rdquo; with cryptography: a commitment fixes each price before the
               deadline, proposals are encrypted in the bidder&apos;s browser, and the contract — not a server — decides
               when anything opens.
             </p>
@@ -426,10 +423,7 @@ export default function LandingPage() {
             <div className="bb-footer__main">
               <div className="bb-footer__brand">
                 <span className="bb-brand">
-                  <span className="bb-brand__mark">
-                    <EyeOff />
-                  </span>
-                  BlindBid
+                  <BrandLogo className="bb-brand__logo bb-brand__logo--footer" />
                 </span>
                 <p className="bb-footer__desc">
                   Public confidential bidding for Arc. Any wallet can bid on a public tender; prices stay sealed until the
@@ -472,17 +466,18 @@ export default function LandingPage() {
                 <a href="#how" onClick={goTo("how")}>
                   How it works
                 </a>
+                <Link href="/docs">Docs</Link>
               </nav>
             </div>
           </div>
           <div className="bb-footer__wordband">
             <FooterAscii />
             <span className="bb-footer__wordmark" aria-hidden="true">
-              BLINDBID
+              HEDGORA
             </span>
           </div>
           <div className="bb-footer__bottombar">
-            <span>© 2026 BlindBid</span>
+            <span>© 2026 Hedgora</span>
             <span className="bb-footer__warn">Testnet build · tokens have no value</span>
           </div>
         </footer>
@@ -492,7 +487,7 @@ export default function LandingPage() {
         {Array.from({ length: 12 }, (_, i) => (
           <i key={i} style={{ ["--i" as string]: i }} />
         ))}
-        <span>BLINDBID / ENTERING THE MARKET</span>
+        <span>HEDGORA / ENTERING THE MARKET</span>
       </div>
     </div>
   );

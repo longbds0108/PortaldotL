@@ -6,7 +6,7 @@ import "./globals.css";
 const interTight = Inter_Tight({ subsets: ["latin"], variable: "--font-inter-tight", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "BlindBid — Confidential Bidding on Arc",
+  title: "Hedgora — Confidential Bidding on Arc",
   description: "Public tenders with sealed bids: prices stay hidden until the submission deadline.",
 };
 
