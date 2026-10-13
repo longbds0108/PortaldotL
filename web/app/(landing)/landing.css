@@ -407,7 +407,6 @@
 .bb-footer__main { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 48px; }
 .bb-footer__brand { max-width: 380px; }
 .bb-footer__desc { margin-top: 16px; color: #8d8691; font-size: .9rem; line-height: 1.6; }
-.bb-footer__status { display: inline-flex; align-items: center; gap: 9px; margin-top: 18px; padding: 7px 13px; border-radius: 999px; color: #a79db5; font: .68rem var(--mono); letter-spacing: .03em; }
 .bb-footer__col h4 { margin: 4px 0 18px; color: #6f6878; font: 600 .7rem var(--mono); letter-spacing: .1em; text-transform: uppercase; }
 .bb-footer__col a { display: block; width: fit-content; margin-bottom: 12px; color: #a79db5; font-size: .9rem; text-decoration: none; transition: color .16s ease, transform .16s ease; }
 .bb-footer__col a:hover { color: #f4f2f7; transform: translateX(3px); }
@@ -438,7 +437,6 @@
   animation: bb-sheen 6.5s linear infinite;
 }
 .bb-footer__bottombar { max-width: 1320px; margin: 0 auto; padding: 18px 30px 30px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 28px; border-top: 1px solid #2a2438; color: #726c7a; font: .68rem var(--mono); }
-.bb-footer__warn { color: #e8b54c; letter-spacing: .03em; }
 
 /* ───────────── route curtain ───────────── */
 .bb-curtain { position: fixed; inset: 0; z-index: 1000; display: grid; grid-template-columns: repeat(12, 1fr); pointer-events: none; visibility: hidden; }

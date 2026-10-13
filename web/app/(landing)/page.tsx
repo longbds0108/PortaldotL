@@ -428,10 +428,6 @@ export default function LandingPage() {
                   Public confidential bidding for Arc. Any wallet can bid on a public tender; prices stay sealed until the
                   submission deadline.
                 </p>
-                <span className="bb-footer__status bb-ring">
-                  <i className="bb-dot" style={IS_LOCAL_CHAIN ? { marginRight: 0, background: "#e8b54c", boxShadow: "0 0 12px rgba(232,181,76,.7)" } : { marginRight: 0 }} />
-                  Running on {NETWORK_NAME}
-                </span>
               </div>
               <nav className="bb-footer__col" aria-label="Product">
                 <h4>Product</h4>
@@ -477,7 +473,6 @@ export default function LandingPage() {
           </div>
           <div className="bb-footer__bottombar">
             <span>© 2026 Hedgora</span>
-            <span className="bb-footer__warn">Testnet build · tokens have no value</span>
           </div>
         </footer>
       </main>
