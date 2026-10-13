@@ -429,26 +429,13 @@ export default function LandingPage() {
                   submission deadline.
                 </p>
               </div>
+              <div className="bb-footer__nav">
               <nav className="bb-footer__col" aria-label="Product">
                 <h4>Product</h4>
                 <Link href="/marketplace">Marketplace</Link>
                 <Link href="/tenders/new">Create tender</Link>
                 <Link href="/my/bids">My bids</Link>
                 <Link href="/dashboard">Dashboard</Link>
-              </nav>
-              <nav className="bb-footer__col" aria-label="Developers">
-                <h4>Developers</h4>
-                <a href="https://docs.arc.io" target="_blank" rel="noreferrer">
-                  Arc docs ↗
-                </a>
-                <a href="https://developers.circle.com" target="_blank" rel="noreferrer">
-                  Circle docs ↗
-                </a>
-                {blindBidAddress && (
-                  <a href={`${EXPLORER_URL}/address/${blindBidAddress}`} target="_blank" rel="noreferrer">
-                    Contract ↗
-                  </a>
-                )}
               </nav>
               <nav className="bb-footer__col" aria-label="Resources">
                 <h4>Resources</h4>
@@ -463,6 +450,7 @@ export default function LandingPage() {
                 </a>
                 <Link href="/docs">Docs</Link>
               </nav>
+              </div>
             </div>
           </div>
           <div className="bb-footer__wordband">

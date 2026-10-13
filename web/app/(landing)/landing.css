@@ -404,7 +404,9 @@
 /* ───────────── footer ───────────── */
 .bb-footer { position: relative; overflow: hidden; }
 .bb-footer__inner { position: relative; z-index: 2; max-width: 1320px; margin: 0 auto; padding: 90px 30px 30px; }
-.bb-footer__main { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 48px; }
+/* Brand on the left; the two link columns grouped on the right, flush with the wordmark's right edge. */
+.bb-footer__main { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 48px 64px; }
+.bb-footer__nav { display: grid; grid-template-columns: repeat(2, minmax(150px, auto)); gap: 32px 96px; }
 .bb-footer__brand { max-width: 380px; }
 .bb-footer__desc { margin-top: 16px; color: #8d8691; font-size: .9rem; line-height: 1.6; }
 .bb-footer__col h4 { margin: 4px 0 18px; color: #6f6878; font: 600 .7rem var(--mono); letter-spacing: .1em; text-transform: uppercase; }
@@ -473,8 +475,9 @@
   .bb-proto__grid { grid-template-columns: repeat(2, 1fr); }
   .bb-proto__card--feature { grid-column: span 2; }
   .bb-proto__infra { grid-template-columns: 1fr; }
-  .bb-footer__main { grid-template-columns: repeat(3, 1fr); gap: 44px 28px; }
-  .bb-footer__brand { grid-column: 1 / -1; max-width: 560px; }
+  .bb-footer__main { grid-template-columns: 1fr; gap: 44px; }
+  .bb-footer__brand { max-width: 560px; }
+  .bb-footer__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 28px; }
 }
 @media (max-width: 900px) {
   .bb-steps { padding: 88px 20px 100px; }
@@ -516,8 +519,12 @@
   .bb-sec__panel { padding: 26px 20px; border-radius: 24px; }
   .bb-sec__card { padding: 18px; }
   .bb-footer__inner { padding: 64px 20px 30px; }
-  .bb-footer__main { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
-  .bb-footer__bottombar { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .bb-footer__main { gap: 36px; }
+  .bb-footer__nav { gap: 28px 20px; }
+  .bb-footer__bottombar { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px 20px 26px; }
+  /* same 20px gutter as the brand and link columns */
+  .bb-footer__ascii { inset: 0 20px; }
+  .bb-footer__wordmark { left: 20px; right: 20px; }
 }
 @media (max-width: 360px) {
   /* iPhone SE / small Androids: trim spacing so the live stats stay above the fold */
@@ -535,5 +542,5 @@
   .bb-steps__spark::before { top: auto; bottom: 50%; left: 50%; right: auto; width: 2px; height: 130px; transform: translateX(-50%); background: linear-gradient(180deg, transparent, rgba(64,184,255,.85)); }
 }
 @media (max-width: 440px) {
-  .bb-footer__main { grid-template-columns: 1fr; }
+  .bb-footer__nav { gap: 24px 16px; }
 }
