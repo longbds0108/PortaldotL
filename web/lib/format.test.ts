@@ -29,3 +29,12 @@ describe("money formatting", () => {
     expect(formatDuration(-5)).toBe("0s");
   });
 });
+
+describe("wallet balance display", () => {
+  it("rounds down to the cent, never up", async () => {
+    const { formatNativeWeiFloor } = await import("./format");
+    expect(formatNativeWeiFloor(44_929_233_183_968_204_793n)).toBe("$44.92");
+    expect(formatNativeWeiFloor(999_999_999_999_999_999n)).toBe("$0.99");
+    expect(formatNativeWeiFloor(1_234_567n * 10n ** 18n)).toBe("$1,234,567.00");
+  });
+});

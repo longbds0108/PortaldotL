@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TenderState } from "@/lib/contracts";
-import { formatNativeWei } from "@/lib/format";
+import { formatNativeWei, formatNativeWeiFloor } from "@/lib/format";
 import { useMyBidTenderIds, useMyLockedBonds, useMyTenderIds, useTenders, type TenderRow } from "@/lib/hooks";
 import { NETWORK_NAME } from "@/lib/network";
 
@@ -87,7 +87,7 @@ function MySummary() {
   const stats = [
     {
       label: "USDC balance",
-      value: balance.data ? formatNativeWei(balance.data.value) : balance.isError ? "—" : "…",
+      value: balance.data ? formatNativeWeiFloor(balance.data.value) : balance.isError ? "—" : "…",
       href: "/profile",
       hint: balance.isError ? "Balance unavailable" : `Wallet · ${NETWORK_NAME}`,
     },

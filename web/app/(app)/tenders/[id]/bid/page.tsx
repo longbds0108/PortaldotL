@@ -201,7 +201,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
                 id="amount"
                 inputMode="decimal"
                 autoComplete="off"
-                placeholder="7,500.00"
+                placeholder="Your price, in USDC"
                 value={amountInput}
                 onChange={(e) => {
                   setAmountInput(e.target.value);

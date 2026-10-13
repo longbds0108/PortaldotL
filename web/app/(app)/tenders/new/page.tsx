@@ -163,7 +163,7 @@ function CreateTenderForm() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="Enterprise Website Development" {...register("title")} />
+              <Input id="title" placeholder="Tender title" {...register("title")} />
               <FieldError>{errors.title?.message}</FieldError>
             </div>
             <div className="space-y-2">
@@ -188,7 +188,7 @@ function CreateTenderForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="criteria">Evaluation criteria</Label>
-              <Textarea id="criteria" rows={3} placeholder="Price 60%, technical approach 30%, track record 10%" {...register("criteria")} />
+              <Textarea id="criteria" rows={3} placeholder="How bids will be compared" {...register("criteria")} />
             </div>
           </CardContent>
         </Card>
@@ -201,12 +201,12 @@ function CreateTenderForm() {
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="budgetMin">Minimum budget (USDC)</Label>
-              <Input id="budgetMin" inputMode="decimal" placeholder="5,000" {...register("budgetMin")} />
+              <Input id="budgetMin" inputMode="decimal" placeholder="Minimum, in USDC" {...register("budgetMin")} />
               <FieldError>{errors.budgetMin?.message}</FieldError>
             </div>
             <div className="space-y-2">
               <Label htmlFor="budgetMax">Maximum budget (USDC)</Label>
-              <Input id="budgetMax" inputMode="decimal" placeholder="10,000" {...register("budgetMax")} />
+              <Input id="budgetMax" inputMode="decimal" placeholder="Maximum, in USDC" {...register("budgetMax")} />
               <FieldError>{errors.budgetMax?.message}</FieldError>
             </div>
             <div className="space-y-2">
@@ -224,7 +224,7 @@ function CreateTenderForm() {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="bidBond">Bid bond (USDC, optional)</Label>
-              <Input id="bidBond" inputMode="decimal" placeholder="0" {...register("bidBond")} />
+              <Input id="bidBond" inputMode="decimal" placeholder="0 for no bond" {...register("bidBond")} />
               <FieldError>{errors.bidBond?.message}</FieldError>
               <p className="text-xs text-muted-foreground">
                 Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to the Hedgora

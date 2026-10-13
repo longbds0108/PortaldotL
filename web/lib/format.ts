@@ -18,6 +18,12 @@ export function formatUsdc6(amount6: bigint): string {
   return formatUnitsAsUsd(amount6, USDC_DECIMALS);
 }
 
+/** Wallet balances: rounded DOWN to the cent so the UI never shows more than the wallet holds. */
+export function formatNativeWeiFloor(valueWei: bigint): string {
+  const cents = valueWei / 10n ** BigInt(NATIVE_DECIMALS - 2);
+  return `$${(cents / 100n).toLocaleString("en-US")}.${(cents % 100n).toString().padStart(2, "0")}`;
+}
+
 /** native wei → `$1.00` (one USDC line — bonds are shown in the same unit as prices) */
 export function formatNativeWei(valueWei: bigint): string {
   return formatUnitsAsUsd(valueWei, NATIVE_DECIMALS);
