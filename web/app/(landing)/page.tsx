@@ -98,9 +98,8 @@ export default function LandingPage() {
     [curtain, router],
   );
 
-  // Entrance + scroll reveal
+  // Scroll reveal (the hero entrance is CSS-only, see .js-rise)
   useEffect(() => {
-    document.querySelectorAll(".bb-hero .js-rise").forEach((el) => requestAnimationFrame(() => el.classList.add("in")));
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const els = document.querySelectorAll(
       ".bb-life__rail > *, .bb-proto__head, .bb-proto__card, .bb-proto__infra, .bb-steps__head, .bb-step, .bb-sec__left, .bb-sec__card",
