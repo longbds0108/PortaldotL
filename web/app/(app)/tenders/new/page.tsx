@@ -15,14 +15,13 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldError, Input, Label, Select, Textarea } from "@/components/ui/input";
-import { blindBidMarketAbi } from "@/lib/contracts";
+import { MIN_REVEAL_WINDOW_S, blindBidMarketAbi } from "@/lib/contracts";
 import { formatDateTime, formatDuration, isValidAmountInput, parseNativeWei, parseUsdc6 } from "@/lib/format";
 import { describeError, useBlindBidTx, useChainNow } from "@/lib/hooks";
 import { uploadJson } from "@/lib/ipfs";
 import { CATEGORIES, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
 import { loadProfile } from "@/lib/profile";
 
-const MIN_REVEAL_WINDOW = 5 * 60;
 
 const amount = (label: string, decimals = 6) =>
   z.string().refine((v) => isValidAmountInput(v, decimals), `${label}: enter a positive amount (max ${decimals} decimals)`);
@@ -44,9 +43,9 @@ const formSchema = z
     path: ["budgetMax"],
     message: "Maximum must be ≥ minimum",
   })
-  .refine((v) => toUnix(v.revealDeadline) - toUnix(v.submissionDeadline) >= MIN_REVEAL_WINDOW, {
+  .refine((v) => toUnix(v.revealDeadline) - toUnix(v.submissionDeadline) >= MIN_REVEAL_WINDOW_S, {
     path: ["revealDeadline"],
-    message: "Reveal deadline must be at least 5 minutes after the submission deadline",
+    message: "Reveal deadline must be at least 24 hours after the submission deadline",
   });
 type FormValues = z.infer<typeof formSchema>;
 
@@ -228,7 +227,8 @@ function CreateTenderForm() {
               <Input id="bidBond" inputMode="decimal" placeholder="0" {...register("bidBond")} />
               <FieldError>{errors.bidBond?.message}</FieldError>
               <p className="text-xs text-muted-foreground">
-                Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to you.
+                Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to the Hedgora
+                treasury, not to you.
               </p>
             </div>
             <div className="sm:col-span-2">

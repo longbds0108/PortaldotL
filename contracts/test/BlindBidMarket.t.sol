@@ -10,6 +10,7 @@ contract BlindBidMarketTest is Test {
     BlindBidMarket internal market;
 
     address internal buyer = makeAddr("buyer");
+    address internal treasury = makeAddr("treasury");
     address internal alice = makeAddr("alice");
     address internal bob = makeAddr("bob");
     address internal carol = makeAddr("carol");
@@ -23,7 +24,7 @@ contract BlindBidMarketTest is Test {
 
     function setUp() public {
         vm.warp(1_750_000_000);
-        market = new BlindBidMarket();
+        market = new BlindBidMarket(treasury);
         submissionDeadline = uint64(block.timestamp) + SUBMIT_WINDOW;
         revealDeadline = submissionDeadline + REVEAL_WINDOW;
         vm.deal(alice, 100 ether);
@@ -399,7 +400,25 @@ contract BlindBidMarketTest is Test {
 
     // ───────────── bonds ─────────────
 
-    function test_bond_revealedBidderWithdraws_unrevealedForfeitsToBuyer() public {
+    function test_constructor_rejectsZeroTreasury() public {
+        vm.expectRevert(IBlindBidMarket.ZeroTreasury.selector);
+        new BlindBidMarket(address(0));
+        assertEq(market.treasury(), treasury);
+    }
+
+    function test_minRevealWindowIs24h() public view {
+        assertEq(market.MIN_REVEAL_WINDOW(), 24 hours);
+    }
+
+    function test_createTender_rejectsRevealWindowUnder24h() public {
+        vm.prank(buyer);
+        vm.expectRevert(IBlindBidMarket.InvalidDeadlines.selector);
+        market.createTender("m", 1, 2, submissionDeadline, submissionDeadline + 24 hours - 1, BOND);
+        vm.prank(buyer);
+        market.createTender("m", 1, 2, submissionDeadline, submissionDeadline + 24 hours, BOND);
+    }
+
+    function test_bond_revealedBidderWithdraws_unrevealedForfeitsToTreasury() public {
         uint256 id = _create(BOND);
         _bid(id, alice, 7_500e6, "a", "ka");
         _bid(id, bob, 6_900e6, "b", "kb");
@@ -422,28 +441,28 @@ contract BlindBidMarketTest is Test {
         vm.expectRevert(IBlindBidMarket.NothingToWithdraw.selector);
         market.withdrawBond(id);
 
-        // forfeits only claimable after revealDeadline
+        // forfeits only sweepable after revealDeadline
         assertEq(market.forfeitedBonds(id), 0);
-        vm.prank(buyer);
         vm.expectRevert(IBlindBidMarket.NothingToWithdraw.selector);
-        market.claimForfeitedBonds(id);
+        market.sweepForfeitedBonds(id);
 
         vm.warp(revealDeadline);
         assertEq(market.forfeitedBonds(id), 2 * BOND);
 
-        vm.prank(alice);
-        vm.expectRevert(IBlindBidMarket.NotBuyer.selector);
-        market.claimForfeitedBonds(id);
-
+        // anyone may trigger the sweep, but the money always goes to the treasury — never the buyer or caller
+        vm.expectEmit(true, true, false, true);
+        emit IBlindBidMarket.ForfeitedBondsSwept(id, treasury, 2 * BOND);
         vm.prank(buyer);
-        market.claimForfeitedBonds(id);
-        assertEq(buyer.balance, 2 * BOND);
+        market.sweepForfeitedBonds(id);
+        assertEq(treasury.balance, 2 * BOND);
+        assertEq(buyer.balance, 0);
         assertEq(market.forfeitedBonds(id), 0);
+        assertTrue(market.getTender(id).forfeitSwept);
         assertEq(address(market).balance, 0);
 
-        vm.prank(buyer);
+        vm.prank(alice);
         vm.expectRevert(IBlindBidMarket.NothingToWithdraw.selector);
-        market.claimForfeitedBonds(id);
+        market.sweepForfeitedBonds(id);
 
         vm.prank(carol);
         vm.expectRevert(IBlindBidMarket.NothingToWithdraw.selector);
@@ -478,7 +497,8 @@ contract BlindBidMarketTest is Test {
     }
 
     /// @dev Invariant-style fuzz: contract balance always equals outstanding bonds.
-    function testFuzz_bondAccounting(uint8 nBidders, uint8 revealMask, bool claimFirst) public {
+    function testFuzz_bondAccounting(uint8 nBidders, uint8 revealMask, bool sweepFirst, address sweeper) public {
+        vm.assume(sweeper != address(0) && sweeper != treasury);
         nBidders = uint8(bound(nBidders, 1, 8));
         uint256 id = _create(BOND);
         address[] memory bidders = new address[](nBidders);
@@ -496,9 +516,9 @@ contract BlindBidMarketTest is Test {
             }
         }
         vm.warp(revealDeadline);
-        if (claimFirst && revealed < nBidders) {
-            vm.prank(buyer);
-            market.claimForfeitedBonds(id);
+        if (sweepFirst && revealed < nBidders) {
+            vm.prank(sweeper);
+            market.sweepForfeitedBonds(id);
         }
         for (uint256 i = 0; i < nBidders; i++) {
             if ((revealMask >> i) & 1 == 1) {
@@ -506,12 +526,13 @@ contract BlindBidMarketTest is Test {
                 market.withdrawBond(id);
             }
         }
-        if (!claimFirst && revealed < nBidders) {
-            vm.prank(buyer);
-            market.claimForfeitedBonds(id);
+        if (!sweepFirst && revealed < nBidders) {
+            vm.prank(sweeper);
+            market.sweepForfeitedBonds(id);
         }
         assertEq(address(market).balance, 0);
-        assertEq(buyer.balance, BOND * (nBidders - revealed));
+        assertEq(treasury.balance, BOND * (nBidders - revealed));
+        assertEq(buyer.balance, 0);
     }
 }
 

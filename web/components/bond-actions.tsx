@@ -28,7 +28,8 @@ export function WithdrawBondButton({ tenderId, bid, onDone }: { tenderId: bigint
   );
 }
 
-export function ClaimForfeitsButton({ tenderId }: { tenderId: bigint }) {
+/** Forfeited bonds always go to the immutable treasury — never the buyer. Anyone may trigger the transfer. */
+export function SweepForfeitsButton({ tenderId }: { tenderId: bigint }) {
   const tx = useBlindBidTx();
   const { data: amount, refetch } = useReadContract({
     address: blindBidAddress,
@@ -42,17 +43,18 @@ export function ClaimForfeitsButton({ tenderId }: { tenderId: bigint }) {
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted-foreground">
-        Bonds from bids that were not revealed in time are claimable by you: {formatNativeWei(amount)}.
+        {formatNativeWei(amount)} in bonds from bids not revealed in time goes to the Hedgora treasury — not to the buyer.
+        Anyone can send it.
       </p>
       <Button
         variant="outline"
         size="sm"
         disabled={tx.busy}
         onClick={async () => {
-          if (await tx.send("claimForfeitedBonds", [tenderId])) void refetch();
+          if (await tx.send("sweepForfeitedBonds", [tenderId])) void refetch();
         }}
       >
-        Claim forfeited bonds
+        Send forfeited bonds to treasury
       </Button>
       <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
     </div>

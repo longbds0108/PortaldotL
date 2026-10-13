@@ -52,7 +52,7 @@ const PHASES = [
       ["PUBLISHED", "Amount, salt, key"],
       ["CHECKED BY", "The contract"],
     ],
-    foot: "UNREVEALED BIDS ARE EXCLUDED · THEIR OPTIONAL BOND GOES TO THE BUYER",
+    foot: "UNREVEALED BIDS ARE EXCLUDED · THEIR BOND GOES TO THE TREASURY, NOT THE BUYER",
   },
   {
     index: "03",

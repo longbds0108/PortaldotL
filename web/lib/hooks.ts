@@ -136,6 +136,44 @@ export function useMyBidTenderIds() {
   });
 }
 
+/** A tender counts as stalled when it has revealed bids but no award this long after the reveal deadline. */
+export const STALLED_AFTER_S = 7 * 24 * 60 * 60;
+
+export type BuyerHistory = {
+  total: number;
+  awarded: number;
+  active: number; // Open or Reveal
+  awaitingAward: number; // Evaluation, within STALLED_AFTER_S
+  stalled: number; // Evaluation for longer than STALLED_AFTER_S
+  failed: number; // reveal closed with no revealed bid
+  cancelled: number;
+};
+
+/** On-chain track record of a buyer address (all tenders it created on this contract). */
+export function useBuyerHistory(buyer: Address | undefined) {
+  const ids = useReadContract({
+    ...base,
+    functionName: "getBuyerTenders",
+    args: [buyer!],
+    query: { enabled: enabled && !!buyer, refetchInterval: REFRESH_MS },
+  });
+  const { rows, isLoading } = useTenders(ids.data ?? []);
+  const now = useChainNow();
+  const ready = ids.data !== undefined && !isLoading && now !== undefined;
+  const h: BuyerHistory = { total: ids.data?.length ?? 0, awarded: 0, active: 0, awaitingAward: 0, stalled: 0, failed: 0, cancelled: 0 };
+  for (const r of rows) {
+    if (r.state === TenderState.Awarded) h.awarded++;
+    else if (r.state === TenderState.Open || r.state === TenderState.Reveal) h.active++;
+    else if (r.state === TenderState.Failed) h.failed++;
+    else if (r.state === TenderState.Cancelled) h.cancelled++;
+    else if (r.state === TenderState.Evaluation) {
+      if (now !== undefined && now - Number(r.tender.revealDeadline) > STALLED_AFTER_S) h.stalled++;
+      else h.awaitingAward++;
+    }
+  }
+  return { history: ready ? h : undefined, isLoading: !ready };
+}
+
 export function useTenderMetadata(uri: string | undefined) {
   return useQuery({
     queryKey: ["tender-metadata", uri],

@@ -4,7 +4,9 @@ import { ArrowRight, Lock, ShieldCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useAccount } from "wagmi";
-import { ClaimForfeitsButton, WithdrawBondButton } from "@/components/bond-actions";
+import { BidRiskNotice } from "@/components/bid-risk-notice";
+import { SweepForfeitsButton, WithdrawBondButton } from "@/components/bond-actions";
+import { BuyerHistory } from "@/components/buyer-history";
 import { Countdown, TimeNote } from "@/components/countdown";
 import { ExplorerLink } from "@/components/explorer-link";
 import { OnchainTimeline } from "@/components/onchain-timeline";
@@ -156,7 +158,9 @@ function TenderDetail({ row, meta, refetch }: { row: TenderRow; meta?: TenderMet
             </CardContent>
           </Card>
 
+          {state === TenderState.Open && !isBuyer && <BidRiskNotice tender={tender} />}
           <Actions row={row} isBuyer={isBuyer} myBid={myBid} onChange={() => { refetch(); void bids.refetch(); }} />
+          <BuyerHistory buyer={tender.buyer} />
         </div>
       </div>
     </div>
@@ -253,7 +257,7 @@ function Actions({
         {state === TenderState.Cancelled && <p className="text-sm text-muted-foreground">This tender was cancelled by the buyer.</p>}
 
         {myBid && <WithdrawBondButton tenderId={id} bid={myBid} onDone={onChange} />}
-        {isBuyer && <ClaimForfeitsButton tenderId={id} />}
+        {isConnected && <SweepForfeitsButton tenderId={id} />}
         {!isConnected && <p className="text-xs text-muted-foreground">Connect a wallet to bid or manage this tender.</p>}
       </CardContent>
     </Card>

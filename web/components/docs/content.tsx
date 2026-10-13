@@ -104,7 +104,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         </P>
         <Callout label="Trade-off" tone="amber">
           A bidder can choose not to reveal. That bid is excluded, and if the tender requires a bid bond, the bond goes to
-          the buyer. See <Link className="text-[#8fb4ff] hover:underline" href="/docs/reveal-bonds">Revealing &amp; bonds</Link>.
+          the Hedgora treasury — never to the buyer, so a buyer gains nothing when bidders miss the reveal window. See <Link className="text-[#8fb4ff] hover:underline" href="/docs/reveal-bonds">Revealing &amp; bonds</Link>.
         </Callout>
       </>
     ),
@@ -127,7 +127,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             ["Evaluation criteria", "IPFS metadata", "Shown to bidders and on the evaluation page."],
             ["Budget min / max", "On-chain", "USDC, 6 decimals. Public. Minimum must not exceed maximum."],
             ["Submission deadline", "On-chain", "Must be in the future."],
-            ["Reveal deadline", "On-chain", "At least 5 minutes after the submission deadline."],
+            ["Reveal deadline", "On-chain", "At least 24 hours after the submission deadline."],
             ["Bid bond", "On-chain", "Optional, native USDC. Every bidder must send exactly this amount."],
           ]}
         />
@@ -177,8 +177,9 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         </P>
         <H3>Forfeited bonds</H3>
         <P>
-          After the reveal deadline, bonds of bids that were not revealed can be claimed by the buyer with{" "}
-          <B>Claim forfeited bonds</B> on the tender page (once).
+          Bonds of bids that were not revealed do <B>not</B> go to you. After the reveal deadline anyone can press{" "}
+          <B>Send forfeited bonds to treasury</B> on the tender page, and the contract sends them to the fixed Hedgora
+          treasury.
         </P>
       </>
     ),
@@ -223,7 +224,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
           keep the <B>new</B> backup file — the old one will no longer match.
         </P>
         <Callout label="Losing the backup" tone="red">
-          Without the amount, salt and key you cannot reveal. The bid is then excluded and any bond goes to the buyer.
+          Without the amount, salt and key you cannot reveal. The bid is then excluded and any bond goes to the treasury.
         </Callout>
       </>
     ),
@@ -250,7 +251,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
           head={["Outcome", "What happens to the bond"]}
           rows={[
             ["You revealed", "Withdraw it any time after revealing (Withdraw bond)."],
-            ["You did not reveal in time", "It is forfeited: the buyer can claim it after the reveal deadline."],
+            ["You did not reveal in time", "It is forfeited to the Hedgora treasury (never to the buyer) after the reveal deadline."],
             ["Tender has no bond", "Nothing to withdraw."],
           ]}
         />
@@ -276,7 +277,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             ["Open", "Before the submission deadline", "Submit or update bids. Buyer may cancel if there are no bids."],
             ["Reveal", "From the submission deadline until the reveal deadline", "Bidders reveal. No new bids."],
             ["Evaluation", "After the reveal deadline, at least one revealed bid", "Buyer awards a revealed bidder."],
-            ["Failed", "After the reveal deadline, no revealed bid", "None. Forfeited bonds can be claimed."],
+            ["Failed", "After the reveal deadline, no revealed bid", "None. Forfeited bonds can be sent to the treasury."],
             ["Awarded", "Buyer awarded", "Results and reasons are public permanently."],
             ["Cancelled", "Buyer cancelled while Open with no bids", "None."],
           ]}
@@ -365,6 +366,8 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             ["Address", contractLink],
             ["Network", NETWORK_NAME],
             ["Language", "Solidity 0.8.30, OpenZeppelin ReentrancyGuard"],
+            ["Minimum reveal window", "24 hours"],
+            ["Treasury", "Receives forfeited bonds; fixed at deployment, cannot be changed"],
           ]}
         />
         <H3>Functions</H3>
@@ -378,14 +381,14 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             [<Code key="5">revealBid</Code>, "Bidder", "Open the bid during the reveal window."],
             [<Code key="6">award</Code>, "Buyer", "Pick a revealed winner with a reason link."],
             [<Code key="7">withdrawBond</Code>, "Bidder", "Withdraw the bond after revealing."],
-            [<Code key="8">claimForfeitedBonds</Code>, "Buyer", "Claim bonds of unrevealed bids."],
+            [<Code key="8">sweepForfeitedBonds</Code>, "Anyone", "Send bonds of unrevealed bids to the treasury."],
           ]}
         />
         <H3>Events</H3>
         <P>
           <Code>TenderCreated</Code>, <Code>BidSubmitted</Code>, <Code>BidUpdated</Code>, <Code>BidRevealed</Code>,{" "}
           <Code>TenderAwarded</Code>, <Code>TenderCancelled</Code>, <Code>BondWithdrawn</Code>,{" "}
-          <Code>ForfeitedBondsClaimed</Code>. Bid events carry the commitment, never the amount.
+          <Code>ForfeitedBondsSwept</Code>. Bid events carry the commitment, never the amount.
         </P>
       </>
     ),
@@ -401,7 +404,14 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         <H3>I lost my backup file. What now?</H3>
         <P>
           If this browser still has the copy, you can reveal from My Bids and export it again in Profile &amp; Settings.
-          Otherwise the bid cannot be revealed: it is excluded and any bond goes to the buyer.
+          Otherwise the bid cannot be revealed: it is excluded and any bond goes to the treasury.
+        </P>
+        <H3>What if a tender is fake and the buyer wants my money?</H3>
+        <P>
+          The buyer cannot take a revealed bidder&apos;s bond, cannot stop you withdrawing it, cannot change deadlines and
+          cannot cancel once bids exist. Bonds of bids that are not revealed go to the Hedgora treasury, never to the
+          buyer, and every reveal window lasts at least 24 hours. Before bidding, check the warnings and the buyer&apos;s
+          on-chain history on the tender page. Remember that revealed proposals become public.
         </P>
         <H3>Can I change my bid?</H3>
         <P>Yes, while the tender is Open. Keep the new backup file.</P>

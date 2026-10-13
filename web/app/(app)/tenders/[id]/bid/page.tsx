@@ -6,6 +6,8 @@ import { useRef, useState } from "react";
 import type { Hex } from "viem";
 import { useAccount } from "wagmi";
 import { Countdown, TimeNote } from "@/components/countdown";
+import { BidRiskNotice } from "@/components/bid-risk-notice";
+import { BuyerHistory } from "@/components/buyer-history";
 import { WalletGate } from "@/components/gates";
 import { PageHeader } from "@/components/page-header";
 import { TenderShell } from "@/components/tender-shell";
@@ -184,6 +186,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className="space-y-6">
+        <BidRiskNotice tender={tender} />
         {isUpdate && (
           <Alert variant="info">
             <Lock />
@@ -252,7 +255,8 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
         <Step n={3} title={isUpdate ? "Replace sealed bid" : "Submit sealed bid"} done={false} active={backedUp}>
           <label className="mb-4 flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" checked={acknowledged} disabled={!backedUp} onChange={(e) => setAcknowledged(e.target.checked)} />
-            I stored the backup file somewhere safe and understand I must reveal between the submission and reveal deadlines.
+            I read the reveal window and bond rules above, stored the backup file somewhere safe, and understand I must
+            reveal between the submission and reveal deadlines.
           </label>
           <Button size="lg" disabled={!backedUp || !acknowledged || tx.busy} onClick={submit}>
             {tx.busy && <Loader2 className="animate-spin" />}
@@ -283,6 +287,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
             buyer, can read your price until you reveal it.
           </span>
         </Alert>
+        <BuyerHistory buyer={tender.buyer} />
       </div>
     </div>
   );

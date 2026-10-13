@@ -21,11 +21,12 @@ After any contract change: `cd web && pnpm sync-abi`.
 
 ### Deployments
 
-| Network | BlindBidMarket | Deploy block | Source |
+| Network | BlindBidMarket | Deploy block | Notes |
 |---|---|---|---|
-| Arc Testnet (5042002) | [`0xb240ac942940d5695c6d280916a9c3bb6d31ff64`](https://explorer.testnet.arc.io/address/0xb240ac942940d5695c6d280916a9c3bb6d31ff64) | 66823410 | verified (Blockscout) |
+| Arc Testnet (5042002) | [`0x463014405b9f3Ea3d3B3aFd0deB68273a3E213B8`](https://explorer.testnet.arc.io/address/0x463014405b9f3Ea3d3B3aFd0deB68273a3E213B8) | 66934548 | **current** · verified · treasury `0xF9642B695D4DDf58599c953a791F94c2e96b6a57` · 24h min reveal window · seeded (ids 0–2) |
+| Arc Testnet (5042002) | [`0xb240ac942940d5695c6d280916a9c3bb6d31ff64`](https://explorer.testnet.arc.io/address/0xb240ac942940d5695c6d280916a9c3bb6d31ff64) | 66823410 | superseded (forfeited bonds went to the buyer, 5 min reveal window) |
 
-Seeded with the 3 demo tenders from `script/Seed.s.sol` (ids 0–2).
+Forfeited bonds go to the treasury set at deployment (`TREASURY_ADDRESS`, defaults to the deployer) and can never be redirected.
 
 ## Web (`web/`)
 
@@ -50,8 +51,8 @@ E2E: see [web/e2e/README.md](web/e2e/README.md).
 
    | Name | Value |
    |---|---|
-   | `NEXT_PUBLIC_BLINDBID_ADDRESS` | `0xb240ac942940d5695c6d280916a9c3bb6d31ff64` |
-   | `NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK` | `66823410` |
+   | `NEXT_PUBLIC_BLINDBID_ADDRESS` | `0x463014405b9f3Ea3d3B3aFd0deB68273a3E213B8` |
+   | `NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK` | `66934548` |
    | `NEXT_PUBLIC_ARC_RPC_URL` | `https://rpc.testnet.arc.io` |
    | `NEXT_PUBLIC_EXPLORER_URL` | `https://explorer.testnet.arc.io` |
    | `NEXT_PUBLIC_IPFS_GATEWAY` | `https://gateway.pinata.cloud/ipfs/` |

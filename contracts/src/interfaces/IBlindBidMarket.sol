@@ -28,7 +28,7 @@ interface IBlindBidMarket {
         uint32 revealedCount;
         bool cancelled;
         bool awarded;
-        bool forfeitClaimed;
+        bool forfeitSwept; // forfeited bonds already sent to the treasury
         uint256 budgetMin; // 6 decimals
         uint256 budgetMax; // 6 decimals
         uint256 bidBond; // wei (18 decimals)
@@ -67,7 +67,7 @@ interface IBlindBidMarket {
     event TenderAwarded(uint256 indexed tenderId, address indexed winner, uint256 amount, string reasonURI);
     event TenderCancelled(uint256 indexed tenderId);
     event BondWithdrawn(uint256 indexed tenderId, address indexed bidder, uint256 bondWei);
-    event ForfeitedBondsClaimed(uint256 indexed tenderId, address indexed buyer, uint256 bondWei);
+    event ForfeitedBondsSwept(uint256 indexed tenderId, address indexed treasury, uint256 bondWei);
 
     // ───────────── errors ─────────────
     error TenderNotFound();
@@ -88,6 +88,7 @@ interface IBlindBidMarket {
     error HasBids();
     error NothingToWithdraw();
     error TransferFailed();
+    error ZeroTreasury();
 
     // ───────────── buyer ─────────────
     function createTender(
@@ -101,13 +102,16 @@ interface IBlindBidMarket {
 
     function award(uint256 tenderId, address winner, string calldata reasonURI) external;
     function cancel(uint256 tenderId) external;
-    function claimForfeitedBonds(uint256 tenderId) external;
 
     // ───────────── bidder ─────────────
     function submitBid(uint256 tenderId, bytes32 commitment, string calldata encryptedDocURI) external payable;
     function updateBid(uint256 tenderId, bytes32 commitment, string calldata encryptedDocURI) external;
     function revealBid(uint256 tenderId, uint256 amount, bytes32 salt, bytes32 docKey) external;
     function withdrawBond(uint256 tenderId) external;
+
+    // ───────────── anyone ─────────────
+    /// @notice Sends bonds of bids not revealed by the deadline to the treasury (never to the buyer).
+    function sweepForfeitedBonds(uint256 tenderId) external;
 
     // ───────────── views ─────────────
     function tenderCount() external view returns (uint256);
@@ -118,4 +122,5 @@ interface IBlindBidMarket {
     function getBuyerTenders(address buyer) external view returns (uint256[] memory);
     function getBidderTenders(address bidder) external view returns (uint256[] memory);
     function forfeitedBonds(uint256 tenderId) external view returns (uint256);
+    function treasury() external view returns (address);
 }

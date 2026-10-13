@@ -5,6 +5,9 @@ import { BLINDBID_ADDRESS } from "./env";
 export { blindBidMarketAbi };
 export const blindBidAddress = BLINDBID_ADDRESS;
 
+/** Contract rule: reveal window must last at least this long (BlindBidMarket.MIN_REVEAL_WINDOW). */
+export const MIN_REVEAL_WINDOW_S = 24 * 60 * 60;
+
 /** Mirrors IBlindBidMarket.TenderState (enum order matters). */
 export enum TenderState {
   Open = 0,
@@ -40,7 +43,7 @@ export type Tender = {
   revealedCount: number;
   cancelled: boolean;
   awarded: boolean;
-  forfeitClaimed: boolean;
+  forfeitSwept: boolean;
   budgetMin: bigint;
   budgetMax: bigint;
   bidBond: bigint;
@@ -66,7 +69,7 @@ export type Bid = {
 export const ERROR_TEXT: Record<string, string> = {
   TenderNotFound: "This tender does not exist.",
   InvalidState: "This action is not allowed in the tender's current phase.",
-  InvalidDeadlines: "Deadlines are invalid: submission must be in the future and the reveal window at least 5 minutes.",
+  InvalidDeadlines: "Deadlines are invalid: submission must be in the future and the reveal window at least 24 hours.",
   InvalidBudget: "Minimum budget must not exceed maximum budget.",
   EmptyURI: "Missing document reference.",
   NotBuyer: "Only the tender's buyer can do this.",
@@ -82,4 +85,5 @@ export const ERROR_TEXT: Record<string, string> = {
   HasBids: "A tender with bids can no longer be cancelled.",
   NothingToWithdraw: "Nothing to withdraw.",
   TransferFailed: "USDC transfer failed (the address may be blocklisted).",
+  ZeroTreasury: "Treasury address is not set.",
 };

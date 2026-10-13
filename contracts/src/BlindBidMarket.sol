@@ -12,16 +12,25 @@ import {CommitmentLib} from "./CommitmentLib.sol";
 ///      prices (`amount`) are USDC 6 decimals. Arc timestamps are non-decreasing with 1s granularity,
 ///      which is all the phase logic relies on.
 ///      Bond rule: a revealed bidder withdraws their bond; bonds of bids not revealed by
-///      `revealDeadline` are forfeited to the buyer (`claimForfeitedBonds`).
+///      `revealDeadline` are forfeited to a fixed treasury (`sweepForfeitedBonds`, callable by anyone).
+///      They never go to the buyer, so a buyer gains nothing when bidders miss the reveal window.
 contract BlindBidMarket is IBlindBidMarket, ReentrancyGuard {
-    /// @notice Minimum reveal window so bidders always get a fair chance to reveal.
-    uint64 public constant MIN_REVEAL_WINDOW = 5 minutes;
+    /// @notice Minimum reveal window (24h) so a buyer cannot trap bidders with a tiny window.
+    uint64 public constant MIN_REVEAL_WINDOW = 24 hours;
+
+    /// @notice Receives forfeited bonds. Fixed at deployment; nobody can change it.
+    address public immutable treasury;
 
     Tender[] private _tenders;
     mapping(uint256 tenderId => mapping(address bidder => Bid)) private _bids;
     mapping(uint256 tenderId => address[]) private _bidders;
     mapping(address buyer => uint256[]) private _buyerTenders;
     mapping(address bidder => uint256[]) private _bidderTenders;
+
+    constructor(address treasury_) {
+        if (treasury_ == address(0)) revert ZeroTreasury();
+        treasury = treasury_;
+    }
 
     modifier exists(uint256 tenderId) {
         if (tenderId >= _tenders.length) revert TenderNotFound();
@@ -102,12 +111,14 @@ contract BlindBidMarket is IBlindBidMarket, ReentrancyGuard {
         emit TenderCancelled(tenderId);
     }
 
-    function claimForfeitedBonds(uint256 tenderId) external nonReentrant exists(tenderId) onlyBuyer(tenderId) {
+    // ───────────────────────────── anyone ─────────────────────────────
+
+    function sweepForfeitedBonds(uint256 tenderId) external nonReentrant exists(tenderId) {
         uint256 total = forfeitedBonds(tenderId);
         if (total == 0) revert NothingToWithdraw();
-        _tenders[tenderId].forfeitClaimed = true;
-        emit ForfeitedBondsClaimed(tenderId, msg.sender, total);
-        _send(msg.sender, total);
+        _tenders[tenderId].forfeitSwept = true;
+        emit ForfeitedBondsSwept(tenderId, treasury, total);
+        _send(treasury, total);
     }
 
     // ───────────────────────────── bidder ─────────────────────────────
@@ -217,10 +228,10 @@ contract BlindBidMarket is IBlindBidMarket, ReentrancyGuard {
         return _bidderTenders[bidder];
     }
 
-    /// @notice Bonds of unrevealed bids claimable by the buyer; 0 before revealDeadline or once claimed.
+    /// @notice Bonds of unrevealed bids waiting to be swept to the treasury; 0 before revealDeadline or once swept.
     function forfeitedBonds(uint256 tenderId) public view exists(tenderId) returns (uint256) {
         Tender storage t = _tenders[tenderId];
-        if (block.timestamp < t.revealDeadline || t.forfeitClaimed) return 0;
+        if (block.timestamp < t.revealDeadline || t.forfeitSwept) return 0;
         return t.bidBond * (t.bidCount - t.revealedCount);
     }
 
@@ -235,7 +246,7 @@ contract BlindBidMarket is IBlindBidMarket, ReentrancyGuard {
     }
 
     /// @dev Pull-payment only, never in a loop. Arc reverts value transfers to address(0)/blocklisted
-    ///      accounts; msg.sender is never address(0), and a blocklisted recipient simply cannot withdraw.
+    ///      accounts; recipients are msg.sender or the non-zero treasury, and a blocklisted one simply cannot receive.
     function _send(address to, uint256 value) private {
         (bool ok,) = to.call{value: value}("");
         if (!ok) revert TransferFailed();

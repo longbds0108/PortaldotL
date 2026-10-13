@@ -51,7 +51,7 @@ contract Seed is Script {
             3_000e6,
             6_000e6,
             nowTs + 1 days,
-            nowTs + 1 days + 2 hours,
+            nowTs + 2 days, // reveal window >= 24h (MIN_REVEAL_WINDOW)
             0
         );
         vm.stopBroadcast();
