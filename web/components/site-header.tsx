@@ -18,10 +18,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AccountMenu } from "@/components/account-panel";
+import { NetworkChip } from "@/components/network-chip";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemePicker } from "@/components/theme-picker";
 import { cn } from "@/lib/utils";
-import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
 import { useAppliedTheme } from "@/lib/preferences";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 
@@ -86,8 +86,8 @@ export function SiteHeader() {
     <header className="sticky top-2 z-40 mx-2.5 mt-2 sm:top-3.5 sm:mx-6 sm:mt-3.5">
       <div className="flex h-14 items-center gap-3 rounded-[15px] border border-overlay/[0.055] bg-[var(--header)] px-3 shadow-[0_16px_45px_var(--surface-shadow)] backdrop-blur-[16px] sm:h-[62px] sm:px-5">
         <Brand />
-        <span className={`eyebrow hidden md:inline ${IS_LOCAL_CHAIN ? "!text-warning" : ""}`}>{NETWORK_NAME}</span>
         <div className="ml-auto flex items-center gap-2">
+          <NetworkChip />
           <AccountMenu />
           <button
             className="grid size-10 place-items-center rounded-full hover:bg-overlay/5 lg:hidden"
