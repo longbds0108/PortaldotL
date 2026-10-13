@@ -6,7 +6,8 @@ import { PageHeader } from "@/components/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { SelectMenu } from "@/components/ui/select";
 import { shortAddress } from "@/lib/format";
 import { CATEGORIES } from "@/lib/metadata";
 import { loadProfile, saveProfile, type Profile } from "@/lib/profile";
@@ -48,12 +49,12 @@ function ProfileCard() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="cat">Main category</Label>
-            <Select id="cat" value={p.category} onChange={(e) => setP({ ...p, category: e.target.value as Profile["category"] })}>
-              <option value="">—</option>
-              {CATEGORIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </Select>
+            <SelectMenu
+              id="cat"
+              value={p.category || "none"}
+              onValueChange={(v) => setP({ ...p, category: (v === "none" ? "" : v) as Profile["category"] })}
+              options={[{ value: "none", label: "Not set" }, ...CATEGORIES.map((c) => ({ value: c, label: c }))]}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="web">Website</Label>

@@ -29,19 +29,6 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTML
 );
 Textarea.displayName = "Textarea";
 
-export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, ...props }, ref) => (
-    <select
-      ref={ref}
-      className={cn(
-        "flex h-11 w-full cursor-pointer rounded-full border border-[rgba(255,255,255,.1)] bg-[#211c26] px-4 text-[0.8rem] text-[#f1eef5] focus-visible:border-[rgba(131,170,255,.55)] focus-visible:outline-none [color-scheme:dark]",
-        className,
-      )}
-      {...props}
-    />
-  ),
-);
-Select.displayName = "Select";
 
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return <label className={cn("text-[0.78rem] font-medium leading-none text-[#e0dce5]", className)} {...props} />;

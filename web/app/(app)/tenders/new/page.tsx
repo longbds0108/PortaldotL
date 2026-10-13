@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Info, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { parseEventLogs } from "viem";
 import { z } from "zod";
 import { TimeNote } from "@/components/countdown";
@@ -14,7 +14,8 @@ import { TxStatus } from "@/components/tx-status";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FieldError, Input, Label, Select, Textarea } from "@/components/ui/input";
+import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
+import { SelectMenu } from "@/components/ui/select";
 import { MIN_REVEAL_WINDOW_S, blindBidMarketAbi } from "@/lib/contracts";
 import { formatDateTime, formatDuration, isValidAmountInput, parseNativeWei, parseUsdc6 } from "@/lib/format";
 import { describeError, useBlindBidTx, useChainNow } from "@/lib/hooks";
@@ -168,11 +169,18 @@ function CreateTenderForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select id="category" {...register("category")}>
-                {CATEGORIES.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </Select>
+              <Controller
+                name="category"
+                control={form.control}
+                render={({ field }) => (
+                  <SelectMenu
+                    id="category"
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                  />
+                )}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Scope of work</Label>

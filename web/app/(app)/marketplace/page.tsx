@@ -9,7 +9,8 @@ import { ConfigGate } from "@/components/gates";
 import { PageHeader } from "@/components/page-header";
 import { TenderCard } from "@/components/tender-card";
 import { Button } from "@/components/ui/button";
-import { Input, Select } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { SelectMenu } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { STATE_LABEL, TenderState } from "@/lib/contracts";
 import { useTenders } from "@/lib/hooks";
@@ -100,18 +101,18 @@ export default function MarketplacePage() {
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Search tenders" value={query} onChange={(e) => setQuery(e.target.value)} className="rounded-full pl-9" />
           </div>
-          <Select aria-label="State" value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}>
-            {STATE_FILTERS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </Select>
-          <Select aria-label="Sort" value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-            <option value="deadline">Deadline soonest</option>
-            <option value="newest">Newest</option>
-            <option value="bids">Most bids</option>
-          </Select>
+          <SelectMenu ariaLabel="State" value={stateFilter} onValueChange={setStateFilter} options={STATE_FILTERS} className="sm:w-56" />
+          <SelectMenu
+            ariaLabel="Sort"
+            value={sort}
+            onValueChange={(v) => setSort(v as SortKey)}
+            options={[
+              { value: "deadline", label: "Deadline soonest" },
+              { value: "newest", label: "Newest" },
+              { value: "bids", label: "Most bids" },
+            ]}
+            className="sm:w-48"
+          />
         </div>
 
         {error ? (
