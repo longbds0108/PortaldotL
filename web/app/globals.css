@@ -169,6 +169,12 @@
   }
 }
 
+/* Dashboard charts: hatched fill marks figures that are still sealed / in progress */
+.hatch {
+  background-color: color-mix(in srgb, var(--hatch, #e8e3d5) 14%, transparent);
+  background-image: repeating-linear-gradient(135deg, var(--hatch, #e8e3d5) 0 2.5px, transparent 2.5px 7px);
+}
+
 /* Dropdown menu (components/ui/select.tsx): soft fade + scale from the trigger */
 .select-content { transform-origin: var(--radix-select-content-transform-origin); }
 .select-content[data-state="open"] { animation: select-in 160ms cubic-bezier(.22, 1, .36, 1); }

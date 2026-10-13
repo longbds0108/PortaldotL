@@ -237,10 +237,12 @@ export function useMyLockedBonds(rows: TenderRow[]) {
   });
   let lockedWei = 0n;
   let count = 0;
+  const bids = new Map<bigint, Bid>();
   rows.forEach((r, i) => {
     const out = res.data?.[i];
     if (out?.status !== "success") return;
     const bid = out.result as Bid;
+    bids.set(r.id, bid);
     const revealClosed = r.state !== TenderState.Open && r.state !== TenderState.Reveal;
     const forfeited = revealClosed && !bid.revealed;
     if (bid.bond > 0n && !bid.bondWithdrawn && !forfeited) {
@@ -248,7 +250,7 @@ export function useMyLockedBonds(rows: TenderRow[]) {
       count += 1;
     }
   });
-  return { lockedWei, count, isLoading: res.isLoading };
+  return { lockedWei, count, bids, isLoading: res.isLoading };
 }
 
 // ───────────────────────── writes ─────────────────────────
