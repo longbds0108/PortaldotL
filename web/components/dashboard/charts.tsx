@@ -70,12 +70,12 @@ export function MeterRow({ label, count, total, color }: { label: string; count:
   return (
     <div className="grid gap-1.5">
       <div className="flex items-baseline justify-between gap-2 text-[0.76rem]">
-        <span className="text-[#d6d1d9]">{label}</span>
+        <span className="text-foreground-soft">{label}</span>
         <span className="tabular-nums text-muted-foreground">
-          <b className="font-medium text-[#f1eef5]">{count}</b> ({p}%)
+          <b className="font-medium text-foreground">{count}</b> ({p}%)
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-1.5 overflow-hidden rounded-full bg-overlay/[0.06]">
         <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${p}%`, background: color }} />
       </div>
     </div>
@@ -86,7 +86,7 @@ export function MeterRow({ label, count, total, color }: { label: string; count:
 export function StackBar({ parts }: { parts: { phase: PhaseKey; count: number }[] }) {
   const total = parts.reduce((s, p) => s + p.count, 0);
   return (
-    <div className="flex h-2 gap-[3px] overflow-hidden rounded-full bg-white/[0.06]">
+    <div className="flex h-2 gap-[3px] overflow-hidden rounded-full bg-overlay/[0.06]">
       {total > 0 &&
         parts
           .filter((p) => p.count > 0)
@@ -135,7 +135,7 @@ export function BidColumns({ columns }: { columns: BidColumn[] }) {
             >
               <span
                 className={cn(
-                  "rounded-full border border-white/10 bg-[#1d1922] px-2 py-0.5 text-[0.62rem] tabular-nums text-[#f1eef5] transition-opacity",
+                  "rounded-full border border-overlay/10 bg-muted px-2 py-0.5 text-[0.62rem] tabular-nums text-foreground transition-opacity",
                   i === shown ? "opacity-100" : "opacity-0",
                 )}
               >
@@ -143,19 +143,19 @@ export function BidColumns({ columns }: { columns: BidColumn[] }) {
               </span>
               <span className="relative flex w-full flex-1 items-end">
                 {h === 0 ? (
-                  <span className="h-2 w-full rounded-full bg-white/[0.07]" />
+                  <span className="h-2 w-full rounded-full bg-overlay/[0.07]" />
                 ) : (
                   <span
                     className={cn(
                       "w-full rounded-full transition-[height,filter] duration-700 group-hover:brightness-110",
                       fill.className,
-                      i === shown && "shadow-[0_0_0_2px_rgba(255,255,255,.14)]",
+                      i === shown && "shadow-[0_0_0_2px_color-mix(in_srgb,var(--overlay)_14%,transparent)]",
                     )}
                     style={{ ...fill.style, height: `${h}%` }}
                   />
                 )}
               </span>
-              <span className={cn("text-[0.66rem] tabular-nums", i === shown ? "text-[#f1eef5]" : "text-muted-foreground")}>#{c.id.toString()}</span>
+              <span className={cn("text-[0.66rem] tabular-nums", i === shown ? "text-foreground" : "text-muted-foreground")}>#{c.id.toString()}</span>
             </Link>
           );
         })}
@@ -163,7 +163,7 @@ export function BidColumns({ columns }: { columns: BidColumn[] }) {
       {a && (
         <p className="well flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full px-4 py-2 text-[0.72rem] text-muted-foreground">
           <Swatch phase={a.phase} />
-          <span className="max-w-[16rem] truncate text-[#f1eef5]">{a.title ?? `Tender #${a.id}`}</span>
+          <span className="max-w-[16rem] truncate text-foreground">{a.title ?? `Tender #${a.id}`}</span>
           <span>·</span>
           <span className="tabular-nums">
             {a.bids} bid{a.bids === 1 ? "" : "s"} sealed · {a.revealed} revealed
@@ -205,7 +205,7 @@ export function Gauge({
               </pattern>
             ))}
         </defs>
-        <path d="M 22 100 A 78 78 0 0 1 178 100" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="24" pathLength={100} />
+        <path d="M 22 100 A 78 78 0 0 1 178 100" fill="none" stroke="var(--overlay)" strokeOpacity=".06" strokeWidth="24" pathLength={100} />
         {total > 0 &&
           visible.map((s) => {
             const len = (s.count / total) * 100;

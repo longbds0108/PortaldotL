@@ -9,7 +9,7 @@ export function ExplorerLink({ type, value, label }: { type: "tx" | "address" | 
       href={`${EXPLORER_URL}/${type}/${value}`}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 font-mono text-xs text-[#c3d6ff] hover:text-white hover:underline"
+      className="inline-flex items-center gap-1 font-mono text-xs text-link hover:text-white hover:underline"
     >
       {text}
       <ExternalLink className="size-3" />

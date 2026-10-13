@@ -1,6 +1,5 @@
 "use client";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   FilePlus2,
   FolderKanban,
@@ -18,9 +17,12 @@ import { AnimatePresence, LayoutGroup, motion, type Transition } from "motion/re
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AccountMenu } from "@/components/account-panel";
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemePicker } from "@/components/theme-picker";
 import { cn } from "@/lib/utils";
 import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
+import { useAppliedTheme } from "@/lib/preferences";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 
 const NAV: { href: string; label: string; icon: LucideIcon }[] = [
@@ -30,6 +32,27 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
   { href: "/my/bids", label: "My Bids", icon: Gavel },
   { href: "/profile", label: "Profile & Settings", icon: UserCog },
+];
+
+/** Brand glyphs (lucide has no brand icons). Filled, drawn in currentColor. */
+function XIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+function TelegramIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+    </svg>
+  );
+}
+
+const SOCIAL: { href: string; label: string; icon: (p: React.SVGProps<SVGSVGElement>) => React.ReactElement }[] = [
+  { href: "https://x.com/Longlhu2Huu", label: "X", icon: XIcon },
+  { href: "https://t.me/lebry123", label: "Telegram", icon: TelegramIcon },
 ];
 
 /** Shared motion spec for the sidebar (stiffness 260 / damping 28 ≈ 350–450 ms settle). */
@@ -46,9 +69,10 @@ function useIsActive() {
 }
 
 function Brand() {
+  const theme = useAppliedTheme();
   return (
     <Link href="/" className="flex min-h-10 items-center" aria-label="Hedgora home">
-      <BrandLogo priority className="h-7 sm:h-8" />
+      <BrandLogo priority onLight={theme === "light"} className="h-7 sm:h-8" />
     </Link>
   );
 }
@@ -60,13 +84,13 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-2 z-40 mx-2.5 mt-2 sm:top-3.5 sm:mx-6 sm:mt-3.5">
-      <div className="flex h-14 items-center gap-3 rounded-[15px] border border-white/[0.055] bg-[rgba(23,20,27,.9)] px-3 shadow-[0_16px_45px_rgba(0,0,0,.2)] backdrop-blur-[16px] sm:h-[62px] sm:px-5">
+      <div className="flex h-14 items-center gap-3 rounded-[15px] border border-overlay/[0.055] bg-[var(--header)] px-3 shadow-[0_16px_45px_var(--surface-shadow)] backdrop-blur-[16px] sm:h-[62px] sm:px-5">
         <Brand />
         <span className={`eyebrow hidden md:inline ${IS_LOCAL_CHAIN ? "!text-warning" : ""}`}>{NETWORK_NAME}</span>
         <div className="ml-auto flex items-center gap-2">
-          <ConnectButton chainStatus="icon" accountStatus={{ smallScreen: "avatar", largeScreen: "full" }} showBalance={{ smallScreen: false, largeScreen: true }} />
+          <AccountMenu />
           <button
-            className="grid size-10 place-items-center rounded-full hover:bg-white/5 lg:hidden"
+            className="grid size-10 place-items-center rounded-full hover:bg-overlay/5 lg:hidden"
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls="mobile-nav"
@@ -85,13 +109,21 @@ export function SiteHeader() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={SPRING}
-            className="mt-2 overflow-hidden rounded-[15px] border border-white/[0.055] bg-[rgba(23,20,27,.97)] shadow-[0_16px_45px_rgba(0,0,0,.35)] backdrop-blur-[16px] lg:hidden"
+            className="mt-2 overflow-hidden rounded-[15px] border border-overlay/[0.055] bg-[var(--header-solid)] shadow-[0_16px_45px_var(--popover-shadow)] backdrop-blur-[16px] lg:hidden"
           >
             <LayoutGroup id="mobile-nav">
               <div className="grid gap-1 p-2">
                 {NAV.map((n) => (
                   <NavItem key={n.href} item={n} active={isActive(n.href)} collapsed={false} onClick={() => setOpen(false)} />
                 ))}
+              </div>
+              <div className="flex gap-1.5 border-t border-overlay/[0.055] px-3.5 py-2">
+                {SOCIAL.map((s) => (
+                  <SocialItem key={s.href} item={s} />
+                ))}
+              </div>
+              <div className="border-t border-overlay/[0.055] p-2">
+                <ThemePicker />
               </div>
             </LayoutGroup>
           </motion.nav>
@@ -127,7 +159,7 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
       initial={false}
       animate={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
       transition={transition}
-      className="sticky top-[90px] hidden h-[calc(100vh-90px)] shrink-0 self-start overflow-hidden border-r border-white/[0.055] bg-[linear-gradient(90deg,rgba(20,18,24,.76),rgba(17,16,21,.25))] px-[15px] py-8 lg:block"
+      className="sticky top-[90px] hidden h-[calc(100vh-90px)] shrink-0 self-start overflow-hidden border-r border-overlay/[0.055] bg-[linear-gradient(90deg,var(--sidebar-from),var(--sidebar-to))] px-[15px] py-8 lg:flex lg:flex-col"
     >
       <div className="relative mb-3 flex h-[34px] items-center">
         <AnimatePresence initial={false}>
@@ -138,7 +170,7 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={transition}
-              className="eyebrow mx-3 block whitespace-nowrap text-[0.62rem] tracking-[0.14em] text-[#77717d]"
+              className="eyebrow mx-3 block whitespace-nowrap text-[0.62rem] tracking-[0.14em] text-muted-foreground"
             >
               Workspace
             </motion.span>
@@ -151,7 +183,7 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute right-0 grid size-[42px] place-items-center rounded-[11px] text-[#77717d] transition-colors duration-200 hover:bg-white/[0.045] hover:text-[#f4f2f6]"
+          className="absolute right-0 grid size-[42px] place-items-center rounded-[11px] text-muted-foreground transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground"
         >
           <ToggleIcon className="size-[18px]" />
         </button>
@@ -163,6 +195,28 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
           ))}
         </nav>
       </LayoutGroup>
+      <div className={cn("mt-4 flex gap-1.5 border-t border-overlay/[0.055] pt-4", collapsed ? "flex-col" : "px-1.5")}>
+        {SOCIAL.map((s) => (
+          <SocialItem key={s.href} item={s} />
+        ))}
+      </div>
+      <div className="mt-auto pt-6">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={collapsed ? "rail" : "full"}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={animate ? { duration: 0.18, ease: [0.22, 1, 0.36, 1] } : INSTANT}
+          >
+            {collapsed ? (
+              <ThemePicker vertical labels={false} />
+            ) : (
+              <ThemePicker />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </motion.aside>
   );
 }
@@ -189,8 +243,8 @@ function NavItem({
       aria-label={item.label}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "relative flex min-h-[43px] items-center gap-3 overflow-hidden whitespace-nowrap rounded-[11px] px-3 text-[0.78rem] text-[#a7a2ae] transition-colors duration-200 hover:bg-white/[0.045] hover:text-[#f4f2f6]",
-        active && "font-semibold text-[#f3efe5] hover:bg-transparent hover:text-[#f3efe5]",
+        "relative flex min-h-[43px] items-center gap-3 overflow-hidden whitespace-nowrap rounded-[11px] px-3 text-[0.78rem] text-foreground-soft transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground",
+        active && "font-semibold text-foreground hover:bg-transparent hover:text-foreground",
       )}
     >
       {active && (
@@ -199,7 +253,7 @@ function NavItem({
           layoutId="nav-active"
           transition={SPRING}
           style={{ borderRadius: 11 }}
-          className="absolute inset-0 border border-[rgba(232,227,213,.1)] bg-[linear-gradient(100deg,rgba(232,227,213,.13),rgba(106,138,212,.07))] shadow-[inset_2px_0_#e8e3d5]"
+          className="absolute inset-0 border border-[color-mix(in_srgb,var(--tint)_10%,transparent)] bg-[linear-gradient(100deg,color-mix(in_srgb,var(--tint)_13%,transparent),rgba(106,138,212,.07))] shadow-[inset_2px_0_var(--nav-bar)]"
           aria-hidden="true"
         />
       )}
@@ -219,5 +273,22 @@ function NavItem({
         )}
       </AnimatePresence>
     </Link>
+  );
+}
+
+/** External community link: brand logo only (name in the accessible label and tooltip). */
+function SocialItem({ item }: { item: (typeof SOCIAL)[number] }) {
+  const Icon = item.icon;
+  return (
+    <a
+      href={item.href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`${item.label} (opens in a new tab)`}
+      title={item.label}
+      className="grid size-[42px] shrink-0 place-items-center rounded-[11px] text-foreground-soft transition-[color,background-color,transform] duration-200 hover:-translate-y-px hover:bg-overlay/[0.045] hover:text-foreground"
+    >
+      <Icon className={item.label === "X" ? "size-[20px]" : "size-[23px]"} />
+    </a>
   );
 }

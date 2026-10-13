@@ -7,9 +7,9 @@ const alertVariants = cva("flex gap-3 rounded-[16px] border p-4 text-[0.82rem] l
   variants: {
     variant: {
       default: "well",
-      info: "border-[rgba(113,161,232,.16)] bg-[radial-gradient(circle_at_0_0,rgba(54,112,190,.16),transparent_65%),rgba(7,7,12,.22)] text-[#d6d1d9] [&>svg]:text-[#b9d5ff]",
-      warning: "border-[rgba(232,181,76,.25)] bg-[radial-gradient(circle_at_0_0,rgba(232,181,76,.1),transparent_65%),rgba(7,7,12,.22)] [&>svg]:text-warning",
-      destructive: "border-[rgba(229,72,77,.3)] bg-[rgba(229,72,77,.07)] text-[#f08a8d]",
+      info: "border-[rgba(113,161,232,.16)] bg-[radial-gradient(circle_at_0_0,rgba(54,112,190,.16),transparent_65%),var(--well)] text-foreground-soft [&>svg]:text-link",
+      warning: "border-[rgba(232,181,76,.25)] bg-[radial-gradient(circle_at_0_0,rgba(232,181,76,.1),transparent_65%),var(--well)] [&>svg]:text-warning",
+      destructive: "border-[rgba(229,72,77,.3)] bg-[rgba(229,72,77,.07)] text-destructive-fg",
       success: "border-[rgba(79,209,197,.22)] bg-[rgba(79,209,197,.06)] [&>svg]:text-success",
     },
   },

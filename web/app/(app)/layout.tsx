@@ -2,12 +2,17 @@ import { cookies } from "next/headers";
 import { SiteHeader, SiteSidebar } from "@/components/site-header";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 import { LocalChainBanner } from "@/components/local-chain-banner";
+import { ThemeSync } from "@/components/theme-sync";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme-boot";
 
 /** Workspace shell: floating header + left sidebar (Hedgora app pages). */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const collapsed = (await cookies()).get(SIDEBAR_COOKIE)?.value === "1";
   return (
     <>
+      {/* Applies a saved light theme before the workspace paints (no dark flash). */}
+      <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      <ThemeSync />
       <SiteHeader />
       {/* flex (not a fixed grid column) so content reflows with the animated sidebar width */}
       <div className="lg:mt-3.5 lg:flex">

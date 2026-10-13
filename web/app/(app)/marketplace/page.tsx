@@ -88,8 +88,8 @@ export default function MarketplacePage() {
               aria-selected={category === c}
               onClick={() => setCategory(c)}
               className={cn(
-                "min-h-[34px] rounded-full border border-white/10 px-4 text-[0.76rem] text-[#a8a3ae] transition-colors hover:text-foreground",
-                category === c && "bg-[rgba(232,227,213,.13)] text-[#f4f0e6] shadow-[inset_0_0_0_1px_rgba(232,227,213,.12)]",
+                "min-h-[34px] rounded-full border border-overlay/10 px-4 text-[0.76rem] text-foreground-soft transition-colors hover:text-foreground",
+                category === c && "bg-[color-mix(in_srgb,var(--tint)_13%,transparent)] text-foreground shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--tint)_12%,transparent)]",
               )}
             >
               {c}

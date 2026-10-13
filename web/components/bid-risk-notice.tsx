@@ -18,12 +18,12 @@ export function BidRiskNotice({ tender, className }: { tender: Tender; className
           ? "border-[rgba(229,72,77,.35)] bg-[rgba(229,72,77,.07)]"
           : worst === "medium"
             ? "border-[rgba(232,181,76,.3)] bg-[rgba(232,181,76,.06)]"
-            : "border-[rgba(113,161,232,.16)] bg-[rgba(7,7,12,.22)]",
+            : "border-[rgba(113,161,232,.16)] bg-[var(--well)]",
         className,
       )}
     >
       <p className="flex items-center gap-2 font-medium text-foreground">
-        {worst === "none" ? <Info className="size-4 text-[#b9d5ff]" /> : <AlertTriangle className={cn("size-4", worst === "high" ? "text-destructive" : "text-warning")} />}
+        {worst === "none" ? <Info className="size-4 text-link" /> : <AlertTriangle className={cn("size-4", worst === "high" ? "text-destructive" : "text-warning")} />}
         Before you bid
       </p>
       <dl className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -47,7 +47,7 @@ export function BidRiskNotice({ tender, className }: { tender: Tender; className
       {warnings.length > 0 && (
         <ul className="mt-3 space-y-1.5">
           {warnings.map((w) => (
-            <li key={w.text} className={cn("flex gap-2 text-xs", w.level === "high" ? "text-[#f08a8d]" : "text-[#ecc979]")}>
+            <li key={w.text} className={cn("flex gap-2 text-xs", w.level === "high" ? "text-destructive-fg" : "text-warning-fg")}>
               <AlertTriangle className="mt-0.5 size-3.5 shrink-0" /> {w.text}
             </li>
           ))}

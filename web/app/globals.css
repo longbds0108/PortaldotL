@@ -4,34 +4,135 @@
  * Visual language follows the Hedgora app (github.com/longbds0108/Defi):
  * dark ink surface, cream accent (#e8e3d5) that turns Arc blue (#0b53bf) on hover,
  * Inter Tight, pill buttons, gradient cards with an animated gradient border.
- * Dark-only, like the Hedgora reference.
+ * Dark by default; the light workspace theme below re-declares the same tokens.
  */
-:root {
+:root,
+[data-theme="dark"] {
   color-scheme: dark;
   --background: #111015;
   --foreground: #f5f3f7;
+  --foreground-soft: #d6d1d9;
   --card: #17141b;
   --card-foreground: #f5f3f7;
+  --popover: #1a161f;
   --muted: #1d1922;
   --muted-foreground: #9b949f;
   --border: #2d2932;
   --input: rgba(255, 255, 255, 0.1);
+  --field: #211c26; /* pill inputs, select triggers */
+  --field-hover: #252029;
+  --overlay: #ffffff; /* hairlines + hover washes: used as overlay/[alpha] */
   --primary: #e8e3d5; /* cream */
   --primary-foreground: #100e13;
   --brand: #0b53bf; /* Arc blue (hover / focus) */
   --brand-soft: #83aaff;
+  --link: #c3d6ff;
   --accent: rgba(232, 227, 213, 0.1);
   --accent-foreground: #f3efe5;
   --success: #4fd1c5;
+  --success-fg: #8fe0d6;
   --warning: #e8b54c;
+  --warning-fg: #ecc979;
   --destructive: #e5484d;
+  --destructive-fg: #f08a8d;
   --ring: #6a8ad4;
   --radius: 18px;
+  /* surfaces */
+  --surface-from: #201827;
+  --surface-to: #131117;
+  --surface-glow: rgba(232, 227, 213, 0.095);
+  --surface-shadow: rgba(0, 0, 0, 0.19);
+  --well: rgba(12, 10, 16, 0.38);
+  --header: rgba(23, 20, 27, 0.9);
+  --header-solid: rgba(23, 20, 27, 0.97);
+  --body-glow-1: rgba(232, 227, 213, 0.11);
+  --body-glow-2: rgba(63, 145, 255, 0.055);
+  --orb-from: rgba(93, 155, 240, 0.35);
+  --orb-to: rgba(48, 40, 62, 0.3);
+  --orb-fg: #bfdaff;
+  --sheen-base: #fff;
+  --sheen-mid: #efedf4;
+  --sheen-hi: #c3d6ff;
+  --sheen-peak: #83aaff;
+  --scrollbar: rgba(232, 227, 213, 0.42);
+  --tint: #e8e3d5; /* cream washes on buttons, tabs, active nav */
+  --nav-bar: #e8e3d5;
+  --sidebar-from: rgba(20, 18, 24, 0.76);
+  --sidebar-to: rgba(17, 16, 21, 0.25);
+  --card-from: #1c1830;
+  --card-glow: rgba(149, 118, 234, 0.16);
+  --popover-shadow: rgba(0, 0, 0, 0.45);
+}
+
+/* Light workspace: same identity (cream + Arc blue), on warm paper. Applied to <html> by ThemeSync on app routes. */
+[data-theme="light"] {
+  color-scheme: light;
+  --background: #f5f3ee;
+  --foreground: #17151b;
+  --foreground-soft: #3e3944;
+  --card: #ffffff;
+  --card-foreground: #17151b;
+  --popover: #ffffff;
+  --muted: #eeebe5;
+  --muted-foreground: #6c6672;
+  --border: #e2ded6;
+  --input: rgba(23, 21, 27, 0.12);
+  --field: #ffffff;
+  --field-hover: #f8f6f2;
+  --overlay: #17151b;
+  --primary: #1b1820; /* ink buttons: cream would vanish on paper */
+  --primary-foreground: #f5f3ee;
+  --brand: #0b53bf;
+  --brand-soft: #2f6fd6;
+  --link: #0b53bf;
+  --accent: rgba(23, 21, 27, 0.06);
+  --accent-foreground: #17151b;
+  --success: #12a594;
+  --success-fg: #0b7a6e;
+  --warning: #d29a1c;
+  --warning-fg: #8f6206;
+  --destructive: #dc3e44;
+  --destructive-fg: #be2f35;
+  --ring: #3f6fd0;
+  --surface-from: #ffffff;
+  --surface-to: #fbfaf7;
+  --surface-glow: rgba(11, 83, 191, 0.045);
+  --surface-shadow: rgba(40, 32, 52, 0.07);
+  --well: rgba(23, 21, 27, 0.035);
+  --header: rgba(255, 255, 255, 0.86);
+  --header-solid: rgba(255, 255, 255, 0.97);
+  --body-glow-1: rgba(232, 227, 213, 0.75);
+  --body-glow-2: rgba(63, 145, 255, 0.07);
+  --orb-from: rgba(11, 83, 191, 0.16);
+  --orb-to: rgba(232, 227, 213, 0.5);
+  --orb-fg: #0b53bf;
+  --sheen-base: #17151b;
+  --sheen-mid: #2a2631;
+  --sheen-hi: #2f6fd6;
+  --sheen-peak: #0b53bf;
+  --scrollbar: rgba(23, 21, 27, 0.28);
+  --tint: #17151b;
+  --nav-bar: #0b53bf;
+  --sidebar-from: rgba(255, 255, 255, 0.7);
+  --sidebar-to: rgba(255, 255, 255, 0.15);
+  --card-from: #ffffff;
+  --card-glow: rgba(149, 118, 234, 0.07);
+  --popover-shadow: rgba(40, 32, 52, 0.16);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-popover: var(--popover);
+  --color-field: var(--field);
+  --color-field-hover: var(--field-hover);
+  --color-overlay: var(--overlay);
+  --color-tint: var(--tint);
+  --color-link: var(--link);
+  --color-success-fg: var(--success-fg);
+  --color-warning-fg: var(--warning-fg);
+  --color-destructive-fg: var(--destructive-fg);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);
@@ -61,13 +162,13 @@
   }
   html {
     scrollbar-width: thin;
-    scrollbar-color: rgba(232, 227, 213, 0.42) transparent;
+    scrollbar-color: var(--scrollbar) transparent;
   }
   body {
     @apply text-foreground antialiased;
     background:
-      radial-gradient(ellipse 55% 380px at 66% -125px, rgba(232, 227, 213, 0.11), transparent 72%),
-      radial-gradient(ellipse 45% 420px at 90% 40%, rgba(63, 145, 255, 0.055), transparent 75%),
+      radial-gradient(ellipse 55% 380px at 66% -125px, var(--body-glow-1), transparent 72%),
+      radial-gradient(ellipse 45% 420px at 90% 40%, var(--body-glow-2), transparent 75%),
       var(--background);
     background-attachment: fixed;
     font-feature-settings: "tnum" 1;
@@ -93,7 +194,16 @@
 
   /* Large page title with a slow light sheen */
   .title-sheen {
-    background: linear-gradient(105deg, #fff 0%, #efedf4 30%, #c3d6ff 46%, #83aaff 50%, #c3d6ff 54%, #efedf4 70%, #fff 100%);
+    background: linear-gradient(
+      105deg,
+      var(--sheen-base) 0%,
+      var(--sheen-mid) 30%,
+      var(--sheen-hi) 46%,
+      var(--sheen-peak) 50%,
+      var(--sheen-hi) 54%,
+      var(--sheen-mid) 70%,
+      var(--sheen-base) 100%
+    );
     background-size: 230% 100%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -112,11 +222,11 @@
   .surface {
     position: relative;
     isolation: isolate;
-    border: 1px solid #2d2932;
+    border: 1px solid var(--border);
     background:
-      radial-gradient(circle at 86% 0%, rgba(232, 227, 213, 0.095), transparent 36%),
-      linear-gradient(150deg, #201827, #131117 72%);
-    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.19);
+      radial-gradient(circle at 86% 0%, var(--surface-glow), transparent 36%),
+      linear-gradient(150deg, var(--surface-from), var(--surface-to) 72%);
+    box-shadow: 0 18px 48px var(--surface-shadow);
   }
   .surface::after,
   .gradient-border::after {
@@ -143,8 +253,8 @@
 
   /* Recessed field / panel (Hedgora token-field, info-panel) */
   .well {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(12, 10, 16, 0.38);
+    border: 1px solid color-mix(in srgb, var(--overlay) 10%, transparent);
+    background-color: var(--well);
   }
 
   /* Dashed empty state with glowing orb */
@@ -155,8 +265,8 @@
     place-items: center;
     border: 1px solid rgba(126, 174, 239, 0.28);
     border-radius: 15px;
-    color: #bfdaff;
-    background: radial-gradient(circle at 30% 20%, rgba(93, 155, 240, 0.35), rgba(48, 40, 62, 0.3));
+    color: var(--orb-fg);
+    background: radial-gradient(circle at 30% 20%, var(--orb-from), var(--orb-to));
   }
 
   /* Glowing status dot (status-pill) */

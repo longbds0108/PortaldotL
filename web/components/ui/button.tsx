@@ -13,10 +13,10 @@ const buttonVariants = cva(
           "bg-primary font-semibold text-primary-foreground shadow-[0_2px_10px_rgba(0,0,0,.12)] hover:bg-brand hover:text-white hover:shadow-[0_12px_28px_rgba(11,83,191,.32)]",
         destructive: "bg-destructive font-semibold text-white hover:bg-destructive/85",
         outline:
-          "border border-[rgba(232,227,213,.26)] bg-[rgba(232,227,213,.035)] text-[#e6e1d7] hover:border-[rgba(106,138,212,.72)] hover:bg-[rgba(11,83,191,.55)] hover:text-white hover:shadow-[0_10px_28px_rgba(11,83,191,.2)]",
+          "border border-[color-mix(in_srgb,var(--tint)_26%,transparent)] bg-[color-mix(in_srgb,var(--tint)_3.5%,transparent)] text-foreground hover:border-[rgba(106,138,212,.72)] hover:bg-[rgba(11,83,191,.55)] hover:text-white hover:shadow-[0_10px_28px_rgba(11,83,191,.2)]",
         secondary:
-          "border border-[rgba(232,227,213,.12)] bg-[rgba(232,227,213,.13)] text-[#f4f0e6] hover:bg-[rgba(11,83,191,.55)] hover:text-white",
-        ghost: "text-muted-foreground hover:bg-white/5 hover:text-foreground hover:translate-y-0",
+          "border border-[color-mix(in_srgb,var(--tint)_12%,transparent)] bg-[color-mix(in_srgb,var(--tint)_13%,transparent)] text-foreground hover:bg-[rgba(11,83,191,.55)] hover:text-white",
+        ghost: "text-muted-foreground hover:bg-overlay/5 hover:text-foreground hover:translate-y-0",
         link: "text-brand-soft underline-offset-4 hover:underline hover:translate-y-0",
       },
       size: {

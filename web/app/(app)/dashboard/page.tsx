@@ -4,8 +4,9 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useQueries } from "@tanstack/react-query";
 import { ArrowUpRight, Clock, FileLock2, Gavel, Plus, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { useAccount, useBalance } from "wagmi";
+import { BalancesDialog } from "@/components/balances-dialog";
 import { BidColumns, Gauge, MeterRow, PHASES, PhaseLegend, StackBar, phaseOf, pct, type PhaseKey } from "@/components/dashboard/charts";
 import { ConfigGate } from "@/components/gates";
 import { Card } from "@/components/ui/card";
@@ -56,7 +57,7 @@ export default function DashboardPage() {
             options={[{ value: "all", label: "All categories" }, ...CATEGORIES.map((c) => ({ value: c, label: c }))]}
             className="h-10 w-[11.5rem]"
           />
-          <span className="flex h-10 items-center gap-2 rounded-full border border-white/10 bg-[#211c26] px-4 text-[0.78rem] text-[#d6d1d9]">
+          <span className="flex h-10 items-center gap-2 rounded-full border border-overlay/10 bg-field px-4 text-[0.78rem] text-foreground-soft">
             <Clock className="size-3.5 text-muted-foreground" />
             <span className="text-muted-foreground">Chain time</span>
             <span className="tabular-nums">{now ? formatDateTime(now) : "…"}</span>
@@ -191,13 +192,13 @@ function Market({ category, now }: { category: string; now: number | undefined }
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <div className="grid content-start gap-3.5">
-                <h2 className="text-[0.9rem] text-[#f1eef5]">By phase</h2>
+                <h2 className="text-[0.9rem] text-foreground">By phase</h2>
                 {PHASES.map((p) => (
                   <MeterRow key={p.key} label={p.label.replace(" · sealed", "")} count={s.by[p.key]} total={s.total} color={p.color} />
                 ))}
               </div>
               <div className="grid content-start gap-3.5">
-                <h2 className="text-[0.9rem] text-[#f1eef5]">Deadlines ahead</h2>
+                <h2 className="text-[0.9rem] text-foreground">Deadlines ahead</h2>
                 <MeterRow label="Submission < 24h" count={s.open.lt1d} total={s.by.open} color="#e5484d" />
                 <MeterRow label="Submission 1–7 days" count={s.open.lt7d} total={s.by.open} color="#e8b54c" />
                 <MeterRow label="Submission > 7 days" count={s.open.later} total={s.by.open} color="#4fd1c5" />
@@ -223,7 +224,7 @@ function Market({ category, now }: { category: string; now: number | undefined }
                 return (
                   <div key={c} className="grid gap-2">
                     <div className="flex items-baseline justify-between gap-2 text-[0.78rem]">
-                      <span className="text-[#f1eef5]">{c}</span>
+                      <span className="text-foreground">{c}</span>
                       <span className="tabular-nums text-muted-foreground">
                         {rows.length} tender{rows.length === 1 ? "" : "s"} · {pct(count("awarded"), rows.length)}% awarded
                       </span>
@@ -308,15 +309,17 @@ function useWalletData() {
 }
 
 function WalletKpis({ wallet: w }: { wallet: WalletData }) {
+  const [tokensOpen, setTokensOpen] = useState(false);
+  const closeTokens = useCallback(() => setTokensOpen(false), []);
   if (!w.isConnected) {
     return (
-      <section className="flex flex-col items-start gap-3 rounded-[20px] border border-dashed border-white/12 bg-white/[0.02] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <section className="flex flex-col items-start gap-3 rounded-[20px] border border-dashed border-overlay/12 bg-overlay/[0.02] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="flex items-center gap-3">
           <span className="empty-orb size-10 rounded-[12px]">
             <Wallet className="size-4" />
           </span>
           <div>
-            <p className="text-[0.88rem] text-[#f1eef5]">Your wallet</p>
+            <p className="text-[0.88rem] text-foreground">Your wallet</p>
             <p className="text-[0.74rem] text-muted-foreground">Connect to see its USDC balance, locked bonds, tenders and bids.</p>
           </div>
         </div>
@@ -328,8 +331,9 @@ function WalletKpis({ wallet: w }: { wallet: WalletData }) {
   return (
     <section className="grid gap-2.5">
       <RowLabel>Your wallet · {shortAddress(w.address)}</RowLabel>
+      {w.address && <BalancesDialog open={tokensOpen} onClose={closeTokens} address={w.address} />}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi featured href="/profile" label="USDC balance" value={bal} hint={w.balance.isError ? "Balance unavailable" : `Native USDC · ${NETWORK_NAME}`} />
+        <Kpi featured onClick={() => setTokensOpen(true)} label="BALANCE" value={bal} hint={w.balance.isError ? "Balance unavailable" : NETWORK_NAME} />
         <Kpi
           tone="blue"
           href="/my/bids"
@@ -368,7 +372,7 @@ function MyActivity({ wallet: w }: { wallet: WalletData }) {
         isConnected && (
           <Link
             href="/tenders/new"
-            className="flex h-8 items-center gap-1 rounded-full border border-white/15 px-3 text-[0.72rem] text-[#f1eef5] transition-colors hover:border-[rgba(131,170,255,.5)] hover:text-[#c3d6ff]"
+            className="flex h-8 items-center gap-1 rounded-full border border-overlay/15 px-3 text-[0.72rem] text-foreground transition-colors hover:border-[rgba(131,170,255,.5)] hover:text-link"
           >
             <Plus className="size-3.5" /> New tender
           </Link>
@@ -390,10 +394,10 @@ function MyActivity({ wallet: w }: { wallet: WalletData }) {
           </ul>
           {list.length > 6 && (
             <div className="flex gap-4 text-[0.72rem]">
-              <Link href="/my/tenders" className="text-[#d6d1d9] hover:text-[#c3d6ff]">
+              <Link href="/my/tenders" className="text-foreground-soft hover:text-link">
                 All my tenders →
               </Link>
-              <Link href="/my/bids" className="text-[#d6d1d9] hover:text-[#c3d6ff]">
+              <Link href="/my/bids" className="text-foreground-soft hover:text-link">
                 All my bids →
               </Link>
             </div>
@@ -426,17 +430,17 @@ function ActivityRow({ activity: { row, role, bid }, title }: { activity: Activi
 
   return (
     <li>
-      <Link href={href} className="flex items-center gap-3 rounded-[14px] px-2 py-2 transition-colors hover:bg-white/[0.04]">
+      <Link href={href} className="flex items-center gap-3 rounded-[14px] px-2 py-2 transition-colors hover:bg-overlay/[0.04]">
         <span
           className={cn(
             "grid size-9 shrink-0 place-items-center rounded-full border",
-            role === "buyer" ? "border-[rgba(131,170,255,.3)] bg-[rgba(11,83,191,.22)] text-[#c3d6ff]" : "border-[rgba(232,227,213,.2)] bg-[rgba(232,227,213,.08)] text-[#f3efe5]",
+            role === "buyer" ? "border-[rgba(131,170,255,.3)] bg-[rgba(11,83,191,.22)] text-link" : "border-[color-mix(in_srgb,var(--tint)_20%,transparent)] bg-[color-mix(in_srgb,var(--tint)_8%,transparent)] text-foreground",
           )}
         >
           <Icon className="size-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[0.82rem] text-[#f1eef5]">{title ?? `Tender #${id}`}</span>
+          <span className="block truncate text-[0.82rem] text-foreground">{title ?? `Tender #${id}`}</span>
           <span className="block truncate text-[0.68rem] text-muted-foreground">
             #{id.toString()} · {sub}
           </span>
@@ -465,11 +469,11 @@ const STATE_TONE: Record<TenderState, Tone> = {
   [TenderState.Failed]: "red",
 };
 const CHIP: Record<Tone, string> = {
-  teal: "bg-[rgba(79,209,197,.12)] text-[#8fe0d6]",
-  amber: "bg-[rgba(232,181,76,.14)] text-[#ecc979]",
-  blue: "bg-[rgba(131,170,255,.14)] text-[#c3d6ff]",
-  red: "bg-[rgba(229,72,77,.15)] text-[#f08a8d]",
-  muted: "bg-white/[0.06] text-muted-foreground",
+  teal: "bg-[rgba(79,209,197,.12)] text-success-fg",
+  amber: "bg-[rgba(232,181,76,.14)] text-warning-fg",
+  blue: "bg-[rgba(131,170,255,.14)] text-link",
+  red: "bg-[rgba(229,72,77,.15)] text-destructive-fg",
+  muted: "bg-overlay/[0.06] text-muted-foreground",
 };
 
 function Chip({ tone, children }: { tone: Tone; children: ReactNode }) {
@@ -477,9 +481,9 @@ function Chip({ tone, children }: { tone: Tone; children: ReactNode }) {
 }
 
 const KPI_TONE = {
-  blue: "bg-[radial-gradient(circle_at_100%_0,rgba(131,170,255,.16),transparent_55%),#18151d]",
-  teal: "bg-[radial-gradient(circle_at_100%_0,rgba(79,209,197,.13),transparent_55%),#18151d]",
-  amber: "bg-[radial-gradient(circle_at_100%_0,rgba(232,181,76,.13),transparent_55%),#18151d]",
+  blue: "bg-[radial-gradient(circle_at_100%_0,rgba(131,170,255,.16),transparent_55%),var(--card)]",
+  teal: "bg-[radial-gradient(circle_at_100%_0,rgba(79,209,197,.13),transparent_55%),var(--card)]",
+  amber: "bg-[radial-gradient(circle_at_100%_0,rgba(232,181,76,.13),transparent_55%),var(--card)]",
 };
 
 function Kpi({
@@ -489,30 +493,31 @@ function Kpi({
   featured,
   tone = "blue",
   href,
+  onClick,
 }: {
-  href: string;
+  /** Either navigates (href) or opens something in place (onClick). */
+  href?: string;
+  onClick?: () => void;
   label: string;
   value: ReactNode;
   hint: string;
   featured?: boolean;
   tone?: keyof typeof KPI_TONE;
 }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "group relative grid min-h-[132px] content-between gap-3 overflow-hidden rounded-[20px] border p-4 transition-transform duration-200 hover:-translate-y-0.5 sm:p-5",
-        featured
-          ? "border-[rgba(131,170,255,.35)] bg-[radial-gradient(circle_at_100%_0,rgba(207,226,255,.28),transparent_50%),linear-gradient(150deg,#1f62d0,#0b3f93)] shadow-[0_18px_40px_rgba(11,83,191,.28)]"
-          : cn("border-white/[0.08]", KPI_TONE[tone]),
-      )}
-    >
+  const className = cn(
+    "group relative grid min-h-[132px] w-full content-between gap-3 overflow-hidden rounded-[20px] border p-4 text-left transition-transform duration-200 hover:-translate-y-0.5 sm:p-5",
+    featured
+      ? "border-[rgba(131,170,255,.35)] bg-[radial-gradient(circle_at_100%_0,rgba(207,226,255,.28),transparent_50%),linear-gradient(150deg,#1f62d0,#0b3f93)] shadow-[0_18px_40px_rgba(11,83,191,.28)]"
+      : cn("border-overlay/[0.08]", KPI_TONE[tone]),
+  );
+  const body = (
+    <>
       <div className="flex items-start justify-between gap-2">
-        <span className={cn("text-[0.78rem]", featured ? "text-white/85" : "text-[#b9b3bf]")}>{label}</span>
+        <span className={cn("text-[0.78rem]", featured ? "text-white/85" : "text-foreground-soft")}>{label}</span>
         <span
           className={cn(
             "grid size-7 shrink-0 place-items-center rounded-full transition-transform group-hover:rotate-45",
-            featured ? "bg-white text-[#0b3f93]" : "border border-white/10 bg-white/[0.04] text-[#d6d1d9]",
+            featured ? "bg-white text-[#0b3f93]" : "border border-overlay/10 bg-overlay/[0.04] text-foreground-soft",
           )}
         >
           <ArrowUpRight className="size-3.5" />
@@ -522,6 +527,15 @@ function Kpi({
         {value}
       </strong>
       <small className={cn("truncate text-[0.68rem]", featured ? "text-white/75" : "text-muted-foreground")}>{hint}</small>
+    </>
+  );
+  return onClick ? (
+    <button type="button" onClick={onClick} aria-haspopup="dialog" className={className}>
+      {body}
+    </button>
+  ) : (
+    <Link href={href ?? "#"} className={className}>
+      {body}
     </Link>
   );
 }
@@ -532,7 +546,7 @@ function Panel({ title, aside, children, className }: { title?: string; aside?: 
       <div className="relative z-[1]">
         {(title || aside) && (
           <div className="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-2">
-            {title && <h2 className="text-[1rem] tracking-[-0.02em] text-[#f5f3f7]">{title}</h2>}
+            {title && <h2 className="text-[1rem] tracking-[-0.02em] text-foreground">{title}</h2>}
             {aside}
           </div>
         )}
@@ -560,5 +574,5 @@ function Legend({ color, hatch, children }: { color: string; hatch?: boolean; ch
 }
 
 function Empty({ children }: { children: ReactNode }) {
-  return <p className="rounded-[14px] border border-dashed border-white/10 px-4 py-8 text-center text-[0.8rem] text-muted-foreground">{children}</p>;
+  return <p className="rounded-[14px] border border-dashed border-overlay/10 px-4 py-8 text-center text-[0.8rem] text-muted-foreground">{children}</p>;
 }

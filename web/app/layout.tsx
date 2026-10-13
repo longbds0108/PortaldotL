@@ -14,7 +14,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={interTight.variable}>
+    <html lang="en" className={interTight.variable} suppressHydrationWarning>
       <body className="min-h-dvh font-sans">
         <Providers>{children}</Providers>
       </body>

@@ -96,3 +96,16 @@ export function formatDuration(totalSeconds: number): string {
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
 }
+
+/**
+ * Exact token amount, rounded DOWN (never shows more than the wallet holds), thousands separators,
+ * at most `maxFraction` decimals with trailing zeros trimmed to `minFraction`.
+ */
+export function formatTokenFloor(value: bigint, decimals: number, maxFraction = 2, minFraction = 2): string {
+  const frac = Math.min(maxFraction, decimals);
+  const scaled = decimals > frac ? value / 10n ** BigInt(decimals - frac) : value * 10n ** BigInt(frac - decimals);
+  const whole = scaled / 10n ** BigInt(frac);
+  let fraction = frac > 0 ? (scaled % 10n ** BigInt(frac)).toString().padStart(frac, "0") : "";
+  while (fraction.length > minFraction && fraction.endsWith("0")) fraction = fraction.slice(0, -1);
+  return `${whole.toLocaleString("en-US")}${fraction ? `.${fraction}` : ""}`;
+}

@@ -7,7 +7,7 @@ export function LocalChainBanner({ className = "" }: { className?: string }) {
   return (
     <div
       role="status"
-      className={`flex items-start gap-2 rounded-[12px] border border-[rgba(232,181,76,.3)] bg-[rgba(232,181,76,.08)] px-3.5 py-2.5 text-[0.75rem] leading-relaxed text-[#ecc979] ${className}`}
+      className={`flex items-start gap-2 rounded-[12px] border border-[rgba(232,181,76,.3)] bg-[rgba(232,181,76,.08)] px-3.5 py-2.5 text-[0.75rem] leading-relaxed text-warning-fg ${className}`}
     >
       <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
       <span>

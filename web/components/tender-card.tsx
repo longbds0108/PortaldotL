@@ -17,7 +17,7 @@ export function TenderCard({ row }: { row: TenderRow }) {
 
   return (
     <Link href={`/tenders/${id}`} className="group block focus-visible:outline-none">
-      <Card className="flex h-full flex-col bg-[radial-gradient(circle_at_82%_0,rgba(149,118,234,.16),transparent_38%),linear-gradient(150deg,#1c1830,#131117_68%)] transition-transform duration-200 group-hover:-translate-y-0.5 group-focus-visible:ring-2 group-focus-visible:ring-ring">
+      <Card className="flex h-full flex-col bg-[radial-gradient(circle_at_82%_0,var(--card-glow),transparent_38%),linear-gradient(150deg,var(--card-from),var(--surface-to)_68%)] transition-transform duration-200 group-hover:-translate-y-0.5 group-focus-visible:ring-2 group-focus-visible:ring-ring">
         <CardHeader>
           <div className="mb-3 flex items-center justify-between gap-2">
             <Badge variant="outline">{meta.data?.category ?? "—"}</Badge>
@@ -27,18 +27,18 @@ export function TenderCard({ row }: { row: TenderRow }) {
           {meta.isLoading ? (
             <Skeleton className="h-6 w-3/4" />
           ) : (
-            <CardTitle className="line-clamp-2 text-[1.28rem] text-[#f5f1e9]">{meta.data?.title ?? `Tender #${id}`}</CardTitle>
+            <CardTitle className="line-clamp-2 text-[1.28rem] text-foreground">{meta.data?.title ?? `Tender #${id}`}</CardTitle>
           )}
         </CardHeader>
         <CardContent className="flex-1">
-          <div className="grid grid-cols-[1fr_auto] gap-3 border-y border-white/[0.07] py-4 text-[0.7rem] text-muted-foreground">
+          <div className="grid grid-cols-[1fr_auto] gap-3 border-y border-overlay/[0.07] py-4 text-[0.7rem] text-muted-foreground">
             <span className="grid gap-1.5">
               Expected budget
-              <b className="text-[0.95rem] font-medium tabular-nums text-[#e9e3d8]">{formatBudget(tender.budgetMin, tender.budgetMax)}</b>
+              <b className="text-[0.95rem] font-medium tabular-nums text-foreground">{formatBudget(tender.budgetMin, tender.budgetMax)}</b>
             </span>
             <span className="grid gap-1.5 text-right">
               Bids
-              <b className="inline-flex items-center justify-end gap-1 text-[0.95rem] font-medium text-[#e9e3d8]">
+              <b className="inline-flex items-center justify-end gap-1 text-[0.95rem] font-medium text-foreground">
                 <Users className="size-3.5" /> {tender.bidCount}
               </b>
             </span>

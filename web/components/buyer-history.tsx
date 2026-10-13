@@ -43,7 +43,7 @@ export function BuyerHistory({ buyer }: { buyer: Address }) {
               <Stat label="Cancelled (no bids)" value={h.cancelled} />
             </dl>
             {flags.length > 0 && (
-              <ul className="space-y-1.5 rounded-[12px] border border-[rgba(232,181,76,.25)] bg-[rgba(232,181,76,.06)] p-3 text-xs text-[#ecc979]">
+              <ul className="space-y-1.5 rounded-[12px] border border-[rgba(232,181,76,.25)] bg-[rgba(232,181,76,.06)] p-3 text-xs text-warning-fg">
                 {flags.map((f) => (
                   <li key={f} className="flex gap-2">
                     <ShieldAlert className="mt-0.5 size-3.5 shrink-0" /> {f}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBudget, formatDuration, formatNativeWei, formatUsdc6, isValidAmountInput, parseNativeWei, parseUsdc6 } from "./format";
+import { formatBudget, formatDuration, formatNativeWei, formatTokenFloor, formatUsdc6, isValidAmountInput, parseNativeWei, parseUsdc6 } from "./format";
 
 describe("money formatting", () => {
   it("formats 6-decimal USDC", () => {
@@ -36,5 +36,20 @@ describe("wallet balance display", () => {
     expect(formatNativeWeiFloor(44_929_233_183_968_204_793n)).toBe("$44.92");
     expect(formatNativeWeiFloor(999_999_999_999_999_999n)).toBe("$0.99");
     expect(formatNativeWeiFloor(1_234_567n * 10n ** 18n)).toBe("$1,234,567.00");
+  });
+});
+
+describe("token amounts", () => {
+  it("floors to the shown precision, never rounding up", () => {
+    expect(formatTokenFloor(64_922_704n, 6)).toBe("64.92");
+    expect(formatTokenFloor(89_601_608n, 6)).toBe("89.60");
+    expect(formatTokenFloor(999_999n, 6)).toBe("0.99");
+    expect(formatTokenFloor(1_234_567_000_000n, 6)).toBe("1,234,567.00");
+  });
+  it("shows BTC-style amounts with up to 8 decimals, trimmed", () => {
+    expect(formatTokenFloor(14_991n, 8, 8, 0)).toBe("0.00014991");
+    expect(formatTokenFloor(100_000_000n, 8, 8, 0)).toBe("1");
+    expect(formatTokenFloor(150_000_000n, 8, 8, 0)).toBe("1.5");
+    expect(formatTokenFloor(0n, 8, 8, 0)).toBe("0");
   });
 });

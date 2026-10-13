@@ -124,7 +124,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
           ) : (
             <div className="-mx-5 overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
-                <thead className="border-y border-white/[0.07] bg-white/[0.025] text-left text-[0.66rem] uppercase tracking-[0.06em] text-[#898491]">
+                <thead className="border-y border-overlay/[0.07] bg-overlay/[0.025] text-left text-[0.66rem] uppercase tracking-[0.06em] text-muted-foreground">
                   <tr>
                     <th className="px-5 py-2 font-medium">Select</th>
                     <th className="px-2 py-2 font-medium">Bidder</th>
