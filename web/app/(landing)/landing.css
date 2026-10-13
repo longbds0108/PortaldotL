@@ -71,8 +71,8 @@
   transition: color .35s ease, background-color .35s ease, box-shadow .35s ease;
   will-change: transform, opacity;
 }
-.bb-lheader--dark { color: #f5f3f7; background: rgba(23, 20, 27, .9); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); backdrop-filter: blur(16px); }
-.bb-lheader--light { color: #121116; background: rgba(214, 212, 217, .92); box-shadow: inset 0 0 0 1px rgba(17,16,21,.06); backdrop-filter: blur(16px); }
+.bb-lheader--dark { color: #f5f3f7; background: rgba(23, 20, 27, .9); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.bb-lheader--light { color: #121116; background: rgba(214, 212, 217, .92); box-shadow: inset 0 0 0 1px rgba(17,16,21,.06); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 .bb-brand { display: inline-flex; align-items: center; gap: 10px; justify-self: start; border: 0; background: none; color: inherit; cursor: pointer; font: 600 1.3rem/1 var(--font-inter-tight), sans-serif; letter-spacing: -.03em; }
 .bb-brand__logo { height: 38px; width: auto; }
 .bb-brand__logo--footer { height: 42px; }
@@ -488,14 +488,15 @@
   .bb-brand { font-size: 1.1rem; }
   .bb-brand__logo { height: 30px; }
   .bb-action--compact { min-height: 40px; padding: 0 14px; font-size: .64rem; }
-  .bb-hero { min-height: 780px; padding: 115px 18px 28px; }
-  .bb-hero h1 { margin-top: 24px; font-size: clamp(3rem, 14vw, 3.6rem); line-height: .92; }
-  .bb-hero__copy { align-self: start; padding: 45px 0 200px; }
-  .bb-hero__body { max-width: 340px; color: #c1bac5; font-size: .94rem; }
-  .bb-hero__actions { align-items: flex-start; flex-direction: column; gap: 18px; }
-  /* keep the seal below the copy so text stays readable */
-  .bb-hero__visual { inset: 64% -48% -4% 8%; opacity: .38; }
-  .bb-hero__copy { padding-bottom: 260px; }
+  /* Phones (incl. iOS Safari with its toolbars): the copy, CTA and live stats must fit the first screen.
+     No fixed min-height; the decorative seal sits below the copy and never under the stats. */
+  .bb-hero { min-height: 100svh; padding: 90px 18px 24px; }
+  .bb-hero__copy { align-self: start; padding: 10px 0 200px; }
+  .bb-hero h1 { margin: 18px 0 22px; font-size: clamp(2.6rem, 12.5vw, 3.4rem); line-height: .92; }
+  .bb-hero__body { max-width: 360px; color: #c1bac5; font-size: .94rem; }
+  .bb-hero__actions { align-items: flex-start; flex-direction: column; gap: 14px; margin-top: 24px; }
+  .bb-hero__stats { position: relative; z-index: 2; margin-top: 26px; padding: 10px 12px; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; background: rgba(17,16,21,.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .bb-hero__visual { inset: auto -48% -6% 8%; height: 230px; opacity: .34; }
   .bb-life { padding: 100px 18px 110px; }
   .bb-life__rail h2 { font-size: 3.2rem; }
   .bb-phase { min-height: 520px; padding: 20px; }
@@ -517,6 +518,13 @@
   .bb-footer__inner { padding: 64px 20px 30px; }
   .bb-footer__main { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
   .bb-footer__bottombar { flex-direction: column; align-items: flex-start; gap: 14px; }
+}
+@media (max-width: 360px) {
+  /* iPhone SE / small Androids: trim spacing so the live stats stay above the fold */
+  .bb-hero { padding-top: 82px; }
+  .bb-hero h1 { margin: 14px 0 18px; }
+  .bb-hero__actions { margin-top: 20px; }
+  .bb-hero__stats { margin-top: 18px; gap: 6px 18px; }
 }
 @media (max-width: 560px) {
   .bb-steps__row { grid-template-columns: 1fr; gap: 22px; overflow: hidden; }
