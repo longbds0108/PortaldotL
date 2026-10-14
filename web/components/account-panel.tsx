@@ -6,22 +6,22 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useAccount, useBalance, useConnections, useDisconnect, type Connection } from "wagmi";
-import { EXPLORER_URL } from "@/lib/env";
-import { formatNativeWeiFloor, shortAddress } from "@/lib/format";
+import { NODE_CONSOLE_URL } from "@/lib/env";
+import { formatNativeAmountFloor, shortAddress } from "@/lib/format";
 import { NETWORK_NAME } from "@/lib/network";
-import { SMALL_BALANCE_WEI, setPreference, usePreferences } from "@/lib/preferences";
+import { SMALL_BALANCE_BASE_UNITS, setPreference, usePreferences } from "@/lib/preferences";
 import { loadProfile } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { chain } from "@/lib/wagmi";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-const FAUCET_URL = "https://faucet.circle.com/";
+const NETWORK_CONSOLE_URL = "https://node-console.feso-apps.xyz/";
 const VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
 const COMMIT = process.env.NEXT_PUBLIC_APP_COMMIT;
 
 /**
  * Header wallet control. Disconnected or on the wrong network it is RainbowKit's own button (connect / switch);
- * once connected to Arc it opens the account & settings panel instead of RainbowKit's account modal.
+ * once connected to PortaldotV3 it opens the account & settings panel instead of RainbowKit's account modal.
  */
 export function AccountMenu() {
   const { address, isConnected, chainId } = useAccount();
@@ -41,10 +41,10 @@ function AccountPanel({ address }: { address: `0x${string}` }) {
   const panelId = useId();
   const reduce = useReducedMotion();
   const prefs = usePreferences();
-  // Native USDC (18 decimals), pinned to Arc and floored to the cent — same figure as the dashboard.
+  // Native tPOTv3 (14 decimals), floored to two decimals — same figure as the dashboard.
   const balance = useBalance({ address, chainId: chain.id, query: { refetchInterval: 15_000 } });
-  const hidden = prefs.hideSmallBalances && balance.data !== undefined && balance.data.value < SMALL_BALANCE_WEI;
-  const balanceText = balance.data ? formatNativeWeiFloor(balance.data.value) : balance.isError ? "—" : "…";
+  const hidden = prefs.hideSmallBalances && balance.data !== undefined && balance.data.value < SMALL_BALANCE_BASE_UNITS;
+  const balanceText = balance.data ? formatNativeAmountFloor(balance.data.value) : balance.isError ? "—" : "…";
 
   const close = (refocus = false) => {
     setOpen(false);
@@ -114,7 +114,7 @@ function AccountPanel({ address }: { address: `0x${string}` }) {
           >
             <PanelBody
               address={address}
-              balanceText={hidden ? "Hidden · under $1" : balanceText}
+              balanceText={hidden ? "Hidden · under 1 tPOTv3" : balanceText}
               onClose={() => close(true)}
               onNavigate={() => close()}
             />
@@ -207,8 +207,8 @@ function PanelBody({
 
       {/* Account actions */}
       <div className="grid gap-0.5 p-2">
-        <MenuItem as="a" href={`${EXPLORER_URL}/address/${address}`} icon={<Activity />} trailing={<ExternalLink className="size-3.5" />} onClick={onNavigate}>
-          View activity
+        <MenuItem as="a" href={NODE_CONSOLE_URL} icon={<Activity />} trailing={<ExternalLink className="size-3.5" />} onClick={onNavigate}>
+          Open Node Console
         </MenuItem>
         <MenuItem as="button" icon={<LogOut />} danger onClick={() => disconnect()}>
           Sign out
@@ -220,18 +220,18 @@ function PanelBody({
       {/* Preferences */}
       <Section title="Preferences">
         <div className="grid gap-1">
-          <PrefRow label="Hide small balances" hint="Balances under $1.00">
+          <PrefRow label="Hide small balances" hint="Balances under 1 tPOTv3">
             <Switch checked={prefs.hideSmallBalances} onChange={(v) => setPreference("hideSmallBalances", v)} label="Hide small balances" />
           </PrefRow>
           <a
-            href={FAUCET_URL}
+            href={NETWORK_CONSOLE_URL}
             target="_blank"
             rel="noreferrer"
             className="group -mx-2 flex min-h-11 items-center justify-between gap-3 rounded-[12px] px-2 transition-colors duration-200 hover:bg-accent"
           >
             <span className="min-w-0">
-              <span className="block text-[0.82rem] text-foreground">Get more tokens</span>
-              <span className="block text-[0.68rem] text-muted-foreground">Testnet USDC from the Circle faucet</span>
+              <span className="block text-[0.82rem] text-foreground">Open network console</span>
+              <span className="block text-[0.68rem] text-muted-foreground">PortaldotV3 Node Console</span>
             </span>
             <span className="grid size-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors duration-200 group-hover:border-ring group-hover:text-foreground">
               <Droplets className="size-4" />

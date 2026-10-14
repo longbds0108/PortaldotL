@@ -1,65 +1,48 @@
 # BlindBid
 
-Public confidential bidding marketplace on Arc Testnet. Prices are sealed with commit–reveal; proposals are
-encrypted in the browser (AES-256-GCM). See [CLAUDE.md](CLAUDE.md) for the full spec.
+Public confidential bidding marketplace for **PortaldotV3 Testnet**. Prices use commit–reveal; proposals are encrypted in the browser with AES-256-GCM and stored on IPFS.
+
+## PortaldotV3 Testnet
+
+| Setting | Value |
+|---|---|
+| Substrate RPC | `wss://testnetv3-node.feso-apps.xyz` |
+| EVM RPC | `https://testnetv3-eth-rpc.feso-apps.xyz` |
+| Chain ID | `420420777` |
+| Native token | `tPOTv3` (14 decimals; pays gas) |
+| Node Console | [node-console.feso-apps.xyz](https://node-console.feso-apps.xyz/) (native Substrate tools) |
+
+Tender budgets, bid amounts, and bonds are all stored in 14-decimal tPOTv3 base units. The contract has not yet been deployed on this testnet; configure its address after deployment.
 
 ## Contracts (`contracts/`)
 
 ```bash
 cd contracts
-cp .env.example .env            # PRIVATE_KEY of a funded Arc Testnet wallet (faucet.circle.com)
-arc-forge build && arc-forge test -vvv     # plain `forge` also works for build/test
-source .env
-arc-forge script script/Deploy.s.sol --rpc-url $ARC_TESTNET_RPC_URL --broadcast
-arc-forge verify-contract <address> src/BlindBidMarket.sol:BlindBidMarket \
-  --chain-id 5042002 --verifier blockscout --verifier-url https://explorer.testnet.arc.io/api/
-# optional demo data (testnet only)
-BLINDBID_ADDRESS=<address> arc-forge script script/Seed.s.sol --rpc-url $ARC_TESTNET_RPC_URL --broadcast
+cp .env.example .env       # set PRIVATE_KEY and mapped account funding
+forge build && forge test -vvv  # local compilation and contract tests
+npm install
+set -a; source .env; set +a
+npm run compile
+npm run deploy:portaldotv3
 ```
 
-After any contract change: `cd web && pnpm sync-abi`.
+After deployment, set the printed address as `BLINDBID_ADDRESS` in `contracts/.env`, reload it with `set -a; source .env; set +a`, then run `npm run seed:portaldotv3` for optional demo tenders. The guide documents Remix and Hardhat. Foundry is kept for local build/tests; it is not the documented PortaldotV3 deployment path.
 
-### Deployments
-
-| Network | BlindBidMarket | Deploy block | Notes |
-|---|---|---|---|
-| Arc Testnet (5042002) | [`0x463014405b9f3Ea3d3B3aFd0deB68273a3E213B8`](https://explorer.testnet.arc.io/address/0x463014405b9f3Ea3d3B3aFd0deB68273a3E213B8) | 66934548 | **current** · verified · treasury `0xF9642B695D4DDf58599c953a791F94c2e96b6a57` · 24h min reveal window · seeded (ids 0–2) |
-| Arc Testnet (5042002) | [`0xb240ac942940d5695c6d280916a9c3bb6d31ff64`](https://explorer.testnet.arc.io/address/0xb240ac942940d5695c6d280916a9c3bb6d31ff64) | 66823410 | superseded (forfeited bonds went to the buyer, 5 min reveal window) |
-
-Forfeited bonds go to the treasury set at deployment (`TREASURY_ADDRESS`, defaults to the deployer) and can never be redirected.
+After any contract change, regenerate the frontend ABI with `cd web && pnpm sync-abi`.
 
 ## Web (`web/`)
 
 ```bash
 cd web
-cp .env.example .env.local      # NEXT_PUBLIC_BLINDBID_ADDRESS, NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID, PINATA_JWT
+cp .env.example .env.local
 pnpm install
 pnpm dev
-pnpm lint && pnpm typecheck && pnpm test
 ```
 
-Without `PINATA_JWT`, uploads in development are stored in `web/.dev-ipfs/` (production refuses).
-Without a WalletConnect project id, only browser-injected wallets are offered.
-E2E: see [web/e2e/README.md](web/e2e/README.md).
+Set `NEXT_PUBLIC_BLINDBID_ADDRESS` after deploying the contract and provide a WalletConnect project id if needed. `PINATA_JWT` enables production IPFS uploads; without it, development uploads use `web/.dev-ipfs/`.
 
-## Deploy the web app to Vercel
+The app connects through the PortaldotV3 EVM RPC. The Substrate WebSocket is for native Portaldot tools; the web app uses the EVM HTTP RPC for contract reads and transactions. The Node Console is linked as a general network tool, not as an EVM block explorer.
 
-1. **Import** the GitHub repo in Vercel and set **Root Directory = `web`** (the Next.js app lives there).
-   Framework preset: Next.js. Install / build commands: defaults (`pnpm install`, `next build`) —
-   the pnpm version is pinned through `packageManager` in `web/package.json`. Node.js ≥ 20.
-2. **Environment variables** (Project → Settings → Environment Variables, for Production and Preview):
+**Funding EVM wallets:** use the Node Console's Developer → Runtime calls → `reviveApi.accountId` to map the Portaldot wallet's H160 address to its SS58 address, then send test tPOTv3 to that SS58 address. Do not transfer native funds directly to an H160 address. The Portaldot guide does not specify an EVM block explorer URL, so the app does not create transaction/address deep links. Ensure the private key belongs to the PortaldotV3 wallet's H160; a key imported from another EVM network may derive a different address.
 
-   | Name | Value |
-   |---|---|
-   | `NEXT_PUBLIC_BLINDBID_ADDRESS` | `0x463014405b9f3Ea3d3B3aFd0deB68273a3E213B8` |
-   | `NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK` | `66934548` |
-   | `NEXT_PUBLIC_ARC_RPC_URL` | `https://rpc.testnet.arc.io` |
-   | `NEXT_PUBLIC_EXPLORER_URL` | `https://explorer.testnet.arc.io` |
-   | `NEXT_PUBLIC_IPFS_GATEWAY` | `https://gateway.pinata.cloud/ipfs/` |
-   | `PINATA_JWT` | your Pinata JWT (server only, mark as **Sensitive**) |
-   | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | optional — Reown project id (add the Vercel domain to its allowlist) |
-
-   `NEXT_PUBLIC_*` values are baked in at build time — redeploy after changing them. Do **not** set `ALLOW_LOCAL_IPFS` on Vercel.
-3. **Deploy.** Uploads go from the browser straight to Pinata through short-lived presigned URLs
-   (`/api/ipfs/sign`), so they are not limited by Vercel's 4.5 MB function body limit.
-
+E2E setup: see [web/e2e/README.md](web/e2e/README.md).

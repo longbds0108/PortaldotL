@@ -19,7 +19,7 @@ import { FieldError, Input, Label } from "@/components/ui/input";
 import { computeCommitment, randomBytes32 } from "@/lib/commitment";
 import { blindBidAddress, TenderState } from "@/lib/contracts";
 import { encryptDocument, generateDocKey } from "@/lib/crypto";
-import { formatBudget, formatNativeWei, isValidAmountInput, parseUsdc6, shortAddress } from "@/lib/format";
+import { formatBudget, formatNativeAmount, isValidAmountInput, parseTokenAmount, shortAddress } from "@/lib/format";
 import { describeError, useBlindBidTx, useMyBid, type TenderRow } from "@/lib/hooks";
 import { uploadJson } from "@/lib/ipfs";
 import type { TenderMetadata } from "@/lib/metadata";
@@ -96,8 +96,8 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
   // so the success screen must not read it.
   const [completed, setCompleted] = useState<"submitted" | "updated">();
 
-  const amount6 = isValidAmountInput(amountInput) ? parseUsdc6(amountInput) : undefined;
-  const outsideBudget = amount6 !== undefined && (amount6 < tender.budgetMin || amount6 > tender.budgetMax);
+  const amount14 = isValidAmountInput(amountInput) ? parseTokenAmount(amountInput) : undefined;
+  const outsideBudget = amount14 !== undefined && (amount14 < tender.budgetMin || amount14 > tender.budgetMax);
 
   function invalidate() {
     setPrepared(undefined);
@@ -109,7 +109,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
   async function seal() {
     setInputError(undefined);
     if (!address || !blindBidAddress) return;
-    if (amount6 === undefined || amount6 === 0n) return setInputError("Enter your bid amount in USDC (max 6 decimals).");
+    if (amount14 === undefined || amount14 === 0n) return setInputError("Enter your bid amount in tPOTv3 (max 14 decimals).");
     if (!file) return setInputError("Attach your technical proposal.");
     if (file.size > MAX_FILE_BYTES) return setInputError("File is larger than 20 MB.");
 
@@ -123,14 +123,14 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
       );
       // Only ciphertext leaves the browser.
       const encryptedDocURI = await uploadJson(envelope, "sealed-bid.json");
-      const commitment = computeCommitment({ tenderId: id, bidder: address, amount6, salt, docKey });
+      const commitment = computeCommitment({ tenderId: id, bidder: address, amount14, salt, docKey });
       const entry: VaultEntry = {
         v: 1,
         chainId: chain.id,
         contract: blindBidAddress,
         tenderId: id.toString(),
         bidder: address,
-        amount6: amount6.toString(),
+        amount14: amount14.toString(),
         salt,
         docKey,
         encryptedDocURI,
@@ -196,12 +196,12 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
         <Step n={1} title="Your offer" done={!!prepared} active={!prepared}>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Bid amount (USDC)</Label>
+              <Label htmlFor="amount">Bid amount (tPOTv3)</Label>
               <Input
                 id="amount"
                 inputMode="decimal"
                 autoComplete="off"
-                placeholder="Your price, in USDC"
+                placeholder="Your price, in tPOTv3"
                 value={amountInput}
                 onChange={(e) => {
                   setAmountInput(e.target.value);
@@ -244,7 +244,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
         <Step n={2} title="Back up your secrets (required)" done={backedUp} active={!!prepared && !backedUp}>
           <p className="mb-3 text-sm text-muted-foreground">
             The backup file holds your amount, salt and document key. Without it you cannot reveal — your bid is excluded
-            {tender.bidBond > 0n ? ` and your ${formatNativeWei(tender.bidBond)} bond is forfeited` : ""}. A copy is also kept in this
+            {tender.bidBond > 0n ? ` and your ${formatNativeAmount(tender.bidBond)} bond is forfeited` : ""}. A copy is also kept in this
             browser{localSaved === false ? " (failed: browser storage unavailable — the file is your only copy)" : ""}, but do not rely on it.
           </p>
           <Button variant={backedUp ? "outline" : "default"} disabled={!prepared} onClick={downloadBackup}>
@@ -260,7 +260,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
           </label>
           <Button size="lg" disabled={!backedUp || !acknowledged || tx.busy} onClick={submit}>
             {tx.busy && <Loader2 className="animate-spin" />}
-            {isUpdate ? "Replace sealed bid" : `Submit sealed bid${tender.bidBond > 0n ? ` + ${formatNativeWei(tender.bidBond)} bond` : ""}`}
+            {isUpdate ? "Replace sealed bid" : `Submit sealed bid${tender.bidBond > 0n ? ` + ${formatNativeAmount(tender.bidBond)} bond` : ""}`}
           </Button>
           <div className="mt-3">
             <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
@@ -276,7 +276,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <Countdown deadline={tender.submissionDeadline} label="Submissions close in" />
-            <p>Bid bond: {tender.bidBond > 0n ? formatNativeWei(tender.bidBond) : "none"}</p>
+            <p>Bid bond: {tender.bidBond > 0n ? formatNativeAmount(tender.bidBond) : "none"}</p>
             <TimeNote />
           </CardContent>
         </Card>

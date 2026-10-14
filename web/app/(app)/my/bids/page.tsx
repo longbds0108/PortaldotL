@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useAccount } from "wagmi";
 import type { Hash } from "viem";
 import { WithdrawBondButton } from "@/components/bond-actions";
-import { ExplorerLink } from "@/components/explorer-link";
+import { ChainReference } from "@/components/chain-reference";
 import { Countdown } from "@/components/countdown";
 import { EmptyState } from "@/components/empty-state";
 import { ConfigGate, WalletGate } from "@/components/gates";
@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TenderState, pricesVisible } from "@/lib/contracts";
-import { formatUsdc6 } from "@/lib/format";
+import { formatTokenAmount } from "@/lib/format";
 import { useMyBid, useMyBidTenderIds, useTenderMetadata, useTenders, type TenderRow } from "@/lib/hooks";
 
 export default function MyBidsPage() {
@@ -91,7 +91,7 @@ function MyBidCard({ row }: { row: TenderRow }) {
             <Link href={`/tenders/${id}`} className="block truncate font-medium hover:underline">
               {meta.data?.title ?? `Tender #${id}`}
             </Link>
-            {bid?.revealed && pricesVisible(state) && <p className="text-sm text-muted-foreground">Your bid: {formatUsdc6(bid.amount)}</p>}
+            {bid?.revealed && pricesVisible(state) && <p className="text-sm text-muted-foreground">Your bid: {formatTokenAmount(bid.amount)}</p>}
             {state === TenderState.Open && <Countdown deadline={tender.submissionDeadline} label="Reveal opens in" />}
             {state === TenderState.Reveal && <Countdown deadline={tender.revealDeadline} label="Reveal closes in" />}
           </div>
@@ -129,7 +129,7 @@ function MyBidCard({ row }: { row: TenderRow }) {
           // The reveal panel unmounts once the refetched bid is revealed, so confirm here.
           <p className="flex flex-wrap items-center gap-2 text-sm text-success">
             <CheckCircle2 className="size-4" /> Your bid is revealed. It will be compared after the reveal deadline.
-            {revealTx && <ExplorerLink type="tx" value={revealTx} />}
+            {revealTx && <ChainReference type="tx" value={revealTx} />}
           </p>
         )}
         {bid && <WithdrawBondButton tenderId={id} bid={bid} onDone={() => void myBid.refetch()} />}

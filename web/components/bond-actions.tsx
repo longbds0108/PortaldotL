@@ -4,13 +4,13 @@ import { useReadContract } from "wagmi";
 import { TxStatus } from "@/components/tx-status";
 import { Button } from "@/components/ui/button";
 import { blindBidAddress, blindBidMarketAbi, type Bid } from "@/lib/contracts";
-import { formatNativeWei } from "@/lib/format";
+import { formatNativeAmount } from "@/lib/format";
 import { useBlindBidTx } from "@/lib/hooks";
 
 export function WithdrawBondButton({ tenderId, bid, onDone }: { tenderId: bigint; bid: Bid; onDone?: () => void }) {
   const tx = useBlindBidTx();
   if (!bid.revealed || bid.bond === 0n) return null;
-  if (bid.bondWithdrawn) return <p className="text-sm text-muted-foreground">Bond of {formatNativeWei(bid.bond)} withdrawn.</p>;
+  if (bid.bondWithdrawn) return <p className="text-sm text-muted-foreground">Bond of {formatNativeAmount(bid.bond)} withdrawn.</p>;
   return (
     <div className="space-y-2">
       <Button
@@ -21,7 +21,7 @@ export function WithdrawBondButton({ tenderId, bid, onDone }: { tenderId: bigint
           if (await tx.send("withdrawBond", [tenderId])) onDone?.();
         }}
       >
-        Withdraw bond ({formatNativeWei(bid.bond)})
+        Withdraw bond ({formatNativeAmount(bid.bond)})
       </Button>
       <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
     </div>
@@ -43,7 +43,7 @@ export function SweepForfeitsButton({ tenderId }: { tenderId: bigint }) {
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted-foreground">
-        {formatNativeWei(amount)} in bonds from bids not revealed in time goes to the Hedgora treasury — not to the buyer.
+        {formatNativeAmount(amount)} in bonds from bids not revealed in time goes to the Hedgora treasury — not to the buyer.
         Anyone can send it.
       </p>
       <Button

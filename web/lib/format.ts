@@ -1,45 +1,43 @@
 import { parseUnits } from "viem";
 
-/** ERC-20 view of USDC / tender prices & budgets. */
-export const USDC_DECIMALS = 6;
-/** Native USDC on Arc (gas, msg.value, bid bonds). Same balance as the 6-decimal view. */
-export const NATIVE_DECIMALS = 18;
+/** Native tPOTv3 precision on PortaldotV3 Testnet. */
+export const TOKEN_DECIMALS = 14;
 
 /** Exact bigint formatting (no float rounding): rounds half-up to cents, adds thousands separators. */
-function formatUnitsAsUsd(value: bigint, decimals: number): string {
+function formatUnits(value: bigint, decimals: number): string {
   const scale = 10n ** BigInt(decimals - 2);
   const cents = (value + scale / 2n) / scale;
   const dollars = cents / 100n;
-  return `$${dollars.toLocaleString("en-US")}.${(cents % 100n).toString().padStart(2, "0")}`;
+  return `${dollars.toLocaleString("en-US")}.${(cents % 100n).toString().padStart(2, "0")}`;
 }
 
-/** `7_500_000_000n` → `$7,500.00` */
-export function formatUsdc6(amount6: bigint): string {
-  return formatUnitsAsUsd(amount6, USDC_DECIMALS);
+/** Format token base units as a tPOTv3 quantity. */
+export function formatTokenAmount(amount: bigint): string {
+  return `${formatUnits(amount, TOKEN_DECIMALS)} tPOTv3`;
 }
 
-/** Wallet balances: rounded DOWN to the cent so the UI never shows more than the wallet holds. */
-export function formatNativeWeiFloor(valueWei: bigint): string {
-  const cents = valueWei / 10n ** BigInt(NATIVE_DECIMALS - 2);
-  return `$${(cents / 100n).toLocaleString("en-US")}.${(cents % 100n).toString().padStart(2, "0")}`;
+/** Wallet balances: rounded DOWN to 2 decimals so the UI never shows more than the wallet holds. */
+export function formatNativeAmountFloor(valueWei: bigint): string {
+  const cents = valueWei / 10n ** BigInt(TOKEN_DECIMALS - 2);
+  return `${(cents / 100n).toLocaleString("en-US")}.${(cents % 100n).toString().padStart(2, "0")} tPOTv3`;
 }
 
-/** native wei → `$1.00` (one USDC line — bonds are shown in the same unit as prices) */
-export function formatNativeWei(valueWei: bigint): string {
-  return formatUnitsAsUsd(valueWei, NATIVE_DECIMALS);
+/** Native base units formatted as a tPOTv3 quantity. */
+export function formatNativeAmount(valueWei: bigint): string {
+  return `${formatUnits(valueWei, TOKEN_DECIMALS)} tPOTv3`;
 }
 
-export function formatBudget(min6: bigint, max6: bigint): string {
-  return min6 === max6 ? formatUsdc6(min6) : `${formatUsdc6(min6)}–${formatUsdc6(max6)}`;
+export function formatBudget(minAmount: bigint, maxAmount: bigint): string {
+  return minAmount === maxAmount ? formatTokenAmount(minAmount) : `${formatUnits(minAmount, TOKEN_DECIMALS)}–${formatUnits(maxAmount, TOKEN_DECIMALS)} tPOTv3`;
 }
 
-/** User input like "7,500.5" → 6-decimal bigint. Throws on invalid input. */
-export function parseUsdc6(input: string): bigint {
-  return parseUnits(normalizeAmountInput(input), USDC_DECIMALS);
+/** User input like "7,500.5" → 14-decimal bigint. Throws on invalid input. */
+export function parseTokenAmount(input: string): bigint {
+  return parseUnits(normalizeAmountInput(input), TOKEN_DECIMALS);
 }
 
-export function parseNativeWei(input: string): bigint {
-  return parseUnits(normalizeAmountInput(input), NATIVE_DECIMALS);
+export function parseNativeAmount(input: string): bigint {
+  return parseUnits(normalizeAmountInput(input), TOKEN_DECIMALS);
 }
 
 export function normalizeAmountInput(input: string): string {
@@ -48,7 +46,7 @@ export function normalizeAmountInput(input: string): string {
   return v;
 }
 
-export function isValidAmountInput(input: string, decimals = USDC_DECIMALS): boolean {
+export function isValidAmountInput(input: string, decimals = TOKEN_DECIMALS): boolean {
   try {
     const v = normalizeAmountInput(input);
     return (v.split(".")[1]?.length ?? 0) <= decimals;

@@ -3,9 +3,9 @@ pragma solidity ^0.8.24;
 
 /// @title IBlindBidMarket
 /// @notice Public sealed-bid (commit–reveal) tender marketplace.
-/// @dev Kept as a standalone interface so the bid layer can later move to Arc Privacy Sector
+/// @dev Kept as a standalone interface so the bid layer can later move to a private execution environment
 ///      without changing the frontend-facing surface.
-///      Units: `budgetMin/budgetMax/amount` are USDC with 6 decimals; `bidBond`/`bond` are native USDC (18 decimals, wei).
+///      Units: all budget, amount, and bond values use 14-decimal tPOTv3 base units.
 interface IBlindBidMarket {
     /// @dev Derived from block.timestamp + flags in `getTenderState`; never stored.
     enum TenderState {
@@ -29,9 +29,9 @@ interface IBlindBidMarket {
         bool cancelled;
         bool awarded;
         bool forfeitSwept; // forfeited bonds already sent to the treasury
-        uint256 budgetMin; // 6 decimals
-        uint256 budgetMax; // 6 decimals
-        uint256 bidBond; // wei (18 decimals)
+        uint256 budgetMin; // 14 decimals
+        uint256 budgetMax; // 14 decimals
+        uint256 bidBond; // tPOTv3 base units (14 decimals)
         string metadataURI;
         string reasonURI;
     }
@@ -44,8 +44,8 @@ interface IBlindBidMarket {
         uint64 revealedBlock; // 0 until revealed
         bool revealed;
         bool bondWithdrawn;
-        uint256 bond; // wei (18 decimals)
-        uint256 amount; // 6 decimals, 0 until revealed
+        uint256 bond; // tPOTv3 base units (14 decimals)
+        uint256 amount; // 14 decimals, 0 until revealed
         bytes32 salt; // 0 until revealed
         bytes32 docKey; // AES-256 key, 0 until revealed
     }

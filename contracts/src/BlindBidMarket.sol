@@ -8,9 +8,8 @@ import {CommitmentLib} from "./CommitmentLib.sol";
 /// @title BlindBidMarket
 /// @notice Public confidential bidding: anyone can bid, prices stay sealed (commit–reveal) until
 ///         the submission deadline. All phase transitions are enforced here from block.timestamp.
-/// @dev Arc specifics: bonds are native USDC (18 decimals) and are paid out pull-style only;
-///      prices (`amount`) are USDC 6 decimals. Arc timestamps are non-decreasing with 1s granularity,
-///      which is all the phase logic relies on.
+/// @dev Budgets, bid amounts, and native-token bonds use the chain's 14-decimal tPOTv3 base units.
+///      Bonds are paid out pull-style only. Phase logic relies only on block.timestamp.
 ///      Bond rule: a revealed bidder withdraws their bond; bonds of bids not revealed by
 ///      `revealDeadline` are forfeited to a fixed treasury (`sweepForfeitedBonds`, callable by anyone).
 ///      They never go to the buyer, so a buyer gains nothing when bidders miss the reveal window.
@@ -245,8 +244,7 @@ contract BlindBidMarket is IBlindBidMarket, ReentrancyGuard {
         return t.revealedCount == 0 ? TenderState.Failed : TenderState.Evaluation;
     }
 
-    /// @dev Pull-payment only, never in a loop. Arc reverts value transfers to address(0)/blocklisted
-    ///      accounts; recipients are msg.sender or the non-zero treasury, and a blocklisted one simply cannot receive.
+    /// @dev Pull-payment only, never in a loop.
     function _send(address to, uint256 value) private {
         (bool ok,) = to.call{value: value}("");
         if (!ok) revert TransferFailed();

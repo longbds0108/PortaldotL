@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { chain } from "@/lib/wagmi";
 
 /**
- * Network pill next to the balance. Clicking asks the wallet to switch to Arc Testnet (wagmi adds the chain
+ * Network pill next to the balance. Clicking asks the wallet to switch to PortaldotV3 Testnet (wagmi adds the chain
  * to the wallet first if it does not know it). Disconnected, it opens the connect modal instead.
  */
 export function NetworkChip() {
@@ -23,8 +23,8 @@ export function NetworkChip() {
     return () => clearTimeout(t);
   }, [failed]);
 
-  const onArc = isConnected && chainId === chain.id;
-  const status = !isConnected ? "idle" : onArc ? "ok" : "wrong";
+  const onPortaldotV3 = isConnected && chainId === chain.id;
+  const status = !isConnected ? "idle" : onPortaldotV3 ? "ok" : "wrong";
   const title = failed
     ? "The wallet did not switch network"
     : status === "ok"
@@ -52,11 +52,11 @@ export function NetworkChip() {
     >
       <span className="relative grid size-5 shrink-0 place-items-center">
         {/* eslint-disable-next-line @next/next/no-img-element -- small static logo */}
-        <img src="/brand/arc.png" alt="" width={20} height={20} className={cn("size-5 rounded-full", isPending && "opacity-40")} />
+        <img src="/brand/plinths-mark.png" alt="" width={20} height={20} className={cn("size-5 rounded-full", isPending && "opacity-40")} />
         {isPending ? (
           <Loader2 className="absolute size-3.5 animate-spin text-foreground" aria-hidden="true" />
         ) : (
-          // Status badge: on Arc / other network / not connected (or a rejected switch).
+          // Status badge: on PortaldotV3 / other network / not connected (or a rejected switch).
           <i
             aria-hidden="true"
             className={cn(

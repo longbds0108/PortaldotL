@@ -2,7 +2,7 @@
 
 /*
  * Visual language follows the Hedgora app (github.com/longbds0108/Defi):
- * dark ink surface, cream accent (#e8e3d5) that turns Arc blue (#0b53bf) on hover,
+ * dark ink surface, cream accent (#e8e3d5) that turns brand blue (#0b53bf) on hover,
  * Inter Tight, pill buttons, gradient cards with an animated gradient border.
  * Dark by default; the light workspace theme below re-declares the same tokens.
  */
@@ -24,7 +24,7 @@
   --overlay: #ffffff; /* hairlines + hover washes: used as overlay/[alpha] */
   --primary: #e8e3d5; /* cream */
   --primary-foreground: #100e13;
-  --brand: #0b53bf; /* Arc blue (hover / focus) */
+  --brand: #0b53bf; /* brand blue (hover / focus) */
   --brand-soft: #83aaff;
   --link: #c3d6ff;
   --accent: rgba(232, 227, 213, 0.1);
@@ -64,7 +64,7 @@
   --popover-shadow: rgba(0, 0, 0, 0.45);
 }
 
-/* Light workspace: same identity (cream + Arc blue), on warm paper. Applied to <html> by ThemeSync on app routes. */
+/* Light workspace: same identity (cream + brand blue), on warm paper. Applied to <html> by ThemeSync on app routes. */
 [data-theme="light"] {
   color-scheme: light;
   --background: #f5f3ee;
@@ -184,7 +184,7 @@
 }
 
 @layer components {
-  /* Small uppercase label above titles ("HEDGORA · ARC TESTNET") */
+  /* Small uppercase label above titles ("HEDGORA · PORTALDOTV3 TESTNET") */
   .eyebrow {
     color: #8e8597;
     font-size: 0.68rem;

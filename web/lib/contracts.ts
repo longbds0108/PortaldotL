@@ -84,6 +84,6 @@ export const ERROR_TEXT: Record<string, string> = {
   WinnerNotRevealed: "The selected bidder did not reveal a valid bid.",
   HasBids: "A tender with bids can no longer be cancelled.",
   NothingToWithdraw: "Nothing to withdraw.",
-  TransferFailed: "USDC transfer failed (the address may be blocklisted).",
+  TransferFailed: "The tPOTv3 transfer failed. Check the wallet and retry.",
   ZeroTreasury: "Treasury address is not set.",
 };

@@ -8,7 +8,7 @@ import { BidRiskNotice } from "@/components/bid-risk-notice";
 import { SweepForfeitsButton, WithdrawBondButton } from "@/components/bond-actions";
 import { BuyerHistory } from "@/components/buyer-history";
 import { Countdown, TimeNote } from "@/components/countdown";
-import { ExplorerLink } from "@/components/explorer-link";
+import { ChainReference } from "@/components/chain-reference";
 import { OnchainTimeline } from "@/components/onchain-timeline";
 import { PhaseStepper } from "@/components/phase-stepper";
 import { RevealPanel } from "@/components/reveal-panel";
@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TenderState } from "@/lib/contracts";
-import { formatBudget, formatDateTime, formatNativeWei, shortHash } from "@/lib/format";
+import { formatBudget, formatDateTime, formatNativeAmount, shortHash } from "@/lib/format";
 import { useBids, useBlindBidTx, type TenderRow } from "@/lib/hooks";
 import type { TenderMetadata } from "@/lib/metadata";
 
@@ -45,7 +45,7 @@ function TenderDetail({ row, meta, refetch }: { row: TenderRow; meta?: TenderMet
         <h1 className="title-sheen text-[clamp(2rem,5vw,3.4rem)]">{meta?.title ?? `Tender #${id}`}</h1>
         <p className="text-sm text-muted-foreground">
           Published by {meta?.buyerName ? `${meta.buyerName} · ` : ""}
-          <ExplorerLink type="address" value={tender.buyer} />
+          <ChainReference type="address" value={tender.buyer} />
         </p>
       </div>
 
@@ -92,7 +92,7 @@ function TenderDetail({ row, meta, refetch }: { row: TenderRow; meta?: TenderMet
                 <ul className="divide-y text-sm">
                   {bids.rows.map(({ bidder, bid }) => (
                     <li key={bidder} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                      <ExplorerLink type="address" value={bidder} />
+                      <ChainReference type="address" value={bidder} />
                       <span className="font-mono text-xs text-muted-foreground" title={bid.commitment}>
                         {shortHash(bid.commitment)}
                       </span>
@@ -137,7 +137,7 @@ function TenderDetail({ row, meta, refetch }: { row: TenderRow; meta?: TenderMet
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Bid bond</p>
-                  <p className="font-medium">{tender.bidBond > 0n ? formatNativeWei(tender.bidBond) : "None"}</p>
+                  <p className="font-medium">{tender.bidBond > 0n ? formatNativeAmount(tender.bidBond) : "None"}</p>
                 </div>
               </div>
               <div className="space-y-1">

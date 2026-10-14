@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import type { Hash } from "viem";
-import { ExplorerLink } from "@/components/explorer-link";
+import { ChainReference } from "@/components/chain-reference";
 import type { TxStatus as Status } from "@/lib/hooks";
 import { NETWORK_NAME } from "@/lib/network";
 
@@ -26,7 +26,7 @@ export function TxStatus({ status, hash, error }: { status: Status; hash?: Hash;
     <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
       {status === "success" ? <CheckCircle2 className="size-4 text-success" /> : <Loader2 className="size-4 animate-spin" />}
       {TEXT[status]}
-      {hash && <ExplorerLink type="tx" value={hash} />}
+      {hash && <ChainReference type="tx" value={hash} />}
     </p>
   );
 }

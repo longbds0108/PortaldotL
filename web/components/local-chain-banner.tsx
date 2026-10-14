@@ -11,7 +11,7 @@ export function LocalChainBanner({ className = "" }: { className?: string }) {
     >
       <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
       <span>
-        Local test chain — balances, tenders and bids shown here are test data, not real Arc Testnet funds.
+        Local test chain — balances, tenders and bids shown here are test data, not real PortaldotV3 Testnet funds.
       </span>
     </div>
   );

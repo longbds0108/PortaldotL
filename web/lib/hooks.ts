@@ -8,7 +8,6 @@ import {
   HttpRequestError,
   LimitExceededRpcError,
   UserRejectedRequestError,
-  parseGwei,
   type Address,
   type ContractFunctionArgs,
   type ContractFunctionName,
@@ -27,7 +26,7 @@ import {
 import { fetchJson } from "./ipfs";
 import { tenderMetadataSchema, type TenderMetadata } from "./metadata";
 
-/** Background refresh of on-chain reads. Kept moderate: public Arc RPCs rate-limit aggressive polling. */
+/** Background refresh of on-chain reads. Kept moderate: public PortaldotV3 RPCs rate-limit aggressive polling. */
 const REFRESH_MS = 15_000;
 
 // ───────────────────────── chain time ─────────────────────────
@@ -226,7 +225,7 @@ export function useMyBid(tenderId: bigint | undefined) {
 }
 
 /**
- * Native USDC still locked in this wallet's bid bonds: bonds not withdrawn and not forfeited
+ * Native tPOTv3 still locked in this wallet's bid bonds: bonds not withdrawn and not forfeited
  * (a bond is forfeited once the reveal window closed without a reveal).
  */
 export function useMyLockedBonds(rows: TenderRow[]) {
@@ -260,9 +259,6 @@ type WriteFn = ContractFunctionName<Abi, "nonpayable" | "payable">;
 
 export type TxStatus = "idle" | "simulating" | "signing" | "confirming" | "success" | "error";
 
-/** Arc mempool silently drops txs below 20 gwei maxFeePerGas (docs: EVM differences). */
-const ARC_MIN_FEE = parseGwei("20");
-
 export function useBlindBidTx() {
   const client = usePublicClient();
   const { address } = useAccount();
@@ -282,7 +278,7 @@ export function useBlindBidTx() {
       try {
         if (!client || !address || !blindBidAddress) throw new Error("Connect your wallet first.");
         setStatus("simulating");
-        // Simulate first: decodes custom errors and avoids paying gas for a revert (e.g. blocklisted address).
+        // Simulate first to decode contract errors before asking the wallet to send a transaction.
         const { request } = await client.simulateContract({
           address: blindBidAddress,
           abi: blindBidMarketAbi,
@@ -291,20 +287,12 @@ export function useBlindBidTx() {
           value,
           account: address,
         } as never);
-        const fees = await client.estimateFeesPerGas();
-        const maxFeePerGas = fees.maxFeePerGas > ARC_MIN_FEE ? fees.maxFeePerGas : ARC_MIN_FEE;
-        const maxPriorityFeePerGas =
-          fees.maxPriorityFeePerGas < maxFeePerGas ? fees.maxPriorityFeePerGas : maxFeePerGas;
-
         setStatus("signing");
         const txHash = await writeContractAsync({
           ...(request as object),
-          maxFeePerGas,
-          maxPriorityFeePerGas,
         } as never);
         setHash(txHash);
         setStatus("confirming");
-        // Arc finality is deterministic and sub-second: one receipt is final.
         const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1 });
         if (receipt.status !== "success") throw new Error("Transaction reverted.");
         setStatus("success");
@@ -334,7 +322,7 @@ export function describeError(e: unknown): string {
     if (
       e.walk((x) => x instanceof LimitExceededRpcError || (x instanceof HttpRequestError && x.status === 429))
     ) {
-      return "The Arc RPC is rate-limiting requests right now. Wait a few seconds and try again.";
+      return "The PortaldotV3 RPC is rate-limiting requests right now. Wait a few seconds and try again.";
     }
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
     if (revert instanceof ContractFunctionRevertedError) {

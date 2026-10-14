@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Address, Hex } from "viem";
 import { useAccount } from "wagmi";
-import { ExplorerLink } from "@/components/explorer-link";
+import { ChainReference } from "@/components/chain-reference";
 import { WalletGate } from "@/components/gates";
 import { PageHeader } from "@/components/page-header";
 import { TenderShell } from "@/components/tender-shell";
@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label, Textarea } from "@/components/ui/input";
 import { TenderState, pricesVisible } from "@/lib/contracts";
 import { decryptDocument, encryptedEnvelopeSchema } from "@/lib/crypto";
-import { formatBudget, formatUsdc6 } from "@/lib/format";
+import { formatBudget, formatTokenAmount } from "@/lib/format";
 import { describeError, useBids, useBlindBidTx, type BidRow, type TenderRow } from "@/lib/hooks";
 import { fetchJson, uploadJson } from "@/lib/ipfs";
 import type { AwardReason, TenderMetadata } from "@/lib/metadata";
@@ -146,10 +146,10 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
                         />
                       </td>
                       <td className="px-2 py-3">
-                        <ExplorerLink type="address" value={b.bidder} />
+                        <ChainReference type="address" value={b.bidder} />
                       </td>
                       <td className="px-2 py-3 text-right font-semibold tabular-nums">
-                        {show ? formatUsdc6(b.bid.amount) : "—"}
+                        {show ? formatTokenAmount(b.bid.amount) : "—"}
                         {b.bid.amount === lowest && <Badge variant="success" className="ml-2">Lowest</Badge>}
                       </td>
                       <td className="px-2 py-3">
@@ -170,7 +170,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
                     <tr key={b.bidder} className="text-muted-foreground">
                       <td className="px-5 py-3">—</td>
                       <td className="px-2 py-3">
-                        <ExplorerLink type="address" value={b.bidder} />
+                        <ChainReference type="address" value={b.bidder} />
                       </td>
                       <td className="px-2 py-3 text-right" colSpan={2}>
                         <Badge variant="destructive">Not revealed — excluded</Badge>

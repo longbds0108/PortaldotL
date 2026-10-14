@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Info } from "lucide-react";
 import type { Tender } from "@/lib/contracts";
-import { formatDateTime, formatDuration, formatNativeWei } from "@/lib/format";
+import { formatDateTime, formatDuration, formatNativeAmount } from "@/lib/format";
 import { bidRisks } from "@/lib/risk";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +35,7 @@ export function BidRiskNotice({ tender, className }: { tender: Tender; className
         </div>
         <div>
           <dt className="text-xs text-muted-foreground">Bid bond</dt>
-          <dd>{tender.bidBond > 0n ? `${formatNativeWei(tender.bidBond)} locked until you reveal` : "None — only network fees"}</dd>
+          <dd>{tender.bidBond > 0n ? `${formatNativeAmount(tender.bidBond)} locked until you reveal` : "None — only network fees"}</dd>
         </div>
       </dl>
       {tender.bidBond > 0n && (

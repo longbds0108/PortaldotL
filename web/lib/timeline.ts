@@ -21,7 +21,7 @@ const KINDS = new Set<TimelineEvent["kind"]>([
 
 /**
  * Builds the on-chain timeline for one tender.
- * Arc RPC limits eth_getLogs to ~10k blocks and blocks are sub-second, so instead of scanning ranges
+ * Instead of scanning potentially large eth_getLogs ranges, query the exact blocks recorded by the contract
  * we query the exact blocks the contract recorded (createdBlock, committedBlock, revealedBlock, awardedBlock).
  * Note: for an updated bid only the latest commitment's block is recorded.
  */

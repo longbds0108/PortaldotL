@@ -5,7 +5,7 @@ import { PREFS_KEY } from "./theme-boot";
 
 /** UI preferences kept in this browser only (the account panel's toggles). */
 export type Preferences = {
-  /** Hide wallet balances below SMALL_BALANCE_WEI in the header and account panel. */
+  /** Hide wallet balances below SMALL_BALANCE_BASE_UNITS in the header and account panel. */
   hideSmallBalances: boolean;
   /** Workspace colour theme. "system" follows the device setting. */
   theme: ThemeChoice;
@@ -13,8 +13,8 @@ export type Preferences = {
 
 export type ThemeChoice = "dark" | "light" | "system";
 
-/** 1 USDC in native wei (18 decimals). */
-export const SMALL_BALANCE_WEI = 10n ** 18n;
+/** 1 tPOTv3 in native base units (14 decimals). */
+export const SMALL_BALANCE_BASE_UNITS = 10n ** 14n;
 
 const DEFAULTS: Preferences = { hideSmallBalances: false, theme: "dark" };
 

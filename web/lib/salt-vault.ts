@@ -21,8 +21,8 @@ export const vaultEntrySchema = z.object({
   contract: address,
   tenderId: uintString,
   bidder: address,
-  /** USDC 6 decimals, decimal string */
-  amount6: uintString,
+  /** tPOTv3 14 decimals, decimal string */
+  amount14: uintString,
   salt: hex32,
   docKey: hex32,
   encryptedDocURI: z.string().optional(),
@@ -108,8 +108,8 @@ export function parseBackup(text: string): VaultEntry[] {
   return r.data;
 }
 
-export function entrySecrets(e: VaultEntry): { amount6: bigint; salt: Hex; docKey: Hex } {
-  return { amount6: BigInt(e.amount6), salt: e.salt as Hex, docKey: e.docKey as Hex };
+export function entrySecrets(e: VaultEntry): { amount14: bigint; salt: Hex; docKey: Hex } {
+  return { amount14: BigInt(e.amount14), salt: e.salt as Hex, docKey: e.docKey as Hex };
 }
 
 export function downloadTextFile(filename: string, text: string) {

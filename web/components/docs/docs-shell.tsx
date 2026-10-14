@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { DOC_GROUPS, DOC_PAGES, docHref } from "@/lib/docs";
-import { BLINDBID_ADDRESS, EXPLORER_URL } from "@/lib/env";
+import { BLINDBID_ADDRESS, NODE_CONSOLE_URL } from "@/lib/env";
 import { shortAddress } from "@/lib/format";
 import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
 import { cn } from "@/lib/utils";
@@ -20,7 +20,6 @@ import { chain } from "@/lib/wagmi";
  */
 
 const REPO_URL = "https://github.com/longbds0108/pay";
-const FAUCET_URL = "https://faucet.circle.com";
 
 function useCurrentDoc() {
   const pathname = usePathname();
@@ -80,11 +79,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
             <span className="truncate text-[#979eb8]">{current?.title ?? "Not found"}</span>
           </p>
           <div className="hidden items-center gap-5 text-[13px] text-[#979eb8] sm:flex">
-            <a href={EXPLORER_URL} target="_blank" rel="noreferrer" className="hover:text-white">
-              Explorer
-            </a>
-            <a href={FAUCET_URL} target="_blank" rel="noreferrer" className="hover:text-white">
-              USDC faucet
+            <a href={NODE_CONSOLE_URL} target="_blank" rel="noreferrer" className="hover:text-white">
+              Node Console
             </a>
           </div>
         </div>
@@ -169,13 +165,13 @@ function SidebarNav() {
 function RightRail() {
   const rows: [string, ReactNode][] = [
     ["Chain ID", String(chain.id)],
-    ["Gas token", "USDC"],
+    ["Gas token", "tPOTv3"],
     [
       "Contract",
       BLINDBID_ADDRESS ? (
-        <a href={`${EXPLORER_URL}/address/${BLINDBID_ADDRESS}`} target="_blank" rel="noreferrer" className="font-[ui-monospace,SFMono-Regular,Menlo,monospace] text-[#8fb4ff] hover:underline">
+        <span className="font-[ui-monospace,SFMono-Regular,Menlo,monospace]">
           {shortAddress(BLINDBID_ADDRESS)}
-        </a>
+        </span>
       ) : (
         "Not configured"
       ),
@@ -202,11 +198,8 @@ function RightRail() {
       <section>
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6f7690]">Resources</p>
         <ul className="grid gap-3.5 text-[#a7acc5]">
-          <RailLink href={EXPLORER_URL} external>
-            Arc explorer
-          </RailLink>
-          <RailLink href={FAUCET_URL} external>
-            USDC faucet
+          <RailLink href={NODE_CONSOLE_URL} external>
+            Portaldot Node Console
           </RailLink>
           <RailLink href={REPO_URL} external>
             GitHub

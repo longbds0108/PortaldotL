@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
 import { SelectMenu } from "@/components/ui/select";
 import { MIN_REVEAL_WINDOW_S, blindBidMarketAbi } from "@/lib/contracts";
-import { formatDateTime, formatDuration, isValidAmountInput, parseNativeWei, parseUsdc6 } from "@/lib/format";
+import { formatDateTime, formatDuration, isValidAmountInput, parseNativeAmount, parseTokenAmount } from "@/lib/format";
 import { describeError, useBlindBidTx, useChainNow } from "@/lib/hooks";
 import { uploadJson } from "@/lib/ipfs";
 import { CATEGORIES, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
@@ -40,7 +40,7 @@ const formSchema = z
     revealDeadline: z.string().min(1, "Required"),
     bidBond: amount("Bid bond", 6),
   })
-  .refine((v) => !isValidAmountInput(v.budgetMin) || !isValidAmountInput(v.budgetMax) || parseUsdc6(v.budgetMin) <= parseUsdc6(v.budgetMax), {
+  .refine((v) => !isValidAmountInput(v.budgetMin) || !isValidAmountInput(v.budgetMax) || parseTokenAmount(v.budgetMin) <= parseTokenAmount(v.budgetMax), {
     path: ["budgetMax"],
     message: "Maximum must be ≥ minimum",
   })
@@ -140,11 +140,11 @@ function CreateTenderForm() {
 
     const receipt = await tx.send("createTender", [
       metadataURI,
-      parseUsdc6(v.budgetMin),
-      parseUsdc6(v.budgetMax),
+      parseTokenAmount(v.budgetMin),
+      parseTokenAmount(v.budgetMax),
       BigInt(submissionDeadline),
       BigInt(revealDeadline),
-      parseNativeWei(v.bidBond),
+      parseNativeAmount(v.bidBond),
     ]);
     if (!receipt) return;
     const [created] = parseEventLogs({ abi: blindBidMarketAbi, eventName: "TenderCreated", logs: receipt.logs });
@@ -208,13 +208,13 @@ function CreateTenderForm() {
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="budgetMin">Minimum budget (USDC)</Label>
-              <Input id="budgetMin" inputMode="decimal" placeholder="Minimum, in USDC" {...register("budgetMin")} />
+              <Label htmlFor="budgetMin">Minimum budget (tPOTv3)</Label>
+              <Input id="budgetMin" inputMode="decimal" placeholder="Minimum, in tPOTv3" {...register("budgetMin")} />
               <FieldError>{errors.budgetMin?.message}</FieldError>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="budgetMax">Maximum budget (USDC)</Label>
-              <Input id="budgetMax" inputMode="decimal" placeholder="Maximum, in USDC" {...register("budgetMax")} />
+              <Label htmlFor="budgetMax">Maximum budget (tPOTv3)</Label>
+              <Input id="budgetMax" inputMode="decimal" placeholder="Maximum, in tPOTv3" {...register("budgetMax")} />
               <FieldError>{errors.budgetMax?.message}</FieldError>
             </div>
             <div className="space-y-2">
@@ -231,7 +231,7 @@ function CreateTenderForm() {
               {rev > sub && <p className="text-xs text-muted-foreground">Reveal window: {formatDuration(rev - sub)}</p>}
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="bidBond">Bid bond (USDC, optional)</Label>
+              <Label htmlFor="bidBond">Bid bond (tPOTv3, optional)</Label>
               <Input id="bidBond" inputMode="decimal" placeholder="0 for no bond" {...register("bidBond")} />
               <FieldError>{errors.bidBond?.message}</FieldError>
               <p className="text-xs text-muted-foreground">

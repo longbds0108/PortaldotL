@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { SelectMenu } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { STATE_LABEL, TenderState, type Bid } from "@/lib/contracts";
-import { formatDateTime, formatNativeWei, formatNativeWeiFloor, shortAddress } from "@/lib/format";
+import { formatDateTime, formatNativeAmount, formatNativeAmountFloor, shortAddress } from "@/lib/format";
 import { useChainNow, useMyBidTenderIds, useMyLockedBonds, useMyTenderIds, useTenders, type TenderRow } from "@/lib/hooks";
 import { fetchJson } from "@/lib/ipfs";
 import { CATEGORIES, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
@@ -281,8 +281,7 @@ function useWalletData() {
   const myBidIds = useMyBidTenderIds();
   const myTenders = useTenders(myTenderIds.data ?? []);
   const myBidTenders = useTenders(myBidIds.data ?? []);
-  // Native USDC on Arc has 18 decimals (same balance as the 6-decimal ERC-20 view). Pinned to Arc so a wallet
-  // sitting on another network never shows that network's balance here.
+  // Native tPOTv3 on PortaldotV3 has 14 decimals and pays network gas.
   const balance = useBalance({ address, chainId: chain.id, query: { enabled: !!address, refetchInterval: 15_000 } });
   const bonds = useMyLockedBonds(myBidTenders.rows);
 
@@ -320,14 +319,14 @@ function WalletKpis({ wallet: w }: { wallet: WalletData }) {
           </span>
           <div>
             <p className="text-[0.88rem] text-foreground">Your wallet</p>
-            <p className="text-[0.74rem] text-muted-foreground">Connect to see its USDC balance, locked bonds, tenders and bids.</p>
+            <p className="text-[0.74rem] text-muted-foreground">Connect to see its tPOTv3 balance, locked bonds, tenders and bids.</p>
           </div>
         </div>
         <ConnectButton showBalance={false} chainStatus="none" />
       </section>
     );
   }
-  const bal = w.balance.data ? formatNativeWeiFloor(w.balance.data.value) : w.balance.isError ? "—" : "…";
+  const bal = w.balance.data ? formatNativeAmountFloor(w.balance.data.value) : w.balance.isError ? "—" : "…";
   return (
     <section className="grid gap-2.5">
       <RowLabel>Your wallet · {shortAddress(w.address)}</RowLabel>
@@ -338,7 +337,7 @@ function WalletKpis({ wallet: w }: { wallet: WalletData }) {
           tone="blue"
           href="/my/bids"
           label="Locked in bid bonds"
-          value={w.bidsReady ? formatNativeWei(w.bonds.lockedWei) : "…"}
+          value={w.bidsReady ? formatNativeAmount(w.bonds.lockedWei) : "…"}
           hint={w.bidsReady ? (w.bonds.count ? `${w.bonds.count} bond${w.bonds.count > 1 ? "s" : ""} · back after reveal` : "No active bonds") : "…"}
         />
         <Kpi

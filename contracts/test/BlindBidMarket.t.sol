@@ -15,7 +15,7 @@ contract BlindBidMarketTest is Test {
     address internal bob = makeAddr("bob");
     address internal carol = makeAddr("carol");
 
-    uint256 internal constant BOND = 10 ether; // 10 native USDC (18 decimals)
+    uint256 internal constant BOND = 10e14; // 10 tPOTv3 (14 decimals)
     uint64 internal constant SUBMIT_WINDOW = 3 days;
     uint64 internal constant REVEAL_WINDOW = 1 days;
 
@@ -36,7 +36,7 @@ contract BlindBidMarketTest is Test {
 
     function _create(uint256 bond) internal returns (uint256 id) {
         vm.prank(buyer);
-        id = market.createTender("ipfs://meta", 5_000e6, 10_000e6, submissionDeadline, revealDeadline, bond);
+        id = market.createTender("ipfs://meta", 5_000e14, 10_000e14, submissionDeadline, revealDeadline, bond);
     }
 
     function _commit(uint256 id, address bidder, uint256 amount, bytes32 salt, bytes32 key)
@@ -89,8 +89,8 @@ contract BlindBidMarketTest is Test {
         assertEq(id, 0);
         assertEq(market.tenderCount(), 1);
         assertEq(t.buyer, buyer);
-        assertEq(t.budgetMin, 5_000e6);
-        assertEq(t.budgetMax, 10_000e6);
+        assertEq(t.budgetMin, 5_000e14);
+        assertEq(t.budgetMax, 10_000e14);
         assertEq(t.bidBond, BOND);
         assertEq(t.metadataURI, "ipfs://meta");
         assertEq(t.createdBlock, block.number);
@@ -127,8 +127,8 @@ contract BlindBidMarketTest is Test {
     function test_submitBid_hidesAmountUntilReveal() public {
         uint256 id = _create(BOND);
         vm.expectEmit(true, true, false, true);
-        emit IBlindBidMarket.BidSubmitted(id, alice, _commit(id, alice, 7_500e6, "s", "k"), "ipfs://cipher");
-        _bid(id, alice, 7_500e6, "s", "k");
+        emit IBlindBidMarket.BidSubmitted(id, alice, _commit(id, alice, 7_500e14, "s", "k"), "ipfs://cipher");
+        _bid(id, alice, 7_500e14, "s", "k");
 
         IBlindBidMarket.Bid memory b = market.getBid(id, alice);
         assertEq(b.amount, 0);
@@ -180,8 +180,8 @@ contract BlindBidMarketTest is Test {
 
     function test_updateBid_overwritesCommitment() public {
         uint256 id = _create(BOND);
-        _bid(id, alice, 9_000e6, "s1", "k1");
-        bytes32 c2 = _commit(id, alice, 8_000e6, "s2", "k2");
+        _bid(id, alice, 9_000e14, "s1", "k1");
+        bytes32 c2 = _commit(id, alice, 8_000e14, "s2", "k2");
         vm.prank(alice);
         market.updateBid(id, c2, "ipfs://cipher2");
 
@@ -192,8 +192,8 @@ contract BlindBidMarketTest is Test {
 
         vm.warp(submissionDeadline);
         vm.expectRevert(IBlindBidMarket.CommitmentMismatch.selector);
-        _reveal(id, alice, 9_000e6, "s1", "k1");
-        _reveal(id, alice, 8_000e6, "s2", "k2");
+        _reveal(id, alice, 9_000e14, "s1", "k1");
+        _reveal(id, alice, 8_000e14, "s2", "k2");
     }
 
     function test_updateBid_requiresExistingBidAndOpen() public {
@@ -215,39 +215,39 @@ contract BlindBidMarketTest is Test {
 
     function test_reveal_happyPath() public {
         uint256 id = _create(BOND);
-        _bid(id, alice, 7_500e6, "s", "k");
+        _bid(id, alice, 7_500e14, "s", "k");
         vm.warp(submissionDeadline);
         vm.roll(block.number + 10);
         _expectState(id, IBlindBidMarket.TenderState.Reveal);
 
         vm.expectEmit(true, true, false, true);
-        emit IBlindBidMarket.BidRevealed(id, alice, 7_500e6);
-        _reveal(id, alice, 7_500e6, "s", "k");
+        emit IBlindBidMarket.BidRevealed(id, alice, 7_500e14);
+        _reveal(id, alice, 7_500e14, "s", "k");
 
         IBlindBidMarket.Bid memory b = market.getBid(id, alice);
         assertTrue(b.revealed);
-        assertEq(b.amount, 7_500e6);
+        assertEq(b.amount, 7_500e14);
         assertEq(b.salt, bytes32("s"));
         assertEq(b.docKey, bytes32("k"));
         assertEq(b.revealedBlock, block.number);
         assertEq(market.getTender(id).revealedCount, 1);
 
         vm.expectRevert(IBlindBidMarket.AlreadyRevealed.selector);
-        _reveal(id, alice, 7_500e6, "s", "k");
+        _reveal(id, alice, 7_500e14, "s", "k");
     }
 
     function test_reveal_cannotReuseAnotherBiddersCommitment() public {
         uint256 id = _create(0);
-        _bid(id, alice, 7_500e6, "s", "k");
+        _bid(id, alice, 7_500e14, "s", "k");
         // bob copies alice's commitment verbatim
         bytes32 aliceCommitment = market.getBid(id, alice).commitment;
         vm.prank(bob);
         market.submitBid(id, aliceCommitment, "ipfs://copy");
 
         vm.warp(submissionDeadline);
-        _reveal(id, alice, 7_500e6, "s", "k");
+        _reveal(id, alice, 7_500e14, "s", "k");
         vm.expectRevert(IBlindBidMarket.CommitmentMismatch.selector);
-        _reveal(id, bob, 7_500e6, "s", "k");
+        _reveal(id, bob, 7_500e14, "s", "k");
     }
 
     function test_reveal_rejectsZeroAmountAndNoBid() public {
@@ -283,18 +283,18 @@ contract BlindBidMarketTest is Test {
 
     function testFuzz_reveal_outsideWindowReverts(uint256 t, bool early) public {
         uint256 id = _create(0);
-        _bid(id, alice, 1_000e6, "s", "k");
+        _bid(id, alice, 1_000e14, "s", "k");
         t = early ? bound(t, block.timestamp, submissionDeadline - 1) : bound(t, revealDeadline, type(uint64).max);
         vm.warp(t);
         vm.expectRevert();
-        _reveal(id, alice, 1_000e6, "s", "k");
+        _reveal(id, alice, 1_000e14, "s", "k");
     }
 
     function testFuzz_reveal_insideWindowSucceeds(uint64 dt) public {
         uint256 id = _create(0);
-        _bid(id, alice, 1_000e6, "s", "k");
+        _bid(id, alice, 1_000e14, "s", "k");
         vm.warp(submissionDeadline + (dt % REVEAL_WINDOW));
-        _reveal(id, alice, 1_000e6, "s", "k");
+        _reveal(id, alice, 1_000e14, "s", "k");
         assertTrue(market.getBid(id, alice).revealed);
     }
 
@@ -302,13 +302,13 @@ contract BlindBidMarketTest is Test {
 
     function test_fullLifecycle_award() public {
         uint256 id = _create(BOND);
-        _bid(id, alice, 7_500e6, "a", "ka");
-        _bid(id, bob, 6_900e6, "b", "kb");
-        _bid(id, carol, 8_100e6, "c", "kc"); // will not reveal
+        _bid(id, alice, 7_500e14, "a", "ka");
+        _bid(id, bob, 6_900e14, "b", "kb");
+        _bid(id, carol, 8_100e14, "c", "kc"); // will not reveal
 
         vm.warp(submissionDeadline);
-        _reveal(id, alice, 7_500e6, "a", "ka");
-        _reveal(id, bob, 6_900e6, "b", "kb");
+        _reveal(id, alice, 7_500e14, "a", "ka");
+        _reveal(id, bob, 6_900e14, "b", "kb");
 
         vm.warp(revealDeadline);
         _expectState(id, IBlindBidMarket.TenderState.Evaluation);
@@ -326,7 +326,7 @@ contract BlindBidMarketTest is Test {
         market.award(id, bob, "");
 
         vm.expectEmit(true, true, false, true);
-        emit IBlindBidMarket.TenderAwarded(id, bob, 6_900e6, "ipfs://reason");
+        emit IBlindBidMarket.TenderAwarded(id, bob, 6_900e14, "ipfs://reason");
         vm.prank(buyer);
         market.award(id, bob, "ipfs://reason");
 
@@ -420,9 +420,9 @@ contract BlindBidMarketTest is Test {
 
     function test_bond_revealedBidderWithdraws_unrevealedForfeitsToTreasury() public {
         uint256 id = _create(BOND);
-        _bid(id, alice, 7_500e6, "a", "ka");
-        _bid(id, bob, 6_900e6, "b", "kb");
-        _bid(id, carol, 8_100e6, "c", "kc");
+        _bid(id, alice, 7_500e14, "a", "ka");
+        _bid(id, bob, 6_900e14, "b", "kb");
+        _bid(id, carol, 8_100e14, "c", "kc");
 
         // nothing withdrawable before reveal
         vm.prank(alice);
@@ -430,7 +430,7 @@ contract BlindBidMarketTest is Test {
         market.withdrawBond(id);
 
         vm.warp(submissionDeadline);
-        _reveal(id, alice, 7_500e6, "a", "ka");
+        _reveal(id, alice, 7_500e14, "a", "ka");
 
         uint256 before = alice.balance;
         vm.prank(alice);

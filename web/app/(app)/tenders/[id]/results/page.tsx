@@ -5,7 +5,7 @@ import { CheckCircle2, Lock, ShieldCheck, Trophy, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import type { Hex } from "viem";
-import { ExplorerLink } from "@/components/explorer-link";
+import { ChainReference } from "@/components/chain-reference";
 import { OnchainTimeline } from "@/components/onchain-timeline";
 import { PageHeader } from "@/components/page-header";
 import { StateBadge } from "@/components/state-badge";
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { computeCommitment } from "@/lib/commitment";
 import { TenderState, pricesVisible, type Bid, type Tender } from "@/lib/contracts";
-import { formatBudget, formatDateTime, formatUsdc6, shortHash } from "@/lib/format";
+import { formatBudget, formatDateTime, formatTokenAmount, shortHash } from "@/lib/format";
 import { useBids, type BidRow, type TenderRow } from "@/lib/hooks";
 import { fetchJson } from "@/lib/ipfs";
 import { awardReasonSchema, type TenderMetadata } from "@/lib/metadata";
@@ -32,7 +32,7 @@ function verifyBid(tenderId: bigint, tender: Tender, row: BidRow): Verdict {
   const recomputed = computeCommitment({
     tenderId,
     bidder,
-    amount6: bid.amount,
+    amount14: bid.amount,
     salt: bid.salt as Hex,
     docKey: bid.docKey as Hex,
   });
@@ -87,8 +87,8 @@ function Results({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
               </div>
               {state === TenderState.Awarded ? (
                 <p className="text-sm text-muted-foreground">
-                  Winner <ExplorerLink type="address" value={tender.winner} />
-                  {winnerBid && show && <> · <span className="font-semibold text-foreground">{formatUsdc6(winnerBid.amount)}</span></>}
+                  Winner <ChainReference type="address" value={tender.winner} />
+                  {winnerBid && show && <> · <span className="font-semibold text-foreground">{formatTokenAmount(winnerBid.amount)}</span></>}
                 </p>
               ) : state === TenderState.Failed ? (
                 <p className="text-sm text-muted-foreground">No bid was revealed in time — the tender failed.</p>
@@ -199,7 +199,7 @@ function BidProofRow({
     <tr className="align-top">
       <td className="px-5 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          <ExplorerLink type="address" value={row.bidder} />
+          <ChainReference type="address" value={row.bidder} />
           {isWinner && <Badge>Winner</Badge>}
         </div>
       </td>
@@ -213,7 +213,7 @@ function BidProofRow({
             <Lock className="size-3" /> Not revealed
           </Badge>
         ) : show ? (
-          <span className="font-semibold">{formatUsdc6(bid.amount)}</span>
+          <span className="font-semibold">{formatTokenAmount(bid.amount)}</span>
         ) : (
           "—"
         )}

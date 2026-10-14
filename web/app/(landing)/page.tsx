@@ -9,13 +9,13 @@ import { AsciiSeal } from "@/components/landing/ascii-seal";
 import { FooterAscii } from "@/components/landing/footer-ascii";
 import { Scramble } from "@/components/landing/scramble";
 import { TenderState, blindBidAddress } from "@/lib/contracts";
-import { EXPLORER_URL } from "@/lib/env";
+import { NODE_CONSOLE_URL } from "@/lib/env";
 import { useTenders } from "@/lib/hooks";
 import "./landing.css";
 import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
 
 /*
- * Landing page in the Hedgora style (github.com/longbds0108/Defi): floating header with a sliding
+ * Landing page: floating header with a sliding
  * section pill that flips dark/light per section, ASCII hero, sticky stacking cards, light bento
  * "protocol" section, four connected steps, "safe by design" panel, ASCII footer and route curtain.
  */
@@ -76,7 +76,7 @@ const STEPS = [
   { icon: ShieldCheck, title: "Prove", text: "The award and a link to its reason are public. Anyone can verify each revealed bid." },
 ];
 
-const STACK = ["Arc", "Circle USDC", "Solidity", "OpenZeppelin", "Foundry", "IPFS", "viem", "wagmi", "RainbowKit", "WebCrypto"];
+const STACK = ["PortaldotV3", "Solidity", "OpenZeppelin", "Foundry", "IPFS", "viem", "wagmi", "RainbowKit", "WebCrypto"];
 
 export default function LandingPage() {
   const router = useRouter();
@@ -86,7 +86,7 @@ export default function LandingPage() {
   const [curtain, setCurtain] = useState(false);
   const pendingNav = useRef(false);
 
-  // Route curtain, then enter the app (Hedgora "LAUNCH APP").
+  // Route curtain, then enter the app.
   const launch = useCallback(
     (e?: MouseEvent, to = "/dashboard") => {
       e?.preventDefault();
@@ -181,7 +181,7 @@ export default function LandingPage() {
   return (
     <div className="bb-landing">
       <header ref={headerRef} className={`bb-lheader ${light ? "bb-lheader--light" : "bb-lheader--dark"}`}>
-        <button type="button" className="bb-brand" aria-label="Hedgora — back to top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+        <button type="button" className="bb-brand" aria-label="Plinths — back to top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           <BrandLogo onLight={light} priority className="bb-brand__logo" />
         </button>
         <nav className="bb-lnav" aria-label="Landing page" style={{ ["--nav-index" as string]: Math.max(0, activeIndex) }}>
@@ -214,8 +214,8 @@ export default function LandingPage() {
               private.
             </h1>
             <p className="bb-hero__body js-rise d1">
-              Publish a public tender. Any wallet except the buyer can submit a bid, and every price stays a sealed hash
-              until the submission deadline — enforced by the Hedgora smart contract, not by a promise.
+              Plinths gives buyers a clear place to publish work and compare offers. Suppliers submit sealed bids, so
+              prices stay private until the deadline. The rules are enforced by the smart contract and visible to everyone.
             </p>
             <div className="bb-hero__actions js-rise d2">
               <a href="/dashboard" className="bb-action bb-ring" onClick={(e) => launch(e)}>
@@ -244,7 +244,7 @@ export default function LandingPage() {
               everyone
             </h2>
             <p>
-              Every phase change is decided by block time inside the Hedgora contract. The website only shows the clock —
+              Every phase change is decided by block time inside the Plinths contract. The website only shows the clock —
               it can&apos;t open a bid early, and neither can the buyer. Eligibility is described by the buyer and checked
               at evaluation, not on-chain.
             </p>
@@ -295,7 +295,7 @@ export default function LandingPage() {
               </a>
             </div>
             <p className="bb-proto__lead">
-              Hedgora replaces &ldquo;trust the portal&rdquo; with cryptography: a commitment fixes each price before the
+              Plinths replaces &ldquo;trust the portal&rdquo; with cryptography: a commitment fixes each price before the
               deadline, proposals are encrypted in the bidder&apos;s browser, and the contract — not a server — decides
               when anything opens.
             </p>
@@ -311,7 +311,7 @@ export default function LandingPage() {
                 <b>commitment</b> = keccak256(abi.encode({"\n"}
                 {"  "}tenderId,{"\n"}
                 {"  "}bidder,{"      "}<i>{"// bound to msg.sender"}</i>{"\n"}
-                {"  "}amount,{"      "}<i>{"// USDC, 6 decimals"}</i>{"\n"}
+                {"  "}amount,{"      "}<i>{"// tPOTv3, 14 decimals"}</i>{"\n"}
                 {"  "}salt,{"        "}<i>{"// 32 random bytes"}</i>{"\n"}
                 {"  "}keccak256(docKey){"\n"}
                 ))
@@ -425,8 +425,8 @@ export default function LandingPage() {
                   <BrandLogo className="bb-brand__logo bb-brand__logo--footer" />
                 </span>
                 <p className="bb-footer__desc">
-                  Public confidential bidding for Arc. Any wallet can bid on a public tender; prices stay sealed until the
-                  submission deadline.
+                  Plinths is a public marketplace for sealed-bid tenders on PortaldotV3. Buyers publish opportunities,
+                  suppliers compete fairly, and prices stay sealed until the submission deadline.
                 </p>
               </div>
               <div className="bb-footer__nav">
@@ -439,11 +439,8 @@ export default function LandingPage() {
               </nav>
               <nav className="bb-footer__col" aria-label="Resources">
                 <h4>Resources</h4>
-                <a href={EXPLORER_URL} target="_blank" rel="noreferrer">
-                  Arc explorer ↗
-                </a>
-                <a href="https://faucet.circle.com" target="_blank" rel="noreferrer">
-                  USDC faucet ↗
+                <a href={NODE_CONSOLE_URL} target="_blank" rel="noreferrer">
+                  Portaldot Node Console ↗
                 </a>
                 <a href="#how" onClick={goTo("how")}>
                   How it works
@@ -456,11 +453,11 @@ export default function LandingPage() {
           <div className="bb-footer__wordband">
             <FooterAscii />
             <span className="bb-footer__wordmark" aria-hidden="true">
-              HEDGORA
+              PLINTHS
             </span>
           </div>
           <div className="bb-footer__bottombar">
-            <span>© 2026 Hedgora</span>
+            <span>© 2026 Plinths</span>
           </div>
         </footer>
       </main>
@@ -469,7 +466,7 @@ export default function LandingPage() {
         {Array.from({ length: 12 }, (_, i) => (
           <i key={i} style={{ ["--i" as string]: i }} />
         ))}
-        <span>HEDGORA / ENTERING THE MARKET</span>
+        <span>PLINTHS / ENTERING THE MARKET</span>
       </div>
     </div>
   );
@@ -496,7 +493,7 @@ function LiveStats() {
       <span>
         <b>{show(sealed)}</b>sealed bids
       </span>
-      <span>read live from {IS_LOCAL_CHAIN ? "a local test chain (test data)" : "Arc Testnet"}</span>
+      <span>read live from {IS_LOCAL_CHAIN ? "a local test chain (test data)" : "PortaldotV3 Testnet"}</span>
     </p>
   );
 }

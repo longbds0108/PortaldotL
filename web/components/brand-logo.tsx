@@ -1,20 +1,15 @@
 import Image from "next/image";
-import logoDark from "@/public/brand/hedgora-logo-dark.png";
-import logo from "@/public/brand/hedgora-logo.png";
+import mark from "@/public/brand/plinths-mark.png";
 import { cn } from "@/lib/utils";
 
 /**
- * Hedgora lockup (hexagon mark + wordmark), background keyed out from the supplied artwork.
- * `onLight` swaps in the dark-wordmark version for light surfaces (e.g. the landing header over light sections).
+ * Plinths lockup: existing geometric mark paired with a live text wordmark.
  */
 export function BrandLogo({ onLight = false, className, priority = false }: { onLight?: boolean; className?: string; priority?: boolean }) {
   return (
-    <Image
-      src={onLight ? logoDark : logo}
-      alt="Hedgora"
-      priority={priority}
-      className={cn("h-8 w-auto select-none", className)}
-      draggable={false}
-    />
+    <span className={cn("inline-flex h-8 w-auto select-none items-center gap-2", className)}>
+      <Image src={mark} alt="" priority={priority} className="h-8 w-8 shrink-0" draggable={false} />
+      <span className={cn("text-[1.08rem] font-semibold tracking-[-0.045em]", onLight ? "text-[#161922]" : "text-white")}>plinths</span>
+    </span>
   );
 }

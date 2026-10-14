@@ -6,8 +6,8 @@ import "./globals.css";
 const interTight = Inter_Tight({ subsets: ["latin"], variable: "--font-inter-tight", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Hedgora — Confidential Bidding on Arc",
-  description: "Public tenders with sealed bids: prices stay hidden until the submission deadline.",
+  title: "Plinths — Sealed-Bid Marketplace on PortaldotV3",
+  description: "A public tender marketplace where suppliers compete with sealed bids and every award can be verified.",
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#111015" };

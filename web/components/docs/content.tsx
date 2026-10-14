@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BLINDBID_ADDRESS, EXPLORER_URL } from "@/lib/env";
+import { BLINDBID_ADDRESS } from "@/lib/env";
 import { NETWORK_NAME } from "@/lib/network";
 import { B, Callout, Cards, Chips, Code, DocCard, H3, P, Pre, Steps, Table, Ul } from "./ui";
 
@@ -12,18 +12,12 @@ import { B, Callout, Cards, Chips, Code, DocCard, H3, P, Pre, Steps, Table, Ul }
 const COMMITMENT = `commitment = keccak256(abi.encode(
     tenderId,      // uint256
     bidder,        // address — msg.sender, so a copied hash cannot be reused
-    amount,        // uint256, USDC with 6 decimals (7,500 USDC = 7_500_000_000)
+    amount,        // uint256, tPOTv3 base units (7,500 tPOTv3 = 7,500 × 10^14)
     salt,          // bytes32, random (crypto.getRandomValues)
     keccak256(docKey)  // binds the encrypted proposal to the price
 ))`;
 
-const contractLink = BLINDBID_ADDRESS ? (
-  <a className="text-[#8fb4ff] underline-offset-4 hover:underline" href={`${EXPLORER_URL}/address/${BLINDBID_ADDRESS}`} target="_blank" rel="noreferrer">
-    {BLINDBID_ADDRESS}
-  </a>
-) : (
-  "not configured"
-);
+const contractLink = BLINDBID_ADDRESS ? <Code>{BLINDBID_ADDRESS}</Code> : "not deployed";
 
 export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body: ReactNode }> = {
   "": {
@@ -63,10 +57,9 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
           </DocCard>
         </Cards>
         <H3>Supported assets</H3>
-        <Chips items={[{ label: "USDC", tone: "blue" }]} />
+        <Chips items={[{ label: "tPOTv3", tone: "blue" }]} />
         <P>
-          Budgets and bid amounts are USDC with 6 decimals. Bid bonds are paid in native USDC, Arc&apos;s gas token, which
-          has 18 decimals — it is the same balance, shown in the app as a single USDC figure.
+          Budgets, bid amounts, and bonds use 14-decimal tPOTv3 base units. tPOTv3 is also the native gas token.
         </P>
       </>
     ),
@@ -78,8 +71,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
     body: (
       <>
         <P>
-          Arc does not offer private execution yet (Arc Privacy Sector is on its roadmap), so all on-chain data is
-          public. Hedgora therefore keeps prices secret with a <B>commit–reveal</B> scheme.
+          On-chain data is public. Hedgora therefore keeps prices secret with a <B>commit–reveal</B> scheme.
         </P>
         <H3>1 · Commit</H3>
         <P>
@@ -125,10 +117,10 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             ["Title, category, scope", "IPFS metadata", "Categories: Technology, Construction, Services."],
             ["Eligibility", "IPFS metadata", "Not verified on-chain — you exclude ineligible bids during evaluation."],
             ["Evaluation criteria", "IPFS metadata", "Shown to bidders and on the evaluation page."],
-            ["Budget min / max", "On-chain", "USDC, 6 decimals. Public. Minimum must not exceed maximum."],
+            ["Budget min / max", "On-chain", "tPOTv3, 14 decimals. Public. Minimum must not exceed maximum."],
             ["Submission deadline", "On-chain", "Must be in the future."],
             ["Reveal deadline", "On-chain", "At least 24 hours after the submission deadline."],
-            ["Bid bond", "On-chain", "Optional, native USDC. Every bidder must send exactly this amount."],
+            ["Bid bond", "On-chain", "Optional, native tPOTv3. Every bidder must send exactly this amount."],
           ]}
         />
         <H3>Rules enforced by the contract</H3>
@@ -197,7 +189,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
               title: "Seal your offer",
               body: (
                 <>
-                  Enter the amount in USDC and attach your technical proposal (max 20 MB). The app generates a random salt
+                  Enter the amount in tPOTv3 and attach your technical proposal (max 20 MB). The app generates a random salt
                   and an AES-256 key, encrypts the file — including its name and type — uploads only the ciphertext, and
                   computes the commitment.
                 </>
@@ -305,8 +297,8 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         />
         <H3>On-chain timeline</H3>
         <P>
-          The page lists the publish, bid, reveal and award events with their block, time and a link to the transaction on
-          the explorer. The contract records the block of each step, so the app fetches each event directly.
+          The page lists the publish, bid, reveal and award events with their block, time and transaction hash. The
+          Portaldot guide does not provide an EVM block-explorer URL, so hashes and addresses are shown without explorer deep links.
         </P>
         <Callout label="Updated bids" tone="blue">
           For a bid that was updated, the timeline shows its latest commitment.
@@ -362,7 +354,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         <Table
           head={["Item", "Value"]}
           rows={[
-            ["Contract", "BlindBidMarket (source verified on the explorer)"],
+            ["Contract", "BlindBidMarket (Solidity EVM contract)"],
             ["Address", contractLink],
             ["Network", NETWORK_NAME],
             ["Language", "Solidity 0.8.30, OpenZeppelin ReentrancyGuard"],
@@ -419,10 +411,18 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         <P>Any wallet except the buyer. Eligibility described by the buyer is checked during evaluation, not on-chain.</P>
         <H3>Which wallets can I use?</H3>
         <P>Browser wallets such as MetaMask on {NETWORK_NAME}. WalletConnect wallets are offered when the app is configured with a WalletConnect project id.</P>
+        <H3>How do I fund an EVM wallet for gas?</H3>
+        <P>
+          In the Portaldot Node Console, use Developer → Runtime calls → <Code>reviveApi.accountId</Code> to map the
+          wallet&apos;s H160 address to its SS58 account, then send test tPOTv3 to that SS58 address. Do not send funds to
+          an H160 address from the native Substrate side. The EVM address derived from a key may differ from the
+          Portaldot wallet&apos;s H160, so use the address shown for PortaldotV3.
+        </P>
+        <H3>Where can I view EVM transactions?</H3>
+        <P>The current Portaldot guide does not specify an EVM block-explorer URL. The app shows transaction hashes and addresses without explorer links; the Node Console is for native Portaldot tooling.</P>
         <H3>What do I pay with?</H3>
         <P>
-          USDC. On Arc it is also the gas token. This is a testnet build: tokens have no value, and you can get test USDC from
-          the Circle faucet.
+          tPOTv3 pays for bids and network gas. This is a testnet build; use the PortaldotV3 Node Console for network tools.
         </P>
       </>
     ),

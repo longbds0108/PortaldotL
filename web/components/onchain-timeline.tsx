@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
-import { ExplorerLink } from "@/components/explorer-link";
+import { ChainReference } from "@/components/chain-reference";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Tender } from "@/lib/contracts";
 import { formatDateTime, shortAddress } from "@/lib/format";
@@ -17,7 +17,7 @@ const LABEL: Record<TimelineEvent["kind"], (e: TimelineEvent) => string> = {
   TenderAwarded: (e) => `Awarded to ${shortAddress(e.bidder)}`,
 };
 
-/** Event timeline with explorer links. Never shows amounts (safe in every state). */
+/** Event timeline with local transaction hashes. Never shows amounts (safe in every state). */
 export function OnchainTimeline({ tenderId, tender, bids }: { tenderId: bigint; tender: Tender; bids: BidRow[] }) {
   const client = usePublicClient();
   const key = bids.map((b) => `${b.bidder}:${b.bid.committedBlock}:${b.bid.revealedBlock}`).join(",");
@@ -40,7 +40,7 @@ export function OnchainTimeline({ tenderId, tender, bids }: { tenderId: bigint; 
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>{formatDateTime(e.timestamp)}</span>
             <span>block {e.blockNumber.toString()}</span>
-            <ExplorerLink type="tx" value={e.txHash} />
+            <ChainReference type="tx" value={e.txHash} />
           </p>
         </li>
       ))}

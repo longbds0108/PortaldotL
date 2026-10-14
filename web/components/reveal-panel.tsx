@@ -55,8 +55,8 @@ export function RevealPanel({ tenderId, bid, onRevealed }: { tenderId: bigint; b
 
   async function reveal() {
     if (!entry) return;
-    const { amount6, salt, docKey } = entrySecrets(entry);
-    const receipt = await tx.send("revealBid", [tenderId, amount6, salt, docKey]);
+    const { amount14, salt, docKey } = entrySecrets(entry);
+    const receipt = await tx.send("revealBid", [tenderId, amount14, salt, docKey]);
     if (receipt) onRevealed?.(receipt.transactionHash);
   }
 

@@ -2,9 +2,10 @@
 # contracts
 contracts/out/
 contracts/cache/
-contracts/broadcast/*/31337/
-# simulations and lock files are machine-local; keep only real broadcasts
-contracts/broadcast/**/dry-run/
+contracts/broadcast/
+contracts/hh-artifacts/
+contracts/hh-cache/
+contracts/node_modules/
 *.recovery.lock
 contracts/.env
 # web

@@ -2,7 +2,7 @@
 
 import { ShieldAlert, UserRound } from "lucide-react";
 import type { Address } from "viem";
-import { ExplorerLink } from "@/components/explorer-link";
+import { ChainReference } from "@/components/chain-reference";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBuyerHistory } from "@/lib/hooks";
@@ -25,7 +25,7 @@ export function BuyerHistory({ buyer }: { buyer: Address }) {
           <UserRound className="size-4" /> About the buyer
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          <ExplorerLink type="address" value={buyer} /> · history on this contract
+          <ChainReference type="address" value={buyer} /> · history on this contract
         </p>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">

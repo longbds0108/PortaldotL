@@ -38,7 +38,7 @@ export function Countdown({
 export function TimeNote() {
   return (
     <p className="text-xs text-muted-foreground">
-      Countdowns follow the latest Arc block timestamp; dates are shown in your time zone ({localTimeZone()}).
+      Countdowns follow the latest PortaldotV3 block timestamp; dates are shown in your time zone ({localTimeZone()}).
       Deadlines are enforced by the contract.
     </p>
   );

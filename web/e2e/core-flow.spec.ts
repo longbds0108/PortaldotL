@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
 
 // Expects the local scenario from e2e/README.md: seeded tenders 0–2 (Open),
-// tender 3 awarded to the $6,900 bid (one bidder never revealed), tender 4 Open with a sealed $4,321 bid.
+// tender 3 awarded to the 6,900 tPOTv3 bid (one bidder never revealed), tender 4 Open with a sealed 4,321 tPOTv3 bid.
 
 test("marketplace lists tenders without revealing prices and filters by category", async ({ page }) => {
   await page.goto("/marketplace");
   await expect(page.getByText("Enterprise Website Development")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("Bid amounts remain confidential").first()).toBeVisible();
-  await expect(page.getByText("$5,000.00–$10,000.00").first()).toBeVisible();
+  await expect(page.getByText("5,000.00–10,000.00 tPOTv3").first()).toBeVisible();
 
   await page.getByRole("tab", { name: "Construction" }).click();
   await expect(page.getByText("Commercial Building Renovation")).toBeVisible();
@@ -25,7 +25,7 @@ test("open tender never shows a sealed bid amount", async ({ page }) => {
 test("results page proves the process and verifies commitments in the browser", async ({ page }) => {
   await page.goto("/tenders/3/results");
   await expect(page.getByText("Winner", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText("$6,900.00").first()).toBeVisible();
+  await expect(page.getByText("6,900.00 tPOTv3").first()).toBeVisible();
   await expect(page.getByText("Lowest revealed price within budget.")).toBeVisible();
   await expect(page.getByText("Not revealed")).toBeVisible();
 
