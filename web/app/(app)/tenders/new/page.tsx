@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/input";
 import { SelectMenu } from "@/components/ui/select";
-import { MIN_REVEAL_WINDOW_S, blindBidMarketAbi } from "@/lib/contracts";
+import { MIN_REVEAL_WINDOW_S, blindBidAddress, blindBidMarketAbi } from "@/lib/contracts";
 import { formatDateTime, formatDuration, isValidAmountInput, parseNativeAmount, parseTokenAmount } from "@/lib/format";
 import { describeError, useBlindBidTx, useChainNow } from "@/lib/hooks";
 import { uploadJson } from "@/lib/ipfs";
@@ -258,9 +258,9 @@ function CreateTenderForm() {
             </ol>
           </div>
         </Alert>
-        <Button type="submit" size="lg" className="w-full" disabled={busy}>
+        <Button type="submit" size="lg" className="w-full" disabled={busy || !blindBidAddress}>
           {busy && <Loader2 className="animate-spin" />}
-          {uploading ? "Uploading metadata…" : "Publish tender"}
+          {uploading ? "Uploading metadata…" : blindBidAddress ? "Publish tender" : "Contract required to publish"}
         </Button>
         {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
         <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />

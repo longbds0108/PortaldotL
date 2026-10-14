@@ -47,7 +47,7 @@ export default function EvaluatePage() {
 
 function EvaluateGuard({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
   const { address } = useAccount();
-  if (address?.toLowerCase() !== row.tender.buyer.toLowerCase()) {
+  if (blindBidAddress && address?.toLowerCase() !== row.tender.buyer.toLowerCase()) {
     return <Notice>Only the buyer of this tender can evaluate bids.</Notice>;
   }
   if (row.state !== TenderState.Evaluation) {
@@ -224,7 +224,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
             </Alert>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button size="lg" disabled={!winner || uploading || tx.busy} onClick={award}>
+          <Button size="lg" disabled={!blindBidAddress || !winner || uploading || tx.busy} onClick={award}>
             {(uploading || tx.busy) && <Loader2 className="animate-spin" />}
             Award tender
           </Button>

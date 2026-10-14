@@ -43,7 +43,7 @@ export function useChainNow(): number | undefined {
       const block = await client!.getBlock({ blockTag: "latest" });
       return Number(block.timestamp) - Date.now() / 1000;
     },
-    enabled: !!client,
+    enabled: !!client && enabled,
     refetchInterval: 30_000,
   });
   const [nowMs, setNowMs] = useState<number>();
@@ -52,8 +52,8 @@ export function useChainNow(): number | undefined {
     const i = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(i);
   }, []);
-  if (offset === undefined || nowMs === undefined) return undefined;
-  return Math.floor(nowMs / 1000 + offset);
+  if (nowMs === undefined || (enabled && offset === undefined)) return undefined;
+  return Math.floor(nowMs / 1000 + (enabled ? offset! : 0));
 }
 
 // ───────────────────────── tenders ─────────────────────────

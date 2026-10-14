@@ -234,7 +234,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
               <p className="text-xs text-muted-foreground">Encrypted with AES-256-GCM in your browser before upload. Max 20 MB.</p>
             </div>
             <FieldError>{inputError}</FieldError>
-            <Button onClick={seal} disabled={sealing || !!prepared}>
+            <Button onClick={seal} disabled={sealing || !!prepared || !address || !blindBidAddress}>
               {sealing ? <Loader2 className="animate-spin" /> : <FileLock2 />}
               {sealing ? "Encrypting & uploading…" : prepared ? "Sealed" : "Seal bid"}
             </Button>

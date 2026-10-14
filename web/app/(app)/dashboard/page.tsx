@@ -12,7 +12,7 @@ import { ConfigGate } from "@/components/gates";
 import { Card } from "@/components/ui/card";
 import { SelectMenu } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { STATE_LABEL, TenderState, type Bid } from "@/lib/contracts";
+import { blindBidAddress, STATE_LABEL, TenderState, type Bid } from "@/lib/contracts";
 import { formatDateTime, formatNativeAmount, formatNativeAmountFloor, shortAddress } from "@/lib/format";
 import { useChainNow, useMyBidTenderIds, useMyLockedBonds, useMyTenderIds, useTenders, type TenderRow } from "@/lib/hooks";
 import { fetchJson } from "@/lib/ipfs";
@@ -47,7 +47,9 @@ export default function DashboardPage() {
         <div>
           <p className="eyebrow">Hedgora · {NETWORK_NAME}</p>
           <h1 className="title-sheen mt-2 text-[clamp(2rem,4.4vw,2.9rem)]">Dashboard</h1>
-          <p className="mt-1 text-[0.86rem] text-muted-foreground">Live figures read from the Hedgora contract — no estimates.</p>
+          <p className="mt-1 text-[0.86rem] text-muted-foreground">
+            {blindBidAddress ? "Live figures read from the Plinths contract." : "Visual preview · live figures appear when the contract is connected."}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SelectMenu
@@ -59,7 +61,7 @@ export default function DashboardPage() {
           />
           <span className="flex h-10 items-center gap-2 rounded-full border border-overlay/10 bg-field px-4 text-[0.78rem] text-foreground-soft">
             <Clock className="size-3.5 text-muted-foreground" />
-            <span className="text-muted-foreground">Chain time</span>
+            <span className="text-muted-foreground">{blindBidAddress ? "Chain time" : "Preview time"}</span>
             <span className="tabular-nums">{now ? formatDateTime(now) : "…"}</span>
           </span>
         </div>

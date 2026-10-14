@@ -13,16 +13,18 @@ import { chain } from "@/lib/wagmi";
 export function ConfigGate({ children }: { children: ReactNode }) {
   if (!blindBidAddress) {
     return (
-      <Alert variant="warning">
-        <AlertTriangle />
-        <div>
-          <p className="font-medium">Contract address not configured</p>
-          <p className="text-muted-foreground">
-            Deploy <code>BlindBidMarket</code> and set <code>NEXT_PUBLIC_BLINDBID_ADDRESS</code> in{" "}
-            <code>web/.env.local</code>, then restart the dev server.
-          </p>
-        </div>
-      </Alert>
+      <div className="space-y-4">
+        <Alert variant="info">
+          <AlertTriangle />
+          <div>
+            <p className="font-medium">Preview mode</p>
+            <p className="text-muted-foreground">
+              This page is a visual preview. Sample tender details are illustrative; connect a contract and RPC later to load live data and enable transactions.
+            </p>
+          </div>
+        </Alert>
+        {children}
+      </div>
     );
   }
   return <>{children}</>;
@@ -32,6 +34,8 @@ export function ConfigGate({ children }: { children: ReactNode }) {
 export function WalletGate({ children, message = "Connect your wallet to continue." }: { children: ReactNode; message?: string }) {
   const { isConnected, chainId } = useAccount();
   const { switchChain, isPending } = useSwitchChain();
+
+  if (!blindBidAddress) return <>{children}</>;
 
   if (!isConnected) {
     return (
