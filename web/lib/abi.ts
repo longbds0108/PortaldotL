@@ -42,6 +42,16 @@ export const blindBidMarketAbi = [
         "name": "reasonURI",
         "type": "string",
         "internalType": "string"
+      },
+      {
+        "name": "aiSummaryURI",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "aiSummaryHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [],
@@ -356,6 +366,16 @@ export const blindBidMarketAbi = [
             "name": "reasonURI",
             "type": "string",
             "internalType": "string"
+          },
+          {
+            "name": "aiSummaryURI",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "aiSummaryHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
           }
         ]
       }
@@ -671,6 +691,18 @@ export const blindBidMarketAbi = [
         "type": "string",
         "indexed": false,
         "internalType": "string"
+      },
+      {
+        "name": "aiSummaryURI",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "aiSummaryHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
       }
     ],
     "anonymous": false
@@ -858,6 +890,11 @@ export const blindBidMarketAbi = [
   {
     "type": "error",
     "name": "ZeroTreasury",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidAISummary",
     "inputs": []
   }
 ] as const;

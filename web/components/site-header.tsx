@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bot,
   FilePlus2,
   FolderKanban,
   Gavel,
@@ -31,6 +32,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/tenders/new", label: "Create Tender", icon: FilePlus2 },
   { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
   { href: "/my/bids", label: "My Bids", icon: Gavel },
+  { href: "/agent", label: "Agent", icon: Bot },
   { href: "/profile", label: "Profile & Settings", icon: UserCog },
 ];
 

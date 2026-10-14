@@ -315,20 +315,20 @@ contract BlindBidMarketTest is Test {
 
         vm.prank(buyer);
         vm.expectRevert(IBlindBidMarket.WinnerNotRevealed.selector);
-        market.award(id, carol, "ipfs://reason");
+        market.award(id, carol, "ipfs://reason", "", bytes32(0));
 
         vm.prank(alice);
         vm.expectRevert(IBlindBidMarket.NotBuyer.selector);
-        market.award(id, alice, "ipfs://reason");
+        market.award(id, alice, "ipfs://reason", "", bytes32(0));
 
         vm.prank(buyer);
         vm.expectRevert(IBlindBidMarket.EmptyURI.selector);
-        market.award(id, bob, "");
+        market.award(id, bob, "", "", bytes32(0));
 
         vm.expectEmit(true, true, false, true);
-        emit IBlindBidMarket.TenderAwarded(id, bob, 6_900e14, "ipfs://reason");
+        emit IBlindBidMarket.TenderAwarded(id, bob, 6_900e14, "ipfs://reason", "", bytes32(0));
         vm.prank(buyer);
-        market.award(id, bob, "ipfs://reason");
+        market.award(id, bob, "ipfs://reason", "", bytes32(0));
 
         IBlindBidMarket.Tender memory t = market.getTender(id);
         assertEq(t.winner, bob);
@@ -340,7 +340,7 @@ contract BlindBidMarketTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(IBlindBidMarket.InvalidState.selector, IBlindBidMarket.TenderState.Awarded)
         );
-        market.award(id, alice, "ipfs://again");
+        market.award(id, alice, "ipfs://again", "", bytes32(0));
     }
 
     function test_award_onlyInEvaluation() public {
@@ -352,7 +352,7 @@ contract BlindBidMarketTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(IBlindBidMarket.InvalidState.selector, IBlindBidMarket.TenderState.Reveal)
         );
-        market.award(id, alice, "r");
+        market.award(id, alice, "r", "", bytes32(0));
     }
 
     function test_noRevealedBids_failed() public {
@@ -364,7 +364,7 @@ contract BlindBidMarketTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(IBlindBidMarket.InvalidState.selector, IBlindBidMarket.TenderState.Failed)
         );
-        market.award(id, alice, "r");
+        market.award(id, alice, "r", "", bytes32(0));
     }
 
     function test_noBidsAtAll_failed() public {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Lock, ShieldCheck, Trophy, XCircle } from "lucide-react";
+import { CheckCircle2, Lock, ShieldCheck, Sparkles, Trophy, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import type { Hex } from "viem";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { computeCommitment } from "@/lib/commitment";
+import { agentReportSchema, hashAgentReport } from "@/lib/agent";
 import { TenderState, pricesVisible, type Bid, type Tender } from "@/lib/contracts";
 import { formatBudget, formatDateTime, formatTokenAmount, shortHash } from "@/lib/format";
 import { useBids, type BidRow, type TenderRow } from "@/lib/hooks";
@@ -53,6 +54,15 @@ function Results({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
     queryKey: ["award-reason", tender.reasonURI],
     queryFn: async () => awardReasonSchema.parse(await fetchJson(tender.reasonURI)),
     enabled: !!tender.reasonURI,
+    staleTime: Infinity,
+  });
+  const aiReview = useQuery({
+    queryKey: ["agent-report", tender.aiSummaryURI, tender.aiSummaryHash],
+    queryFn: async () => {
+      const report = agentReportSchema.parse(await fetchJson(tender.aiSummaryURI));
+      return { report, verified: hashAgentReport(report).toLowerCase() === tender.aiSummaryHash.toLowerCase() };
+    },
+    enabled: !!tender.aiSummaryURI,
     staleTime: Infinity,
   });
 
@@ -114,6 +124,49 @@ function Results({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
           </CardContent>
         )}
       </Card>
+
+      {tender.aiSummaryURI && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Sparkles className="size-4" /> AI proposal comparison</CardTitle>
+            <CardDescription>
+              AI-assisted evidence only. The buyer selected the winner. On-chain summary hash: <code className="break-all">{shortHash(tender.aiSummaryHash)}</code>
+              {aiReview.data && <span className={aiReview.data.verified ? "ml-2 text-success" : "ml-2 text-destructive"}>{aiReview.data.verified ? "· Hash verified" : "· Hash mismatch"}</span>}
+              <span className="block">The hash verifies report integrity, not the AI&apos;s accuracy.</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {aiReview.isLoading ? <p className="text-sm text-muted-foreground">Loading public comparison…</p> : aiReview.error ? <p className="text-sm text-destructive">Could not load or verify the AI report.</p> : aiReview.data && (
+              <>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">{aiReview.data.report.overallSummary}</p>
+                {aiReview.data.report.injectionWarnings.length > 0 && (
+                  <div className="rounded-xl border border-warning/30 bg-warning/[0.04] p-3 text-sm">
+                    <p className="font-medium text-warning">Possible prompt-injection text detected in a proposal</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+                      {aiReview.data.report.injectionWarnings.map((warning, i) => <li key={i}><code>{warning.quote}</code> · {warning.bidder}</li>)}
+                    </ul>
+                  </div>
+                )}
+                <div className="grid gap-4">
+                  {aiReview.data.report.bids.map((bid) => (
+                    <article key={bid.bidder} className="rounded-2xl border border-border p-4">
+                      <p className="font-mono text-xs text-muted-foreground">{bid.bidder}</p>
+                      <p className="mt-2 text-sm">{bid.summary}</p>
+                      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                        <div><dt className="text-xs text-muted-foreground">Price</dt><dd className="mt-1">{bid.price}</dd></div>
+                        <div><dt className="text-xs text-muted-foreground">Timeline</dt><dd className="mt-1">{bid.timeline}</dd></div>
+                        <div><dt className="text-xs text-muted-foreground">Conditions</dt><dd className="mt-1">{bid.conditions}</dd></div>
+                      </dl>
+                      {bid.gaps.length > 0 && <ul className="mt-3 list-disc pl-5 text-sm text-muted-foreground">{bid.gaps.map((gap, i) => <li key={i}>{gap}</li>)}</ul>}
+                      {bid.citations.length > 0 && <div className="mt-4 space-y-2 border-t border-border pt-3">{bid.citations.map((citation, i) => <blockquote key={i} className="border-l-2 border-[var(--tint)] pl-3 text-sm text-muted-foreground"><span className="block text-foreground-soft">{citation.claim}</span><span className="mt-1 block">“{citation.quote}”</span></blockquote>)}</div>}
+                    </article>
+                  ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="sm:flex-row sm:items-start sm:justify-between">

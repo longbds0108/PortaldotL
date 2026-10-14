@@ -49,6 +49,8 @@ export type Tender = {
   bidBond: bigint;
   metadataURI: string;
   reasonURI: string;
+  aiSummaryURI: string;
+  aiSummaryHash: Hex;
 };
 
 export type Bid = {
@@ -86,4 +88,5 @@ export const ERROR_TEXT: Record<string, string> = {
   NothingToWithdraw: "Nothing to withdraw.",
   TransferFailed: "The tPOTv3 transfer failed. Check the wallet and retry.",
   ZeroTreasury: "Treasury address is not set.",
+  InvalidAISummary: "The AI report must include both a public URI and its content hash, or neither.",
 };

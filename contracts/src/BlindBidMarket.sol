@@ -80,13 +80,20 @@ contract BlindBidMarket is IBlindBidMarket, ReentrancyGuard {
         );
     }
 
-    function award(uint256 tenderId, address winner, string calldata reasonURI)
+    function award(
+        uint256 tenderId,
+        address winner,
+        string calldata reasonURI,
+        string calldata aiSummaryURI,
+        bytes32 aiSummaryHash
+    )
         external
         exists(tenderId)
         onlyBuyer(tenderId)
         inState(tenderId, TenderState.Evaluation)
     {
         if (bytes(reasonURI).length == 0) revert EmptyURI();
+        if ((bytes(aiSummaryURI).length == 0) != (aiSummaryHash == bytes32(0))) revert InvalidAISummary();
         Bid storage b = _bids[tenderId][winner];
         if (!b.revealed) revert WinnerNotRevealed();
 
@@ -95,7 +102,9 @@ contract BlindBidMarket is IBlindBidMarket, ReentrancyGuard {
         t.awardedBlock = uint64(block.number);
         t.winner = winner;
         t.reasonURI = reasonURI;
-        emit TenderAwarded(tenderId, winner, b.amount, reasonURI);
+        t.aiSummaryURI = aiSummaryURI;
+        t.aiSummaryHash = aiSummaryHash;
+        emit TenderAwarded(tenderId, winner, b.amount, reasonURI, aiSummaryURI, aiSummaryHash);
     }
 
     function cancel(uint256 tenderId)

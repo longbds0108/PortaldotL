@@ -34,6 +34,8 @@ interface IBlindBidMarket {
         uint256 bidBond; // tPOTv3 base units (14 decimals)
         string metadataURI;
         string reasonURI;
+        string aiSummaryURI;
+        bytes32 aiSummaryHash;
     }
 
     struct Bid {
@@ -64,7 +66,14 @@ interface IBlindBidMarket {
     event BidSubmitted(uint256 indexed tenderId, address indexed bidder, bytes32 commitment, string encryptedDocURI);
     event BidUpdated(uint256 indexed tenderId, address indexed bidder, bytes32 commitment, string encryptedDocURI);
     event BidRevealed(uint256 indexed tenderId, address indexed bidder, uint256 amount);
-    event TenderAwarded(uint256 indexed tenderId, address indexed winner, uint256 amount, string reasonURI);
+    event TenderAwarded(
+        uint256 indexed tenderId,
+        address indexed winner,
+        uint256 amount,
+        string reasonURI,
+        string aiSummaryURI,
+        bytes32 aiSummaryHash
+    );
     event TenderCancelled(uint256 indexed tenderId);
     event BondWithdrawn(uint256 indexed tenderId, address indexed bidder, uint256 bondWei);
     event ForfeitedBondsSwept(uint256 indexed tenderId, address indexed treasury, uint256 bondWei);
@@ -89,6 +98,7 @@ interface IBlindBidMarket {
     error NothingToWithdraw();
     error TransferFailed();
     error ZeroTreasury();
+    error InvalidAISummary();
 
     // ───────────── buyer ─────────────
     function createTender(
@@ -100,7 +110,13 @@ interface IBlindBidMarket {
         uint256 bidBond
     ) external returns (uint256 tenderId);
 
-    function award(uint256 tenderId, address winner, string calldata reasonURI) external;
+    function award(
+        uint256 tenderId,
+        address winner,
+        string calldata reasonURI,
+        string calldata aiSummaryURI,
+        bytes32 aiSummaryHash
+    ) external;
     function cancel(uint256 tenderId) external;
 
     // ───────────── bidder ─────────────

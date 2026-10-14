@@ -52,7 +52,7 @@ export function NetworkChip() {
     >
       <span className="relative grid size-5 shrink-0 place-items-center">
         {/* eslint-disable-next-line @next/next/no-img-element -- small static logo */}
-        <img src="/brand/plinths-mark.png" alt="" width={20} height={20} className={cn("size-5 rounded-full", isPending && "opacity-40")} />
+        <img src="/brand/portaldot-v3.jpg" alt="" width={20} height={20} className={cn("size-5 rounded-full", isPending && "opacity-40")} />
         {isPending ? (
           <Loader2 className="absolute size-3.5 animate-spin text-foreground" aria-hidden="true" />
         ) : (

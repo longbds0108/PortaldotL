@@ -41,6 +41,8 @@ pnpm dev
 
 Set `NEXT_PUBLIC_BLINDBID_ADDRESS` after deploying the contract and provide a WalletConnect project id if needed. `PINATA_JWT` enables production IPFS uploads; without it, development uploads use `web/.dev-ipfs/`.
 
+**Agent review:** set the server-only `DEEPSEEK_API_KEY` to enable AI comparisons. The buyer can analyze proposals only after the reveal deadline; the server verifies the on-chain phase and buyer signature. The browser decrypts and extracts PDF, DOCX, TXT, Markdown, CSV, or JSON text, then sends that already-revealed text to DeepSeek. The AI summarizes evidence and flags suspicious instructions, but never selects a winner. When the buyer awards a tender, the comparison is published to IPFS and its Keccak-256 hash is stored on-chain with the award. Anyone can fetch the report and verify that hash.
+
 The app connects through the PortaldotV3 EVM RPC. The Substrate WebSocket is for native Portaldot tools; the web app uses the EVM HTTP RPC for contract reads and transactions. The Node Console is linked as a general network tool, not as an EVM block explorer.
 
 **Funding EVM wallets:** use the Node Console's Developer → Runtime calls → `reviveApi.accountId` to map the Portaldot wallet's H160 address to its SS58 address, then send test tPOTv3 to that SS58 address. Do not transfer native funds directly to an H160 address. The Portaldot guide does not specify an EVM block explorer URL, so the app does not create transaction/address deep links. Ensure the private key belongs to the PortaldotV3 wallet's H160; a key imported from another EVM network may derive a different address.

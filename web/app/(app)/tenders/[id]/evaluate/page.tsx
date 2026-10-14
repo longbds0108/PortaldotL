@@ -3,8 +3,8 @@
 import { AlertTriangle, Download, Loader2, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { Address, Hex } from "viem";
+import { useEffect, useState } from "react";
+import { zeroHash, type Address, type Hex } from "viem";
 import { useAccount } from "wagmi";
 import { ChainReference } from "@/components/chain-reference";
 import { WalletGate } from "@/components/gates";
@@ -16,13 +16,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/input";
-import { TenderState, pricesVisible } from "@/lib/contracts";
+import { blindBidAddress, TenderState, pricesVisible } from "@/lib/contracts";
 import { decryptDocument, encryptedEnvelopeSchema } from "@/lib/crypto";
+import { agentReportKey, readAgentReport, type AgentReport } from "@/lib/agent";
 import { formatBudget, formatTokenAmount } from "@/lib/format";
 import { describeError, useBids, useBlindBidTx, type BidRow, type TenderRow } from "@/lib/hooks";
 import { fetchJson, uploadJson } from "@/lib/ipfs";
 import type { AwardReason, TenderMetadata } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
+import { chain } from "@/lib/wagmi";
 
 export default function EvaluatePage() {
   return (
@@ -77,6 +79,12 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string>();
   const [uploading, setUploading] = useState(false);
+  const [aiReport, setAiReport] = useState<{ report: AgentReport; hash: Hex }>();
+
+  useEffect(() => {
+    if (!blindBidAddress) return setAiReport(undefined);
+    setAiReport(readAgentReport(agentReportKey(chain.id, blindBidAddress, id)));
+  }, [id]);
 
   // Guard again at render time: amounts only in Evaluation/Awarded.
   const show = pricesVisible(state);
@@ -97,15 +105,21 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
     };
     setUploading(true);
     let reasonURI: string;
+    let aiSummaryURI = "";
+    let aiSummaryHash: Hex = zeroHash;
     try {
       reasonURI = await uploadJson(doc, "award-reason.json");
+      if (aiReport) {
+        aiSummaryURI = await uploadJson(aiReport.report, "plinths-ai-assessment.json");
+        aiSummaryHash = aiReport.hash;
+      }
     } catch (e) {
       setError(describeError(e));
       return;
     } finally {
       setUploading(false);
     }
-    if (await tx.send("award", [id, winner, reasonURI])) router.push(`/tenders/${id}/results`);
+    if (await tx.send("award", [id, winner, reasonURI, aiSummaryURI, aiSummaryHash])) router.push(`/tenders/${id}/results`);
   }
 
   return (
@@ -115,7 +129,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
           <CardTitle>Revealed bids ({revealed.length})</CardTitle>
           <CardDescription>
             Sorted by price. Documents are decrypted in your browser with the key each bidder published at reveal.
-            {meta?.criteria ? ` Criteria: ${meta.criteria}` : ""}
+            {meta?.criteria ? ` Criteria: ${meta.criteria}` : ""} <Link className="underline" href="/agent">Open Plinths Agent to compare proposals.</Link>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -190,7 +204,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
           <CardTitle className="flex items-center gap-2">
             <Trophy className="size-4" /> Award
           </CardTitle>
-          <CardDescription>The winner and your justification are published on-chain/IPFS permanently.</CardDescription>
+          <CardDescription>You choose the winner. Your justification and any AI comparison are published with the result.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -203,6 +217,12 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
               placeholder="Lowest price among bids meeting the eligibility requirements; strongest technical approach…"
             />
           </div>
+          {aiReport && (
+            <Alert>
+              <Trophy />
+              <span>AI comparison from Plinths Agent will be published on IPFS and its hash stored on-chain with this award.</span>
+            </Alert>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button size="lg" disabled={!winner || uploading || tx.busy} onClick={award}>
             {(uploading || tx.busy) && <Loader2 className="animate-spin" />}
