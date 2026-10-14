@@ -42,13 +42,13 @@ export function AgentChat() {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="flex min-h-0 flex-col">
+      <CardHeader className="shrink-0 pb-3">
         <CardTitle className="flex items-center gap-2"><Bot className="size-4" /> Chat with Plinths Agent</CardTitle>
         <CardDescription>Ask about procurement, tender requirements, or how Plinths works.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="max-h-[640px] min-h-[420px] space-y-3 overflow-y-auto rounded-2xl border border-border bg-overlay/[0.02] p-4" aria-live="polite">
+      <CardContent className="flex min-h-0 flex-col space-y-3">
+        <div className="h-[clamp(150px,30vh,280px)] min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border bg-overlay/[0.02] p-4" aria-live="polite">
           {messages.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">Hi! I can help explain tender workflows and answer procurement questions.</p>
           ) : messages.map((message, index) => (
@@ -67,10 +67,10 @@ export function AgentChat() {
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }}
             maxLength={5000}
-            rows={3}
+            rows={2}
             placeholder="Write a message… (Enter to send, Shift+Enter for a new line)"
             aria-label="Message for Plinths Agent"
-            className="min-w-0 flex-1 resize-y rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="min-w-0 flex-1 resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
           <Button
             type="submit"

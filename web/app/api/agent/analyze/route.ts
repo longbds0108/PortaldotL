@@ -5,12 +5,12 @@ import { blindBidMarketAbi } from "@/lib/abi";
 import { BLINDBID_ADDRESS, PORTALDOT_RPC_URL } from "@/lib/env";
 
 export const runtime = "nodejs";
-export const maxDuration = 90;
+export const maxDuration = 60;
 
 const inputSchema = z.object({
   chainId: z.literal(420420777),
   tenderId: z.string().regex(/^\d{1,18}$/),
-  buyer: z.string().refine(isAddress).transform(getAddress),
+  buyer: z.string().refine(isAddress).transform((value) => getAddress(value)),
   timestamp: z.number().int().positive(),
   signature: z.string().regex(/^0x[0-9a-fA-F]+$/),
   tender: z.object({
@@ -21,7 +21,7 @@ const inputSchema = z.object({
     budget: z.string().max(200),
   }),
   bids: z.array(z.object({
-    bidder: z.string().refine(isAddress).transform(getAddress),
+    bidder: z.string().refine(isAddress).transform((value) => getAddress(value)),
     amount14: z.string().regex(/^\d{1,80}$/),
     amount: z.string().min(1).max(100),
     text: z.string().min(1).max(18_000),
@@ -36,7 +36,8 @@ const rate = new Map<string, { count: number; resetAt: number }>();
 const usedSignatures = new Set<string>();
 
 export async function POST(request: Request) {
-  if (!BLINDBID_ADDRESS) return Response.json({ error: "Contract address is not configured on the server." }, { status: 503 });
+  const contractAddress = BLINDBID_ADDRESS;
+  if (!contractAddress) return Response.json({ error: "Contract address is not configured on the server." }, { status: 503 });
   if (!process.env.DEEPSEEK_API_KEY) return Response.json({ error: "DeepSeek is not configured. Add DEEPSEEK_API_KEY to the server environment." }, { status: 503 });
   const length = Number(request.headers.get("content-length") || 0);
   if (length > 1_000_000) return Response.json({ error: "Analysis request is too large." }, { status: 413 });
@@ -62,15 +63,15 @@ export async function POST(request: Request) {
   const client = createPublicClient({ transport: http(PORTALDOT_RPC_URL, { timeout: 15_000, retryCount: 2 }) });
   try {
     const [state, tender, bidders] = await Promise.all([
-      client.readContract({ address: BLINDBID_ADDRESS, abi: blindBidMarketAbi, functionName: "getTenderState", args: [BigInt(input.tenderId)] }),
-      client.readContract({ address: BLINDBID_ADDRESS, abi: blindBidMarketAbi, functionName: "getTender", args: [BigInt(input.tenderId)] }),
-      client.readContract({ address: BLINDBID_ADDRESS, abi: blindBidMarketAbi, functionName: "getBidders", args: [BigInt(input.tenderId)] }),
+      client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getTenderState", args: [BigInt(input.tenderId)] }),
+      client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getTender", args: [BigInt(input.tenderId)] }),
+      client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getBidders", args: [BigInt(input.tenderId)] }),
     ]);
     if (state !== 2) return Response.json({ error: "AI review is available only after the reveal deadline." }, { status: 409 });
     const chainTender = tender as unknown as { buyer: string };
     if (chainTender.buyer.toLowerCase() !== input.buyer.toLowerCase()) return Response.json({ error: "Only the tender buyer can request an AI review." }, { status: 403 });
     const chainBids = await Promise.all((bidders as readonly `0x${string}`[]).map(async (bidder) => {
-      const bid = await client.readContract({ address: BLINDBID_ADDRESS, abi: blindBidMarketAbi, functionName: "getBid", args: [BigInt(input.tenderId), bidder] });
+      const bid = await client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getBid", args: [BigInt(input.tenderId), bidder] });
       return { bidder, ...(bid as unknown as { revealed: boolean; amount: bigint }) };
     }));
     const revealed = chainBids.filter((bid) => bid.revealed);
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
       max_tokens: 24_000,
       stream: false,
     }),
-    signal: AbortSignal.timeout(90_000),
+    signal: AbortSignal.timeout(55_000),
   }).catch(() => null);
   if (!response) return Response.json({ error: "DeepSeek request timed out or could not connect." }, { status: 502 });
   if (!response.ok) return Response.json({ error: `DeepSeek returned HTTP ${response.status}.` }, { status: 502 });

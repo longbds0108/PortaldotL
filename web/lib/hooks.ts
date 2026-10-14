@@ -207,6 +207,7 @@ export function useBids(tenderId: bigint | undefined) {
   return {
     rows,
     isLoading: bidders.isLoading || bids.isLoading,
+    error: bidders.error ?? bids.error,
     refetch: async () => {
       await bidders.refetch();
       await bids.refetch();

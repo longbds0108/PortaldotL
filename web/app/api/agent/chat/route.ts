@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const runtime = "nodejs";
-export const maxDuration = 90;
+export const maxDuration = 60;
 
 const inputSchema = z.object({
   messages: z.array(z.object({
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       max_tokens: 3000,
       stream: false,
     }),
-    signal: AbortSignal.timeout(75_000),
+    signal: AbortSignal.timeout(55_000),
   }).catch(() => null);
 
   if (!response) return Response.json({ error: "DeepSeek timed out or could not connect. Try again." }, { status: 502 });

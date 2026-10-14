@@ -8,12 +8,11 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/page-header";
 import { AgentChat } from "@/components/agent-chat";
 import { agentAnalysisSchema, agentReportKey, agentReportSchema, hashAgentReport, readAgentReport, type AgentReport } from "@/lib/agent";
 import { blindBidAddress, TenderState } from "@/lib/contracts";
 import { decryptDocument, encryptedEnvelopeSchema } from "@/lib/crypto";
-import { describeError, useBids, useTenders, type TenderRow } from "@/lib/hooks";
+import { describeError, useBids, useTenders } from "@/lib/hooks";
 import { fetchJson } from "@/lib/ipfs";
 import { extractProposalText } from "@/lib/proposal-text";
 import { tenderMetadataSchema } from "@/lib/metadata";
@@ -51,7 +50,7 @@ export default function AgentPage() {
       return;
     }
     setSaved(readAgentReport(agentReportKey(chain.id, blindBidAddress, selected.id)));
-  }, [selected?.id, selectedId]);
+  }, [selected, selectedId]);
 
   async function analyze() {
     if (!selected || !address || !blindBidAddress) return;
@@ -113,47 +112,53 @@ export default function AgentPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Plinths workspace"
-        title="Agent"
-        description="Chat with Plinths Agent, or compare revealed proposals with DeepSeek. The buyer keeps full control of the award decision."
-      />
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <p className="eyebrow">Plinths workspace</p>
+        <h1 className="title-sheen text-[clamp(1.75rem,3vw,2.4rem)]">Agent</h1>
+      </div>
 
       <AgentChat />
 
       {!address ? (
         <Alert variant="warning"><AlertTriangle /><span>Connect the buyer wallet to review its tenders.</span></Alert>
       ) : eligible.length > 0 ? (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Bot className="size-4" /> Select a tender</CardTitle>
-              <CardDescription>Only your tenders in the Evaluation phase are listed.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <select
-                value={selected?.id.toString() ?? ""}
-                onChange={(event) => { setSelectedId(event.target.value); setSaved(undefined); setError(undefined); }}
-                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
-                aria-label="Tender for AI review"
-              >
-                {eligible.map((row) => <option key={row.id.toString()} value={row.id.toString()}>Tender #{row.id.toString()} · {formatBudget(row.tender.budgetMin, row.tender.budgetMax)}</option>)}
-              </select>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button onClick={analyze} disabled={busy || bids.isLoading || !bids.rows.some((row) => row.bid.revealed)}>
-                  {busy ? <Loader2 className="animate-spin" /> : <Sparkles />}
-                  {busy ? "Decrypting & comparing…" : saved ? "Generate new comparison" : "Compare revealed proposals"}
-                </Button>
-                {saved && <Badge variant="success"><Check className="mr-1 size-3" /> Report saved in this browser</Badge>}
-              </div>
-              {bids.error && <p className="text-sm text-destructive">Could not load bids from PortaldotV3.</p>}
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            </CardContent>
-          </Card>
+        <details className="group rounded-2xl border border-border bg-card/50">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 text-sm font-medium marker:hidden [&::-webkit-details-marker]:hidden">
+            <Bot className="size-4 text-brand" /> Proposal review and AI comparison
+            <span className="ml-auto text-xs text-muted-foreground group-open:hidden">Show</span>
+            <span className="ml-auto hidden text-xs text-muted-foreground group-open:inline">Hide</span>
+          </summary>
+          <div className="space-y-4 border-t border-border p-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Bot className="size-4" /> Select a tender</CardTitle>
+                <CardDescription>Only your tenders in the Evaluation phase are listed.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <select
+                  value={selected?.id.toString() ?? ""}
+                  onChange={(event) => { setSelectedId(event.target.value); setSaved(undefined); setError(undefined); }}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
+                  aria-label="Tender for AI review"
+                >
+                  {eligible.map((row) => <option key={row.id.toString()} value={row.id.toString()}>Tender #{row.id.toString()} · {formatBudget(row.tender.budgetMin, row.tender.budgetMax)}</option>)}
+                </select>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button onClick={analyze} disabled={busy || bids.isLoading || !bids.rows.some((row) => row.bid.revealed)}>
+                    {busy ? <Loader2 className="animate-spin" /> : <Sparkles />}
+                    {busy ? "Decrypting & comparing…" : saved ? "Generate new comparison" : "Compare revealed proposals"}
+                  </Button>
+                  {saved && <Badge variant="success"><Check className="mr-1 size-3" /> Report saved in this browser</Badge>}
+                </div>
+                {bids.error && <p className="text-sm text-destructive">Could not load bids from PortaldotV3.</p>}
+                {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+              </CardContent>
+            </Card>
 
-          {saved && <ReportView saved={saved} />}
-        </>
+            {saved && <ReportView saved={saved} />}
+          </div>
+        </details>
       ) : null}
     </div>
   );
