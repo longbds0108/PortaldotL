@@ -238,7 +238,7 @@
 .bb-proto__cta:hover { background: #000; transform: translateY(-2px); }
 .bb-proto__cta-arrow { display: inline-grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: #14121a; background: #fff; }
 .bb-proto__lead { max-width: 42ch; color: #3b3742; font-size: clamp(1.1rem, 1.5vw, 1.45rem); line-height: 1.42; }
-.bb-proto__grid { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.bb-proto__grid { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: 2.6fr 1fr 1fr; gap: 16px; }
 .bb-proto__card { position: relative; overflow: hidden; min-height: 380px; padding: 30px; border-radius: 22px; display: flex; flex-direction: column; color: #fff; background: #2a2740; box-shadow: 0 12px 36px rgba(32,30,70,.16); }
 .bb-proto__card > * { position: relative; z-index: 1; }
 .bb-proto__card:not(.bb-proto__card--feature)::before {
@@ -254,16 +254,10 @@
 .bb-proto__card:not(.bb-proto__card--feature) .bb-proto__desc { text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.35); }
 .bb-proto__card:nth-child(2)::after { animation-delay: -1.4s; }
 .bb-proto__card:nth-child(3)::after { animation-delay: -2.8s; }
-/* Photo card: a full-width row whose box has the photo's own ratio (1700×647), so the whole image shows unscaled-looking,
-   never cropped. The copy sits on the photo's empty grey left half (#5b6d75 is that grey). */
-.bb-proto__card--feature {
-  grid-column: 1 / -1;
-  aspect-ratio: 1700 / 647;
-  min-height: 0;
-  background: url("/landing/sealed-by-math.jpg") center / cover no-repeat, #5b6d75;
-}
-.bb-proto__card--feature .bb-proto__desc { max-width: 36ch; font-size: clamp(.94rem, 1.2vw, 1.1rem); text-shadow: 0 1px 6px rgba(0,0,0,.25); }
-.bb-proto__card--feature h3 { font-size: clamp(1.8rem, 3vw, 2.8rem); }
+/* Photo card: the photo is scaled to the card's height (never zoomed past it) and pinned right, so the globe always
+   shows whole. Any width left over on the left is filled with #5b6d75, the photo's own grey, so there is no seam. */
+.bb-proto__card--feature { background: url("/landing/sealed-by-math.jpg") right center / auto 100% no-repeat, #5b6d75; }
+.bb-proto__card--feature .bb-proto__desc { text-shadow: 0 1px 6px rgba(0,0,0,.3); }
 .bb-proto__top { display: flex; align-items: baseline; gap: 14px; }
 .bb-proto__num { color: rgba(255,255,255,.7); font: .72rem var(--mono); }
 .bb-proto__card h3 { font-size: clamp(1.5rem, 2vw, 2.1rem); font-weight: 500; line-height: 1.04; letter-spacing: -.02em; }
