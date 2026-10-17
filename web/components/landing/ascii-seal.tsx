@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 /**
  * Hero visual: a "wax seal" made of hex glyphs, i.e. a commitment hash you cannot read.
- * Ported from Hedgora's AsciiCoinField (github.com/longbds0108/Defi, src/landing/landingInit.ts):
+ * Ported from the original AsciiCoinField (github.com/longbds0108/Defi, src/landing/landingInit.ts):
  * same reveal, pointer parallax, cream→blue tint and travelling sheen; glyph set swapped to hex.
  */
 const GLYPHS = "0123456789abcdef";

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 /**
  * Issues a short-lived Pinata presigned upload URL so the browser uploads straight to Pinata.
  * Needed on Vercel, where function request bodies are capped at 4.5 MB (encrypted proposals can be ~27 MB).
- * PINATA_JWT never leaves the server. The URL only accepts JSON (all Hedgora uploads are JSON:
+ * PINATA_JWT never leaves the server. The URL only accepts JSON (all Plinths uploads are JSON:
  * tender metadata, AES-GCM envelopes, award reasons), expires after 2 minutes and is size-capped.
  */
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   // No Pinata configured: tell the client to use the local development store instead.
   if (!jwt) return NextResponse.json({ mode: "local" }, { status: 409 });
 
-  let name = "hedgora.json";
+  let name = "plinths.json";
   let size = 0;
   try {
     const body = (await req.json()) as { name?: unknown; size?: unknown };

@@ -45,7 +45,7 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow">Hedgora · {NETWORK_NAME}</p>
+          <p className="eyebrow">Plinths · {NETWORK_NAME}</p>
           <h1 className="title-sheen mt-2 text-[clamp(2rem,4.4vw,2.9rem)]">Dashboard</h1>
           <p className="mt-1 text-[0.86rem] text-muted-foreground">
             {blindBidAddress ? "Live figures read from the Plinths contract." : "Visual preview · live figures appear when the contract is connected."}

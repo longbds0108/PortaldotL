@@ -52,7 +52,7 @@ export function WalletGate({ children, message = "Connect your wallet to continu
     return (
       <Alert variant="warning" className="items-center">
         <AlertTriangle />
-        <span className="flex-1">Your wallet is on another network. Hedgora runs on {chain.name}.</span>
+        <span className="flex-1">Your wallet is on another network. Plinths runs on {chain.name}.</span>
         <Button size="sm" disabled={isPending} onClick={() => switchChain({ chainId: chain.id })}>
           Switch network
         </Button>

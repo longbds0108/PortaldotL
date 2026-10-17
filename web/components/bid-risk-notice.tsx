@@ -40,7 +40,7 @@ export function BidRiskNotice({ tender, className }: { tender: Tender; className
       </dl>
       {tender.bidBond > 0n && (
         <p className="mt-2 text-xs text-muted-foreground">
-          Reveal in time and you can withdraw the full bond, win or lose. Miss the window and it goes to the Hedgora treasury —
+          Reveal in time and you can withdraw the full bond, win or lose. Miss the window and it goes to the Plinths treasury —
           never to the buyer.
         </p>
       )}

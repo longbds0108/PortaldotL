@@ -37,7 +37,7 @@ describe("salt vault", () => {
   it("round-trips backups (single entry and full export)", () => {
     expect(parseBackup(toBackupJson([entry]))).toEqual([entry]);
     expect(parseBackup(JSON.stringify(entry))).toEqual([entry]);
-    expect(() => parseBackup("{}")).toThrow("Not a Hedgora backup file");
+    expect(() => parseBackup("{}")).toThrow("Not a Plinths backup file");
     expect(() => parseBackup("nope")).toThrow("not valid JSON");
     expect(() => parseBackup(JSON.stringify({ ...entry, salt: "0x12" }))).toThrow();
   });

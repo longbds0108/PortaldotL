@@ -5,7 +5,7 @@ import { LocalChainBanner } from "@/components/local-chain-banner";
 import { ThemeSync } from "@/components/theme-sync";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme-boot";
 
-/** Workspace shell: floating header + left sidebar (Hedgora app pages). */
+/** Workspace shell: floating header + left sidebar (Plinths app pages). */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const collapsed = (await cookies()).get(SIDEBAR_COOKIE)?.value === "1";
   return (

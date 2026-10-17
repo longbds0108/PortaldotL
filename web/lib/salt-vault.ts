@@ -104,7 +104,7 @@ export function parseBackup(text: string): VaultEntry[] {
     throw new Error("Backup file is not valid JSON");
   }
   const r = backupFileSchema.safeParse(json);
-  if (!r.success) throw new Error("Not a Hedgora backup file");
+  if (!r.success) throw new Error("Not a Plinths backup file");
   return r.data;
 }
 

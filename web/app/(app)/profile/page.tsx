@@ -117,7 +117,7 @@ function VaultCard() {
           <Button
             variant="outline"
             disabled={entries.length === 0}
-            onClick={() => downloadTextFile(`hedgora-vault-${new Date().toISOString().slice(0, 10)}.json`, toBackupJson(entries))}
+            onClick={() => downloadTextFile(`plinths-vault-${new Date().toISOString().slice(0, 10)}.json`, toBackupJson(entries))}
           >
             <Download /> Export all
           </Button>

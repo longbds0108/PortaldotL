@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { NETWORK_NAME } from "@/lib/network";
 
-/** Hedgora page-heading: eyebrow label, large sheen title, muted intro. */
+/** Plinths page-heading: eyebrow label, large sheen title, muted intro. */
 export function PageHeader({
   title,
   description,
   actions,
-  eyebrow = `Hedgora · ${NETWORK_NAME}`,
+  eyebrow = `Plinths · ${NETWORK_NAME}`,
 }: {
   title: ReactNode;
   description?: ReactNode;

@@ -75,13 +75,13 @@ function useIsActive() {
 function Brand() {
   const theme = useAppliedTheme();
   return (
-    <Link href="/" className="flex min-h-10 items-center" aria-label="Hedgora home">
+    <Link href="/" className="flex min-h-10 items-center" aria-label="Plinths home">
       <BrandLogo priority onLight={theme === "light"} className="h-7 sm:h-8" />
     </Link>
   );
 }
 
-/** Floating header bar (Hedgora pages-header). Navigation lives in the sidebar on desktop. */
+/** Floating header bar (Plinths pages-header). Navigation lives in the sidebar on desktop. */
 export function SiteHeader() {
   const isActive = useIsActive();
   const [open, setOpen] = useState(false);

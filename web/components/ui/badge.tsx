@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-// Hedgora status-pill: thin border, tinted text, optional glowing dot.
+// Plinths status-pill: thin border, tinted text, optional glowing dot.
 const badgeVariants = cva(
   "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.68rem] font-medium",
   {

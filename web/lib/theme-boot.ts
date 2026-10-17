@@ -1,5 +1,5 @@
 /** Shared by the client preferences store and the server-rendered boot script (no "use client" here). */
-export const PREFS_KEY = "hedgora.prefs.v1";
+export const PREFS_KEY = "plinths.prefs.v1";
 
 /**
  * Runs before first paint on app routes (inline in the (app) layout) so a light-theme user never sees a dark flash.

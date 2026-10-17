@@ -235,7 +235,7 @@ function CreateTenderForm() {
               <Input id="bidBond" inputMode="decimal" placeholder="0 for no bond" {...register("bidBond")} />
               <FieldError>{errors.bidBond?.message}</FieldError>
               <p className="text-xs text-muted-foreground">
-                Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to the Hedgora
+                Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to the Plinths
                 treasury, not to you.
               </p>
             </div>

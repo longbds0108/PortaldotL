@@ -43,7 +43,7 @@ export function SweepForfeitsButton({ tenderId }: { tenderId: bigint }) {
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted-foreground">
-        {formatNativeAmount(amount)} in bonds from bids not revealed in time goes to the Hedgora treasury — not to the buyer.
+        {formatNativeAmount(amount)} in bonds from bids not revealed in time goes to the Plinths treasury — not to the buyer.
         Anyone can send it.
       </p>
       <Button

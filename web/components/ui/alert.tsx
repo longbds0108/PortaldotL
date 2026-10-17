@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-// Hedgora info-panel: recessed surface with a soft radial tint.
+// Plinths info-panel: recessed surface with a soft radial tint.
 const alertVariants = cva("flex gap-3 rounded-[16px] border p-4 text-[0.82rem] leading-relaxed [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:shrink-0", {
   variants: {
     variant: {

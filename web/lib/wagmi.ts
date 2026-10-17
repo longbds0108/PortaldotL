@@ -17,7 +17,7 @@ const connectors = connectorsForWallets(
   WALLETCONNECT_PROJECT_ID
     ? getDefaultWallets().wallets
     : [{ groupName: "Browser wallet", wallets: [injectedWallet] }],
-  { appName: "Hedgora", projectId: WALLETCONNECT_PROJECT_ID || "blindbid-local" },
+  { appName: "Plinths", projectId: WALLETCONNECT_PROJECT_ID || "blindbid-local" },
 );
 
 const transport = http(PORTALDOT_RPC_URL, { batch: { wait: 20 }, retryCount: 4, retryDelay: 400 });

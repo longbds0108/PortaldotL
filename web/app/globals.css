@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Visual language follows the Hedgora app (github.com/longbds0108/Defi):
+ * Visual language follows the original app (github.com/longbds0108/Defi):
  * dark ink surface, cream accent (#e8e3d5) that turns brand blue (#0b53bf) on hover,
  * Inter Tight, pill buttons, gradient cards with an animated gradient border.
  * Dark by default; the light workspace theme below re-declares the same tokens.
@@ -184,7 +184,7 @@
 }
 
 @layer components {
-  /* Small uppercase label above titles ("HEDGORA · PORTALDOTV3 TESTNET") */
+  /* Small uppercase label above titles ("PLINTHS · PORTALDOTV3 TESTNET") */
   .eyebrow {
     color: #8e8597;
     font-size: 0.68rem;
@@ -251,7 +251,7 @@
     isolation: isolate;
   }
 
-  /* Recessed field / panel (Hedgora token-field, info-panel) */
+  /* Recessed field / panel (token-field, info-panel) */
   .well {
     border: 1px solid color-mix(in srgb, var(--overlay) 10%, transparent);
     background-color: var(--well);

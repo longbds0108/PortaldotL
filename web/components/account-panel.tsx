@@ -159,7 +159,7 @@ function PanelBody({
       <div className="flex items-center gap-3 p-4">
         <Avatar address={address} className="size-11" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.95rem] font-medium tracking-[-0.01em]">{name || "Hedgora account"}</p>
+          <p className="truncate text-[0.95rem] font-medium tracking-[-0.01em]">{name || "Plinths account"}</p>
           <div className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-muted-foreground">
             <span className="tabular-nums">{shortAddress(address)}</span>
             <CopyButton value={address} />

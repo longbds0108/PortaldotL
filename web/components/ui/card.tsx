@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/** Hedgora "ui-card": gradient surface with an animated gradient border. */
+/** Plinths "ui-card": gradient surface with an animated gradient border. */
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("surface rounded-lg text-card-foreground", className)} {...props} />;
 }

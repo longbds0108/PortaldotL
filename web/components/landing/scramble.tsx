@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdef$#+*";
 
-/** Text that resolves from random glyphs when scrolled into view (Hedgora TextScramble). */
+/** Text that resolves from random glyphs when scrolled into view (ported TextScramble). */
 export function Scramble({ text }: { text: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [display, setDisplay] = useState({ text, settled: text.length });
