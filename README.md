@@ -30,6 +30,10 @@ After deployment, set the printed address as `BLINDBID_ADDRESS` in `contracts/.e
 
 After any contract change, regenerate the frontend ABI with `cd web && pnpm sync-abi`.
 
+### Test NFTs (for the planned NFT auction market)
+
+PortaldotV3 has few NFT tools yet, so `PlinthsTestNFT` is a test-only ERC-721 collection with three items whose artwork and metadata are already on IPFS (`scripts/test-nft/uris.json`). Plinths itself never mints. With the funded deployer key loaded, run `npm run nft:portaldotv3` to deploy the collection and mint the three items to the deployer, or set `NFT_RECIPIENT=0x…` to mint them to another wallet. `npm run nft:upload` re-uploads the art (needs `PINATA_JWT`).
+
 ## Web (`web/`)
 
 ```bash

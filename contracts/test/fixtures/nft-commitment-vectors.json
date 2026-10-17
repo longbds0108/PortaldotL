@@ -1,0 +1,8 @@
+{
+  "description": "NFT auction commitment vectors generated with cast (independent of Solidity and viem). commitment = keccak256(abi.encode(auctionId, bidder, amount14, salt))",
+  "vectors": [
+    {"auctionId": "0", "bidder": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", "amount": "750000000000000000", "salt": "0x0000000000000000000000000000000000000000000000000000000000000001", "commitment": "0x75c44f432139533ca1242c11896b123803803a0a5f2c1c18f1b2e946be3a181a"},
+    {"auctionId": "7", "bidder": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC", "amount": "12345678901234", "salt": "0x9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658", "commitment": "0xcb7f75080a1006ebda74a14563d0d375e34789251f62263f239196735bf2770b"},
+    {"auctionId": "115792089237316195423570985008687907853269984665640564039457584007913129639935", "bidder": "0x000000000000000000000000000000000000dEaD", "amount": "1", "salt": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "commitment": "0xf4313bf98dbf3611e3d6830ded20c0bba65494a52daf4b1b0d685ca19f44cd31"}
+  ]
+}

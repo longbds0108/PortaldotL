@@ -4,11 +4,13 @@
   "scripts": {
     "compile": "hardhat compile",
     "deploy:portaldotv3": "hardhat run scripts/deploy.cjs --network portaldotv3Testnet",
-    "seed:portaldotv3": "hardhat run scripts/seed.cjs --network portaldotv3Testnet"
+    "seed:portaldotv3": "hardhat run scripts/seed.cjs --network portaldotv3Testnet",
+    "nft:upload": "node scripts/test-nft/upload.mjs",
+    "nft:portaldotv3": "hardhat run scripts/deploy-test-nft.cjs --network portaldotv3Testnet"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.8",
-    "@openzeppelin/contracts": "^5.4.0",
+    "@openzeppelin/contracts": "5.1.0",
     "ethers": "^6.14.0",
     "hardhat": "^2.26.3"
   }

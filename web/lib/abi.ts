@@ -807,6 +807,11 @@ export const blindBidMarketAbi = [
   },
   {
     "type": "error",
+    "name": "InvalidAISummary",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidBudget",
     "inputs": []
   },
@@ -890,11 +895,6 @@ export const blindBidMarketAbi = [
   {
     "type": "error",
     "name": "ZeroTreasury",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidAISummary",
     "inputs": []
   }
 ] as const;

@@ -7,6 +7,11 @@ export const BLINDBID_ADDRESS: Address | undefined = isAddress(rawAddress) ? get
 
 export const BLINDBID_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK || 0);
 
+const rawNftAuction = process.env.NEXT_PUBLIC_NFT_AUCTION_ADDRESS ?? "";
+
+/** Deployed ISealedNFTAuction implementation, or undefined: the NFT pages then run as a visual preview. */
+export const NFT_AUCTION_ADDRESS: Address | undefined = isAddress(rawNftAuction) ? getAddress(rawNftAuction) : undefined;
+
 export const PORTALDOT_RPC_URL = process.env.NEXT_PUBLIC_PORTALDOT_RPC_URL || "https://test-evm-rpc-v3.portaldot.dev";
 
 export const NODE_CONSOLE_URL = "https://node-console.portaldot.dev";

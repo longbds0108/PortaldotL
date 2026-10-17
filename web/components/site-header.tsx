@@ -5,6 +5,7 @@ import {
   FilePlus2,
   FolderKanban,
   Gavel,
+  Gem,
   LayoutDashboard,
   Menu,
   PanelLeftClose,
@@ -32,6 +33,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/tenders/new", label: "Create Tender", icon: FilePlus2 },
   { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
   { href: "/my/bids", label: "My Bids", icon: Gavel },
+  { href: "/nft", label: "NFT Auctions", icon: Gem },
   { href: "/agent", label: "Agent", icon: Bot },
   { href: "/profile", label: "Profile & Settings", icon: UserCog },
 ];

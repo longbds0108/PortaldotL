@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0" stop-color="#11303a"/>
+      <stop offset="1" stop-color="#050c10"/>
+    </radialGradient>
+    <linearGradient id="key" gradientUnits="userSpaceOnUse" x1="290" y1="360" x2="790" y2="580">
+      <stop offset="0" stop-color="#e8e3d5"/>
+      <stop offset="1" stop-color="#4fd1c5"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#4fd1c5" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#4fd1c5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#bg)"/>
+  <circle cx="500" cy="470" r="330" fill="url(#glow)"/>
+  <g fill="none" stroke="#4fd1c5" stroke-width="6" stroke-linecap="round" stroke-opacity=".5">
+    <path d="M230 470a270 270 0 0 1 270-270"/>
+    <path d="M770 470a270 270 0 0 1-270 270"/>
+    <path d="M290 470a210 210 0 0 1 210-210" stroke-opacity=".3"/>
+    <path d="M710 470a210 210 0 0 1-210 210" stroke-opacity=".3"/>
+  </g>
+  <!-- key -->
+  <circle cx="400" cy="470" r="110" fill="none" stroke="url(#key)" stroke-width="34"/>
+  <circle cx="400" cy="470" r="38" fill="url(#key)"/>
+  <path d="M505 470H780" stroke="url(#key)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M700 470v70M760 470v50" stroke="url(#key)" stroke-width="30" stroke-linecap="round"/>
+  <text x="500" y="790" text-anchor="middle" font-family="Menlo, monospace" font-size="26" fill="#4fd1c5" fill-opacity=".7">revealBid(amount, salt, docKey) ✓</text>
+  <text x="500" y="900" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="34" letter-spacing="10" fill="#e8e3d5" fill-opacity=".8">REVEAL KEY · #3</text>
+</svg>

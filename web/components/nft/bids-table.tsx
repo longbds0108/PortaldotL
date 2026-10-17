@@ -1,0 +1,104 @@
+"use client";
+
+import { Lock, Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDateTime, formatNativeAmount, shortAddress } from "@/lib/format";
+import { AuctionState, type AuctionRow } from "@/lib/nft-auction";
+import { useAuctionBids, type AuctionBidRow } from "@/lib/nft-hooks";
+import { cn } from "@/lib/utils";
+
+/** Every bid on an auction: deposits are public, prices appear only once each bidder reveals. */
+export function BidsTable({ row }: { row: AuctionRow }) {
+  const { rows, isLoading } = useAuctionBids(row.id);
+  const { auction, state } = row;
+  const closed = state >= AuctionState.Settlement;
+  const leader = auction.highestBidder.toLowerCase();
+  const sorted = [...rows].sort((a, b) => {
+    if (a.bid.revealed !== b.bid.revealed) return a.bid.revealed ? -1 : 1;
+    return a.bid.amount > b.bid.amount ? -1 : a.bid.amount < b.bid.amount ? 1 : 0;
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Bids</CardTitle>
+        <CardDescription>
+          Deposits are public. Prices stay sealed until each bidder reveals; a price counts only if it meets the reserve and
+          fits the bidder&apos;s deposit.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Skeleton className="h-32" />
+        ) : rows.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">No bids yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-left text-sm">
+              <thead className="text-[0.66rem] uppercase tracking-[0.1em] text-muted-foreground">
+                <tr className="border-b border-overlay/[0.07]">
+                  <th className="py-2.5 pr-3 font-medium">Bidder</th>
+                  <th className="py-2.5 pr-3 font-medium">Deposit</th>
+                  <th className="py-2.5 pr-3 font-medium">Status</th>
+                  <th className="py-2.5 text-right font-medium">Price</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-overlay/[0.06]">
+                {sorted.map((r) => (
+                  <BidLine key={r.bidder} r={r} reserve={auction.reservePrice} closed={closed} leading={r.bidder.toLowerCase() === leader} state={state} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function BidLine({ r, reserve, closed, leading, state }: { r: AuctionBidRow; reserve: bigint; closed: boolean; leading: boolean; state: AuctionState }) {
+  const { bid } = r;
+  const counted = bid.revealed && bid.amount >= reserve && bid.amount <= bid.deposit;
+  const status = bid.revealed ? (
+    counted ? (
+      leading ? (
+        <Badge variant="success" dot>{closed ? "Winner" : "Leading"}</Badge>
+      ) : (
+        <Badge variant="secondary">Counted</Badge>
+      )
+    ) : (
+      <Badge variant="warning" title={bid.amount > bid.deposit ? "Price above deposit" : "Below reserve"}>
+        Not counted
+      </Badge>
+    )
+  ) : closed || state === AuctionState.Cancelled ? (
+    <Badge variant="destructive">Not revealed</Badge>
+  ) : (
+    <Badge variant="muted">Sealed</Badge>
+  );
+
+  return (
+    <tr className={cn(leading && counted && "bg-[rgba(79,209,197,.05)]")}>
+      <td className="py-3 pr-3">
+        <span className="inline-flex items-center gap-1.5 font-mono text-xs">
+          {leading && counted && <Trophy className="size-3.5 text-success" />}
+          {shortAddress(r.bidder)}
+        </span>
+        <span className="block text-[0.68rem] text-muted-foreground">{formatDateTime(bid.committedAt)}</span>
+      </td>
+      <td className="py-3 pr-3 tabular-nums">{formatNativeAmount(bid.deposit)}</td>
+      <td className="py-3 pr-3">{status}</td>
+      <td className="py-3 text-right tabular-nums">
+        {bid.revealed ? (
+          formatNativeAmount(bid.amount)
+        ) : (
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            <Lock className="size-3" /> Sealed
+          </span>
+        )}
+      </td>
+    </tr>
+  );
+}
