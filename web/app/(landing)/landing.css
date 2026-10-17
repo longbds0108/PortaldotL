@@ -238,7 +238,7 @@
 .bb-proto__cta:hover { background: #000; transform: translateY(-2px); }
 .bb-proto__cta-arrow { display: inline-grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: #14121a; background: #fff; }
 .bb-proto__lead { max-width: 42ch; color: #3b3742; font-size: clamp(1.1rem, 1.5vw, 1.45rem); line-height: 1.42; }
-.bb-proto__grid { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: 2.6fr 1fr 1fr; gap: 16px; }
+.bb-proto__grid { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .bb-proto__card { position: relative; overflow: hidden; min-height: 380px; padding: 30px; border-radius: 22px; display: flex; flex-direction: column; color: #fff; background: #2a2740; box-shadow: 0 12px 36px rgba(32,30,70,.16); }
 .bb-proto__card > * { position: relative; z-index: 1; }
 .bb-proto__card:not(.bb-proto__card--feature)::before {
@@ -254,24 +254,20 @@
 .bb-proto__card:not(.bb-proto__card--feature) .bb-proto__desc { text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.35); }
 .bb-proto__card:nth-child(2)::after { animation-delay: -1.4s; }
 .bb-proto__card:nth-child(3)::after { animation-delay: -2.8s; }
-.bb-proto__card--feature { background: radial-gradient(circle at 85% 15%, rgba(63,145,255,.28), transparent 45%), linear-gradient(158deg, #2a2142 0%, #120d1e 72%); }
+/* Photo card: a full-width row whose box has the photo's own ratio (1700×647), so the whole image shows unscaled-looking,
+   never cropped. The copy sits on the photo's empty grey left half (#5b6d75 is that grey). */
+.bb-proto__card--feature {
+  grid-column: 1 / -1;
+  aspect-ratio: 1700 / 647;
+  min-height: 0;
+  background: url("/landing/sealed-by-math.jpg") center / cover no-repeat, #5b6d75;
+}
+.bb-proto__card--feature .bb-proto__desc { max-width: 36ch; font-size: clamp(.94rem, 1.2vw, 1.1rem); text-shadow: 0 1px 6px rgba(0,0,0,.25); }
+.bb-proto__card--feature h3 { font-size: clamp(1.8rem, 3vw, 2.8rem); }
 .bb-proto__top { display: flex; align-items: baseline; gap: 14px; }
 .bb-proto__num { color: rgba(255,255,255,.7); font: .72rem var(--mono); }
 .bb-proto__card h3 { font-size: clamp(1.5rem, 2vw, 2.1rem); font-weight: 500; line-height: 1.04; letter-spacing: -.02em; }
 .bb-proto__desc { margin-top: auto; padding-top: 24px; max-width: 34ch; color: rgba(255,255,255,.88); font-size: .94rem; line-height: 1.5; }
-.bb-proto__code {
-  margin-top: 28px;
-  padding: 18px 20px;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 14px;
-  background: rgba(8,7,14,.55);
-  color: #cfe2ff;
-  font: .82rem/1.75 ui-monospace, SFMono-Regular, Menlo, monospace;
-  overflow-x: auto;
-  white-space: pre;
-}
-.bb-proto__code i { color: #8e8597; font-style: normal; }
-.bb-proto__code b { color: #e8e3d5; font-weight: 500; }
 @keyframes bb-sheen { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
 .bb-proto__infra { max-width: 1320px; margin: 58px auto 0; display: grid; grid-template-columns: auto 1fr; gap: 26px 56px; align-items: center; }
 .bb-proto__infra-lead { max-width: 30ch; color: #4a4650; line-height: 1.5; }
@@ -515,6 +511,16 @@
   .bb-proto { padding: 84px 18px 96px; }
   .bb-proto__grid { grid-template-columns: 1fr; }
   .bb-proto__card, .bb-proto__card--feature { grid-column: auto; min-height: 240px; }
+  /* Phones: the photo's ratio is too short for the copy, so the copy sits on the grey and the full photo
+     (card width = 100vw - 36px) is pinned below it, its top edge faded into the grey. */
+  .bb-proto__card--feature {
+    aspect-ratio: auto;
+    padding-bottom: calc((100vw - 36px) * .3806 + 6px);
+    background:
+      linear-gradient(180deg, #5b6d75, rgba(91,109,117,0) 45%) bottom center / 100% calc((100vw - 36px) * .3806) no-repeat,
+      url("/landing/sealed-by-math.jpg") bottom center / 100% auto no-repeat,
+      #5b6d75;
+  }
   .bb-sec { padding: 54px 16px 96px; }
   .bb-sec__panel { padding: 26px 20px; border-radius: 24px; }
   .bb-sec__card { padding: 18px; }

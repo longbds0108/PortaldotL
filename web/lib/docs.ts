@@ -5,7 +5,8 @@ export const DOC_GROUPS: { label: string; pages: DocPage[] }[] = [
   {
     label: "Overview",
     pages: [
-      { slug: "", title: "What is Hedgora?", group: "Overview" },
+      { slug: "", title: "What is Plinths?", group: "Overview" },
+      { slug: "getting-started", title: "Getting started", group: "Overview" },
       { slug: "sealed-bidding", title: "How sealed bidding works", group: "Overview" },
     ],
   },
@@ -14,6 +15,7 @@ export const DOC_GROUPS: { label: string; pages: DocPage[] }[] = [
     pages: [
       { slug: "create-tender", title: "Creating a tender", group: "For buyers" },
       { slug: "evaluate-award", title: "Evaluating & awarding", group: "For buyers" },
+      { slug: "ai-review", title: "AI proposal review", group: "For buyers" },
     ],
   },
   {

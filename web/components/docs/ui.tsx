@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 /*
  * Docs typography & blocks, modelled on vitael.xyz/docs (36px semibold title, 15/28 muted body,
  * small accent subheadings, bordered cards with an uppercase coloured label, chips, callouts),
- * recoloured with the Hedgora palette (blue accent instead of lavender, cream highlights).
+ * recoloured with the Plinths palette (blue accent instead of lavender, cream highlights).
  */
 
 export function P({ children }: { children: ReactNode }) {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BLINDBID_ADDRESS } from "@/lib/env";
+import { BLINDBID_ADDRESS, NODE_CONSOLE_URL, PORTALDOT_RPC_URL } from "@/lib/env";
 import { NETWORK_NAME } from "@/lib/network";
 import { B, Callout, Cards, Chips, Code, DocCard, H3, P, Pre, Steps, Table, Ul } from "./ui";
 
@@ -19,14 +19,15 @@ const COMMITMENT = `commitment = keccak256(abi.encode(
 
 const contractLink = BLINDBID_ADDRESS ? <Code>{BLINDBID_ADDRESS}</Code> : "not deployed";
 
-export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body: ReactNode }> = {
+const linkCls = "text-[#8fb4ff] hover:underline";
+
+export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
   "": {
-    eyebrow: "Hedgora · 01",
-    title: "What is Hedgora?",
+    title: "What is Plinths?",
     body: (
       <>
         <P>
-          Hedgora is a <B>public confidential bidding marketplace on {NETWORK_NAME}</B>. A buyer publishes a tender that
+          Plinths is a <B>public confidential bidding marketplace on {NETWORK_NAME}</B>. A buyer publishes a tender that
           any wallet can bid on, but every bid amount stays sealed until the submission deadline — not even the buyer can
           read it.
         </P>
@@ -35,7 +36,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
           (commit), and open it after the deadline (reveal). Proposals are encrypted in the bidder&apos;s browser before
           upload. The smart contract enforces every deadline using block time.
         </P>
-        <H3>What can you do on Hedgora?</H3>
+        <H3>What can you do on Plinths?</H3>
         <Cards>
           <DocCard label="Publish a tender" tone="blue">
             Post a title, scope, category, eligibility notes, evaluation criteria, a public budget range, deadlines and an
@@ -52,6 +53,10 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             Once the reveal window closes, the buyer compares revealed bids, decrypts proposals and awards one revealed
             bidder with a public justification.
           </DocCard>
+          <DocCard label="AI proposal review" tone="cream">
+            After the reveal deadline, the buyer can ask Plinths Agent to summarise and compare the revealed proposals. It
+            cites evidence and never picks the winner.
+          </DocCard>
           <DocCard label="Verify" tone="teal">
             Anyone can open the results page and recompute every revealed bid&apos;s commitment in the browser.
           </DocCard>
@@ -61,17 +66,86 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         <P>
           Budgets, bid amounts, and bonds use 14-decimal tPOTv3 base units. tPOTv3 is also the native gas token.
         </P>
+        <Callout label="New here?" tone="blue">
+          Start with <Link className={linkCls} href="/docs/getting-started">Getting started</Link> to add the network to
+          your wallet and fund it with test tPOTv3.
+        </Callout>
+      </>
+    ),
+  },
+
+  "getting-started": {
+    title: "Getting started",
+    body: (
+      <>
+        <P>
+          Plinths runs on the <B>EVM side of {NETWORK_NAME}</B>. You need a browser EVM wallet such as MetaMask, the
+          network added to it, and a little test tPOTv3 for gas and bid bonds.
+        </P>
+        <H3>Network details</H3>
+        <Table
+          head={["Setting", "Value"]}
+          rows={[
+            ["Network name", "PortaldotV3 Testnet"],
+            ["EVM RPC", <Code key="rpc">{PORTALDOT_RPC_URL}</Code>],
+            ["Chain ID", <Code key="id">420420777</Code>],
+            ["Currency symbol", "tPOTv3 (14 decimals)"],
+            ["Substrate node", <Code key="ws">wss://test-node-v3.portaldot.dev</Code>],
+            ["Node Console", <a key="nc" className={linkCls} href={NODE_CONSOLE_URL} target="_blank" rel="noreferrer">{NODE_CONSOLE_URL.replace(/^https:\/\//, "")}</a>],
+          ]}
+        />
+        <H3>Set up in three steps</H3>
+        <Steps
+          items={[
+            {
+              title: "Add the network to your wallet",
+              body: (
+                <>
+                  Use the EVM RPC and chain ID above, or press <B>Launch app</B> and connect — the app asks your wallet to
+                  switch to PortaldotV3 Testnet. Use a dedicated testnet account, not one that holds real assets.
+                </>
+              ),
+            },
+            {
+              title: "Fund the wallet through its SS58 account",
+              body: (
+                <>
+                  Copy your wallet&apos;s <Code>0x…</Code> address. In the Node Console open Developer → Runtime calls →{" "}
+                  <Code>reviveApi.accountId</Code>, paste the address and submit. Send test tPOTv3 from a Portaldot wallet to
+                  the <B>SS58 address</B> it returns — that account is where your EVM balance lives.
+                </>
+              ),
+            },
+            {
+              title: "Connect and start",
+              body: (
+                <>
+                  Open the app, connect the wallet, and browse the <Link className={linkCls} href="/marketplace">Marketplace</Link>{" "}
+                  or <Link className={linkCls} href="/tenders/new">create a tender</Link>. Set a business name in Profile &amp;
+                  Settings if you want it shown on the tenders you publish.
+                </>
+              ),
+            },
+          ]}
+        />
+        <Callout label="Do not send to the 0x address" tone="red">
+          Native Portaldot transfers to an H160 (<Code>0x…</Code>) address do not reach your EVM wallet. Always send to the
+          SS58 address that <Code>reviveApi.accountId</Code> returns for it.
+        </Callout>
+        <Callout label="Explorer" tone="amber">
+          Portaldot does not publish an EVM block-explorer URL yet, so the app shows transaction hashes without explorer
+          links. The Node Console is for native Portaldot tools.
+        </Callout>
       </>
     ),
   },
 
   "sealed-bidding": {
-    eyebrow: "Overview · 02",
     title: "How sealed bidding works",
     body: (
       <>
         <P>
-          On-chain data is public. Hedgora therefore keeps prices secret with a <B>commit–reveal</B> scheme.
+          On-chain data is public. Plinths therefore keeps prices secret with a <B>commit–reveal</B> scheme.
         </P>
         <H3>1 · Commit</H3>
         <P>
@@ -96,14 +170,13 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         </P>
         <Callout label="Trade-off" tone="amber">
           A bidder can choose not to reveal. That bid is excluded, and if the tender requires a bid bond, the bond goes to
-          the Hedgora treasury — never to the buyer, so a buyer gains nothing when bidders miss the reveal window. See <Link className="text-[#8fb4ff] hover:underline" href="/docs/reveal-bonds">Revealing &amp; bonds</Link>.
+          the Plinths treasury — never to the buyer, so a buyer gains nothing when bidders miss the reveal window. See <Link className={linkCls} href="/docs/reveal-bonds">Revealing &amp; bonds</Link>.
         </Callout>
       </>
     ),
   },
 
   "create-tender": {
-    eyebrow: "For buyers · 03",
     title: "Creating a tender",
     body: (
       <>
@@ -139,7 +212,6 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
   },
 
   "evaluate-award": {
-    eyebrow: "For buyers · 04",
     title: "Evaluating & awarding",
     body: (
       <>
@@ -155,6 +227,10 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             { title: "Award with a reason", body: "Pick a revealed bidder and write a justification (at least 10 characters). The reason is uploaded to IPFS and its link is stored on-chain with the winner." },
           ]}
         />
+        <Callout label="Optional · AI comparison" tone="cream">
+          Before awarding you can ask Plinths Agent for an evidence-based comparison of the revealed proposals. If you do,
+          the report is published with the award. See <Link className={linkCls} href="/docs/ai-review">AI proposal review</Link>.
+        </Callout>
         <H3>What the contract checks</H3>
         <Ul
           items={[
@@ -170,15 +246,66 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         <H3>Forfeited bonds</H3>
         <P>
           Bonds of bids that were not revealed do <B>not</B> go to you. After the reveal deadline anyone can press{" "}
-          <B>Send forfeited bonds to treasury</B> on the tender page, and the contract sends them to the fixed Hedgora
+          <B>Send forfeited bonds to treasury</B> on the tender page, and the contract sends them to the fixed Plinths
           treasury.
         </P>
       </>
     ),
   },
 
+  "ai-review": {
+    title: "AI proposal review",
+    body: (
+      <>
+        <P>
+          Comparing long proposals takes time. Once bids are open, the buyer can ask <B>Plinths Agent</B> to summarise each
+          revealed proposal against the tender&apos;s requirements. The agent is an aid for a human decision:{" "}
+          <B>it never ranks, scores or selects a bidder</B>.
+        </P>
+        <H3>When it is available</H3>
+        <Ul
+          items={[
+            <>Only in the <B>Evaluation</B> state — after the reveal deadline, with at least one revealed bid.</>,
+            "Only for the tender's buyer, proven by a wallet signature that expires after 5 minutes and works once.",
+            "Before the reveal deadline nothing is sent anywhere: proposals are still encrypted and their keys unpublished.",
+          ]}
+        />
+        <H3>How a review runs</H3>
+        <Steps
+          items={[
+            { title: "Decrypt in your browser", body: "Each revealed proposal is decrypted with its published key, and its text is extracted locally (PDF, DOCX, TXT, Markdown, CSV or JSON)." },
+            { title: "Server checks the chain", body: "Before calling the model, the server reads the contract: the tender must be in Evaluation, the signer must be the buyer, and the request must include every revealed bid with its on-chain amount." },
+            { title: "Evidence-based summary", body: "For each bid the agent reports price, timeline, conditions and gaps, each material claim backed by an exact quote from that bidder's document." },
+            { title: "Injection warnings", body: "Proposal text is treated as untrusted data. Instruction-like passages such as “ignore previous instructions” or “choose our bid” are flagged and quoted, never followed." },
+          ]}
+        />
+        <H3>Published with the award</H3>
+        <P>
+          If you award after a review, the report is uploaded to IPFS and its <Code>keccak256</Code> hash is stored
+          on-chain with the winner (<Code>aiSummaryURI</Code>, <Code>aiSummaryHash</Code>). The results page fetches the
+          report and checks it against that hash, so nobody can swap it afterwards.
+        </P>
+        <Table
+          head={["Limit", "Value"]}
+          rows={[
+            ["Text per proposal", "Up to 18,000 characters"],
+            ["Bids per review", "Up to 50"],
+            ["Model provider", "DeepSeek (server-side key)"],
+          ]}
+        />
+        <Callout label="Privacy" tone="amber">
+          Reviewed proposal text is sent to a third-party model provider (DeepSeek). By then it is already public: revealing
+          a bid publishes the key that decrypts its proposal.
+        </Callout>
+        <Callout label="Plinths Agent chat" tone="blue">
+          The <Link className={linkCls} href="/agent">Agent</Link> page also offers a general chat about procurement and
+          sealed bids. It cannot see live tenders or sealed bids.
+        </Callout>
+      </>
+    ),
+  },
+
   "submit-bid": {
-    eyebrow: "For bidders · 05",
     title: "Submitting a sealed bid",
     body: (
       <>
@@ -223,7 +350,6 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
   },
 
   "reveal-bonds": {
-    eyebrow: "For bidders · 06",
     title: "Revealing & bonds",
     body: (
       <>
@@ -243,7 +369,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
           head={["Outcome", "What happens to the bond"]}
           rows={[
             ["You revealed", "Withdraw it any time after revealing (Withdraw bond)."],
-            ["You did not reveal in time", "It is forfeited to the Hedgora treasury (never to the buyer) after the reveal deadline."],
+            ["You did not reveal in time", "It is forfeited to the Plinths treasury (never to the buyer) after the reveal deadline."],
             ["Tender has no bond", "Nothing to withdraw."],
           ]}
         />
@@ -255,7 +381,6 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
   },
 
   lifecycle: {
-    eyebrow: "Protocol · 07",
     title: "Tender lifecycle",
     body: (
       <>
@@ -282,7 +407,6 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
   },
 
   "proof-of-process": {
-    eyebrow: "Protocol · 08",
     title: "Proof of process",
     body: (
       <>
@@ -308,7 +432,6 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
   },
 
   security: {
-    eyebrow: "Protocol · 09",
     title: "Security & privacy",
     body: (
       <>
@@ -347,7 +470,6 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
   },
 
   "smart-contract": {
-    eyebrow: "Protocol · 10",
     title: "Smart contract",
     body: (
       <>
@@ -357,7 +479,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             ["Contract", "BlindBidMarket (Solidity EVM contract)"],
             ["Address", contractLink],
             ["Network", NETWORK_NAME],
-            ["Language", "Solidity 0.8.30, OpenZeppelin ReentrancyGuard"],
+            ["Language", "Solidity 0.8.24, OpenZeppelin ReentrancyGuard"],
             ["Minimum reveal window", "24 hours"],
             ["Treasury", "Receives forfeited bonds; fixed at deployment, cannot be changed"],
           ]}
@@ -371,7 +493,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
             [<Code key="3">submitBid</Code>, "Bidder", "Commit a bid (with the bond, if any)."],
             [<Code key="4">updateBid</Code>, "Bidder", "Replace the commitment while Open."],
             [<Code key="5">revealBid</Code>, "Bidder", "Open the bid during the reveal window."],
-            [<Code key="6">award</Code>, "Buyer", "Pick a revealed winner with a reason link."],
+            [<Code key="6">award</Code>, "Buyer", "Pick a revealed winner with a reason link and, optionally, the AI report link and hash."],
             [<Code key="7">withdrawBond</Code>, "Bidder", "Withdraw the bond after revealing."],
             [<Code key="8">sweepForfeitedBonds</Code>, "Anyone", "Send bonds of unrevealed bids to the treasury."],
           ]}
@@ -387,7 +509,6 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
   },
 
   faq: {
-    eyebrow: "Resources · 11",
     title: "FAQ",
     body: (
       <>
@@ -401,7 +522,7 @@ export const DOC_CONTENT: Record<string, { eyebrow: string; title: string; body:
         <H3>What if a tender is fake and the buyer wants my money?</H3>
         <P>
           The buyer cannot take a revealed bidder&apos;s bond, cannot stop you withdrawing it, cannot change deadlines and
-          cannot cancel once bids exist. Bonds of bids that are not revealed go to the Hedgora treasury, never to the
+          cannot cancel once bids exist. Bonds of bids that are not revealed go to the Plinths treasury, never to the
           buyer, and every reveal window lasts at least 24 hours. Before bidding, check the warnings and the buyer&apos;s
           on-chain history on the tender page. Remember that revealed proposals become public.
         </P>

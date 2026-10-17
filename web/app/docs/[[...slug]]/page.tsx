@@ -16,7 +16,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const doc = findDoc(slugOf((await params).slug));
-  return { title: doc ? `${doc.page.title} — Hedgora Docs` : "Docs — Hedgora" };
+  return { title: doc ? `${doc.page.title} — Plinths Docs` : "Docs — Plinths" };
 }
 
 export default async function DocPage({ params }: Props) {
@@ -28,9 +28,9 @@ export default async function DocPage({ params }: Props) {
   return (
     <article className="mx-auto max-w-[680px]">
       <p className="flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[0.2em] text-[#6f7690]">
-        {content.eyebrow.split(" · ")[0]}
+        {doc.page.group}
         <i className="size-1.5 rounded-full bg-[#8fb4ff]" />
-        {content.eyebrow.split(" · ")[1]}
+        {String(doc.index + 1).padStart(2, "0")}
       </p>
       <h1 className="mt-4 text-[clamp(1.9rem,4vw,2.25rem)] font-semibold leading-tight tracking-[-0.025em] text-white">{content.title}</h1>
       {content.body}
@@ -57,7 +57,7 @@ export default async function DocPage({ params }: Props) {
           <span />
         )}
       </nav>
-      <p className="mt-8 text-[12px] text-[#6f7690]">Hedgora documentation · {NETWORK_NAME}</p>
+      <p className="mt-8 text-[12px] text-[#6f7690]">Plinths documentation · {NETWORK_NAME}</p>
     </article>
   );
 }
