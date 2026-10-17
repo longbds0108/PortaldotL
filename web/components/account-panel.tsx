@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { chain } from "@/lib/wagmi";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-const NETWORK_CONSOLE_URL = "https://node-console.feso-apps.xyz/";
+const NETWORK_CONSOLE_URL = "https://node-console.portaldot.dev/";
 const VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
 const COMMIT = process.env.NEXT_PUBLIC_APP_COMMIT;
 

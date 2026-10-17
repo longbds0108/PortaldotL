@@ -19,11 +19,11 @@ File này là ngữ cảnh gốc cho Claude Code khi làm việc trong repo. Đ�
 
 | Tham số | Giá trị |
 |---|---|
-| Substrate RPC | `wss://testnetv3-node.feso-apps.xyz` |
-| EVM RPC | `https://testnetv3-eth-rpc.feso-apps.xyz` |
+| Substrate RPC | `wss://test-node-v3.portaldot.dev` |
+| EVM RPC | `https://test-evm-rpc-v3.portaldot.dev` |
 | Chain ID | `420420777` |
 | Native token / gas | `tPOTv3`, 14 decimals |
-| Node Console | `https://node-console.feso-apps.xyz/` (native Substrate tools; not an EVM explorer) |
+| Node Console | `https://node-console.portaldot.dev/` (native Substrate tools; not an EVM explorer) |
 
 Ngân sách, giá thầu và bond đều dùng bigint theo 14 decimals của tPOTv3. `msg.value` cũng là base unit theo cấu hình native currency của mạng.
 
@@ -215,7 +215,7 @@ Biến môi trường (`web/.env.local`, không commit):
 ```
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=
 NEXT_PUBLIC_BLINDBID_ADDRESS=
-NEXT_PUBLIC_PORTALDOT_RPC_URL=https://testnetv3-eth-rpc.feso-apps.xyz
+NEXT_PUBLIC_PORTALDOT_RPC_URL=https://test-evm-rpc-v3.portaldot.dev
 PINATA_JWT=                # chỉ dùng phía server (route handler upload)
 ```
 Private key deploy chỉ đặt trong `contracts/.env`, không bao giờ trong `web/`.

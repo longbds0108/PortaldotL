@@ -7,9 +7,9 @@ export const BLINDBID_ADDRESS: Address | undefined = isAddress(rawAddress) ? get
 
 export const BLINDBID_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK || 0);
 
-export const PORTALDOT_RPC_URL = process.env.NEXT_PUBLIC_PORTALDOT_RPC_URL || "https://testnetv3-eth-rpc.feso-apps.xyz";
+export const PORTALDOT_RPC_URL = process.env.NEXT_PUBLIC_PORTALDOT_RPC_URL || "https://test-evm-rpc-v3.portaldot.dev";
 
-export const NODE_CONSOLE_URL = "https://node-console.feso-apps.xyz";
+export const NODE_CONSOLE_URL = "https://node-console.portaldot.dev";
 
 export const IPFS_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || "https://gateway.pinata.cloud/ipfs/";
 

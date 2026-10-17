@@ -9,7 +9,7 @@ module.exports = {
   },
   networks: {
     portaldotv3Testnet: {
-      url: process.env.PORTALDOTV3_TESTNET_RPC_URL || "https://testnetv3-eth-rpc.feso-apps.xyz",
+      url: process.env.PORTALDOTV3_TESTNET_RPC_URL || "https://test-evm-rpc-v3.portaldot.dev",
       chainId: 420420777,
       accounts: privateKey ? [privateKey] : [],
     },

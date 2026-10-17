@@ -6,11 +6,11 @@ Public confidential bidding marketplace for **PortaldotV3 Testnet**. Prices use 
 
 | Setting | Value |
 |---|---|
-| Substrate RPC | `wss://testnetv3-node.feso-apps.xyz` |
-| EVM RPC | `https://testnetv3-eth-rpc.feso-apps.xyz` |
+| Substrate RPC | `wss://test-node-v3.portaldot.dev` |
+| EVM RPC | `https://test-evm-rpc-v3.portaldot.dev` |
 | Chain ID | `420420777` |
 | Native token | `tPOTv3` (14 decimals; pays gas) |
-| Node Console | [node-console.feso-apps.xyz](https://node-console.feso-apps.xyz/) (native Substrate tools) |
+| Node Console | [node-console.portaldot.dev](https://node-console.portaldot.dev/) (native Substrate tools) |
 
 Tender budgets, bid amounts, and bonds are all stored in 14-decimal tPOTv3 base units. The contract has not yet been deployed on this testnet; configure its address after deployment.
 
