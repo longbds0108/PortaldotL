@@ -10,23 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { blindBidAddress } from "@/lib/contracts";
 import { chain } from "@/lib/wagmi";
 
+/** Wraps pages that read the market. Without a configured contract they render their preview content as-is. */
 export function ConfigGate({ children }: { children: ReactNode }) {
-  if (!blindBidAddress) {
-    return (
-      <div className="space-y-4">
-        <Alert variant="info">
-          <AlertTriangle />
-          <div>
-            <p className="font-medium">Preview mode</p>
-            <p className="text-muted-foreground">
-              This page is a visual preview. Sample tender details are illustrative; connect a contract and RPC later to load live data and enable transactions.
-            </p>
-          </div>
-        </Alert>
-        {children}
-      </div>
-    );
-  }
   return <>{children}</>;
 }
 
