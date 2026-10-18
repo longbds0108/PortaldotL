@@ -12,7 +12,7 @@ Public confidential bidding marketplace for **PortaldotV3 Testnet**. Prices use 
 | Native token | `tPOTv3` (14 decimals; pays gas) |
 | Node Console | [node-console.portaldot.dev](https://node-console.portaldot.dev/) (native Substrate tools) |
 
-Tender budgets, bid amounts, and bonds are all stored in 14-decimal tPOTv3 base units. The contract has not yet been deployed on this testnet; configure its address after deployment.
+Budgets, bid amounts, and bonds use the EVM's 18-decimal unit for tPOTv3 (the native token has 14 decimals on the Substrate side; the EVM layer scales it to 18). The contract has not yet been deployed on this testnet; configure its address after deployment.
 
 ## Contracts (`contracts/`)
 
@@ -32,7 +32,13 @@ After any contract change, regenerate the frontend ABI with `cd web && pnpm sync
 
 ### Test NFTs (for the planned NFT auction market)
 
-PortaldotV3 has few NFT tools yet, so `PlinthsTestNFT` is a test-only ERC-721 collection with three items whose artwork and metadata are already on IPFS (`scripts/test-nft/uris.json`). Plinths itself never mints. With the funded deployer key loaded, run `npm run nft:portaldotv3` to deploy the collection and mint the three items to the deployer, or set `NFT_RECIPIENT=0x…` to mint them to another wallet. `npm run nft:upload` re-uploads the art (needs `PINATA_JWT`).
+PortaldotV3 has few NFT tools yet, so `PlinthsTestNFT` is a minimal test-only ERC-721 whose constructor mints three items (artwork and metadata already on IPFS, `scripts/test-nft/uris.json`) to the deployer. Plinths itself never mints. `npm run nft:portaldotv3` deploys it; `npm run nft:upload` re-uploads the art (needs `PINATA_JWT`).
+
+### Storage deposits on PortaldotV3
+
+PortaldotV3 (pallet-revive) charges a storage deposit of roughly 0.08 tPOTv3 per byte of deployed code and contract state. `BlindBidMarket` is therefore storage-lean: it has no view functions, documents are 32-byte IPFS digests, and display-only data lives in events; the app reads storage (`eth_getStorageAt`) and logs (`eth_getLogs`). Deploying it costs about 262 tPOTv3. Compiler settings favour size (`via_ir`, `optimizer_runs = 1`, no metadata, EVM `shanghai`). On the EVM layer, balances and `msg.value` use 18 decimals.
+
+Local end-to-end check of the app's read layer: `anvil --chain-id 420420777`, `forge build`, then `cd web && CHAIN_TEST_RPC=http://127.0.0.1:8545 pnpm vitest run lib/market.chain.test.ts`.
 
 ## Web (`web/`)
 

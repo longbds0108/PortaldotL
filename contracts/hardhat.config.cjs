@@ -5,7 +5,13 @@ const privateKey = process.env.PRIVATE_KEY;
 module.exports = {
   solidity: {
     version: "0.8.24",
-    settings: { optimizer: { enabled: true, runs: 200 } },
+    // Same as foundry.toml: PortaldotV3 charges a storage deposit per byte of code, so optimise for size.
+    settings: {
+      optimizer: { enabled: true, runs: 1 },
+      viaIR: true,
+      evmVersion: "shanghai",
+      metadata: { bytecodeHash: "none", appendCBOR: false },
+    },
   },
   networks: {
     portaldotv3Testnet: {

@@ -283,7 +283,7 @@ function useWalletData() {
   const myBidIds = useMyBidTenderIds();
   const myTenders = useTenders(myTenderIds.data ?? []);
   const myBidTenders = useTenders(myBidIds.data ?? []);
-  // Native tPOTv3 on PortaldotV3 has 14 decimals and pays network gas.
+  // Native tPOTv3 on PortaldotV3 has 18 decimals and pays network gas.
   const balance = useBalance({ address, chainId: chain.id, query: { enabled: !!address, refetchInterval: 15_000 } });
   const bonds = useMyLockedBonds(myBidTenders.rows);
 

@@ -16,6 +16,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FieldError, Input, Label } from "@/components/ui/input";
+import { uriToDigest } from "@/lib/cid";
 import { computeCommitment, randomBytes32 } from "@/lib/commitment";
 import { blindBidAddress, TenderState } from "@/lib/contracts";
 import { encryptDocument, generateDocKey } from "@/lib/crypto";
@@ -96,8 +97,8 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
   // so the success screen must not read it.
   const [completed, setCompleted] = useState<"submitted" | "updated">();
 
-  const amount14 = isValidAmountInput(amountInput) ? parseTokenAmount(amountInput) : undefined;
-  const outsideBudget = amount14 !== undefined && (amount14 < tender.budgetMin || amount14 > tender.budgetMax);
+  const amount18 = isValidAmountInput(amountInput) ? parseTokenAmount(amountInput) : undefined;
+  const outsideBudget = amount18 !== undefined && (amount18 < tender.budgetMin || amount18 > tender.budgetMax);
 
   function invalidate() {
     setPrepared(undefined);
@@ -109,7 +110,7 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
   async function seal() {
     setInputError(undefined);
     if (!address || !blindBidAddress) return;
-    if (amount14 === undefined || amount14 === 0n) return setInputError("Enter your bid amount in tPOTv3 (max 14 decimals).");
+    if (amount18 === undefined || amount18 === 0n) return setInputError("Enter your bid amount in tPOTv3 (max 18 decimals).");
     if (!file) return setInputError("Attach your technical proposal.");
     if (file.size > MAX_FILE_BYTES) return setInputError("File is larger than 20 MB.");
 
@@ -123,14 +124,14 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
       );
       // Only ciphertext leaves the browser.
       const encryptedDocURI = await uploadJson(envelope, "sealed-bid.json");
-      const commitment = computeCommitment({ tenderId: id, bidder: address, amount14, salt, docKey });
+      const commitment = computeCommitment({ tenderId: id, bidder: address, amount18, salt, docKey });
       const entry: VaultEntry = {
         v: 1,
         chainId: chain.id,
         contract: blindBidAddress,
         tenderId: id.toString(),
         bidder: address,
-        amount14: amount14.toString(),
+        amount18: amount18.toString(),
         salt,
         docKey,
         encryptedDocURI,
@@ -154,9 +155,12 @@ function BidForm({ row, meta, isUpdate, onDone }: { row: TenderRow; meta?: Tende
   async function submit() {
     if (!prepared) return;
     const wasUpdate = isUpdate;
-    const receipt = wasUpdate
-      ? await tx.send("updateBid", [id, prepared.commitment, prepared.encryptedDocURI])
-      : await tx.send("submitBid", [id, prepared.commitment, prepared.encryptedDocURI], tender.bidBond);
+    // One entry point: the first bid locks the bond, a replacement while Open sends none.
+    const receipt = await tx.send(
+      "submitBid",
+      [id, prepared.commitment, uriToDigest(prepared.encryptedDocURI)],
+      wasUpdate ? 0n : tender.bidBond,
+    );
     if (receipt) {
       setCompleted(wasUpdate ? "updated" : "submitted");
       onDone();

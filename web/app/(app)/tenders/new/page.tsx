@@ -5,7 +5,7 @@ import { Info, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { parseEventLogs } from "viem";
+import { parseEventLogs, type Hex } from "viem";
 import { z } from "zod";
 import { TimeNote } from "@/components/countdown";
 import { ConfigGate, WalletGate } from "@/components/gates";
@@ -19,6 +19,7 @@ import { SelectMenu } from "@/components/ui/select";
 import { MIN_REVEAL_WINDOW_S, blindBidAddress, blindBidMarketAbi } from "@/lib/contracts";
 import { formatDateTime, formatDuration, isValidAmountInput, parseNativeAmount, parseTokenAmount } from "@/lib/format";
 import { describeError, useBlindBidTx, useChainNow } from "@/lib/hooks";
+import { uriToDigest } from "@/lib/cid";
 import { uploadJson } from "@/lib/ipfs";
 import { CATEGORIES, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
 import { loadProfile } from "@/lib/profile";
@@ -127,10 +128,10 @@ function CreateTenderForm() {
       buyerName: loadProfile().businessName || undefined,
     });
 
-    let metadataURI: string;
+    let metadataDigest: Hex;
     setUploading(true);
     try {
-      metadataURI = await uploadJson(metadata, "tender.json");
+      metadataDigest = uriToDigest(await uploadJson(metadata, "tender.json"));
     } catch (e) {
       setUploadError(describeError(e));
       return;
@@ -139,7 +140,7 @@ function CreateTenderForm() {
     }
 
     const receipt = await tx.send("createTender", [
-      metadataURI,
+      metadataDigest,
       parseTokenAmount(v.budgetMin),
       parseTokenAmount(v.budgetMax),
       BigInt(submissionDeadline),

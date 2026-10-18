@@ -66,7 +66,7 @@ export default function AgentPage() {
         const document = await decryptDocument(envelope, bid.docKey);
         const text = await extractProposalText(document.name, document.type, document.bytes);
         if (!text.trim()) throw new Error(`${document.name} does not contain extractable text.`);
-        return { bidder, amount14: bid.amount.toString(), amount: formatTokenAmount(bid.amount), text: text.slice(0, 18_000) };
+        return { bidder, amount18: bid.amount.toString(), amount: formatTokenAmount(bid.amount), text: text.slice(0, 18_000) };
       }));
 
       const timestamp = Date.now();

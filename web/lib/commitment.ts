@@ -2,7 +2,7 @@ import { bytesToHex, encodeAbiParameters, keccak256, type Address, type Hex } fr
 
 /**
  * Canonical commitment — MUST match contracts/src/CommitmentLib.sol:
- *   keccak256(abi.encode(tenderId, bidder, amount14, salt, keccak256(docKey)))
+ *   keccak256(abi.encode(tenderId, bidder, amount18, salt, keccak256(docKey)))
  * Cross-checked against contracts/test/fixtures/commitment-vectors.json in commitment.test.ts.
  *
  * Runs purely client-side: salt/docKey/amount must never be sent to an RPC or server before reveal.
@@ -10,8 +10,8 @@ import { bytesToHex, encodeAbiParameters, keccak256, type Address, type Hex } fr
 export type CommitmentInput = {
   tenderId: bigint;
   bidder: Address;
-  /** tPOTv3, 14 decimals */
-  amount14: bigint;
+  /** tPOTv3, 18 decimals */
+  amount18: bigint;
   salt: Hex;
   /** raw 32-byte AES-256 key */
   docKey: Hex;
@@ -29,9 +29,9 @@ export function hashDocKey(docKey: Hex): Hex {
   return keccak256(docKey);
 }
 
-export function computeCommitment({ tenderId, bidder, amount14, salt, docKey }: CommitmentInput): Hex {
+export function computeCommitment({ tenderId, bidder, amount18, salt, docKey }: CommitmentInput): Hex {
   return keccak256(
-    encodeAbiParameters(COMMITMENT_PARAMS, [tenderId, bidder, amount14, salt, hashDocKey(docKey)]),
+    encodeAbiParameters(COMMITMENT_PARAMS, [tenderId, bidder, amount18, salt, hashDocKey(docKey)]),
   );
 }
 

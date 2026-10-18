@@ -1,7 +1,7 @@
 import { parseUnits } from "viem";
 
 /** Native tPOTv3 precision on PortaldotV3 Testnet. */
-export const TOKEN_DECIMALS = 14;
+export const TOKEN_DECIMALS = 18;
 
 /** Exact bigint formatting (no float rounding): rounds half-up to cents, adds thousands separators. */
 function formatUnits(value: bigint, decimals: number): string {
@@ -31,7 +31,7 @@ export function formatBudget(minAmount: bigint, maxAmount: bigint): string {
   return minAmount === maxAmount ? formatTokenAmount(minAmount) : `${formatUnits(minAmount, TOKEN_DECIMALS)}–${formatUnits(maxAmount, TOKEN_DECIMALS)} tPOTv3`;
 }
 
-/** User input like "7,500.5" → 14-decimal bigint. Throws on invalid input. */
+/** User input like "7,500.5" → 18-decimal bigint. Throws on invalid input. */
 export function parseTokenAmount(input: string): bigint {
   return parseUnits(normalizeAmountInput(input), TOKEN_DECIMALS);
 }

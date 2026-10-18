@@ -22,10 +22,12 @@ File này là ngữ cảnh gốc cho Claude Code khi làm việc trong repo. Đ�
 | Substrate RPC | `wss://test-node-v3.portaldot.dev` |
 | EVM RPC | `https://test-evm-rpc-v3.portaldot.dev` |
 | Chain ID | `420420777` |
-| Native token / gas | `tPOTv3`, 14 decimals |
+| Native token / gas | `tPOTv3` — 14 decimals phía Substrate; **lớp EVM (balance, `msg.value`) dùng 18 decimals** |
 | Node Console | `https://node-console.portaldot.dev/` (native Substrate tools; not an EVM explorer) |
 
-Ngân sách, giá thầu và bond đều dùng bigint theo 14 decimals của tPOTv3. `msg.value` cũng là base unit theo cấu hình native currency của mạng.
+Ngân sách, giá thầu và bond đều dùng bigint theo **18 decimals** (đơn vị EVM, giống `msg.value`; đã kiểm chứng: 10 tPOT phía Substrate = 10×10^18 trên EVM RPC).
+
+**Storage deposit:** PortaldotV3 (pallet-revive) thu ký quỹ ~0,08 tPOT mỗi byte code và mỗi byte state của contract (contract rỗng ~18 tPOT). Vì vậy contract phải gọn: không có view function, tài liệu tham chiếu bằng digest 32 byte của IPFS CID, dữ liệu chỉ để hiển thị nằm trong event; app đọc storage (`eth_getStorageAt`) và log (`eth_getLogs`). Compiler tối ưu kích thước (`via_ir`, `optimizer_runs = 1`, không metadata, EVM `shanghai`).
 
 ## 2. Tech stack
 
@@ -97,7 +99,7 @@ Open ──(submissionDeadline)──▶ Reveal ──(revealDeadline)──▶ 
 commitment = keccak256(abi.encode(
     tenderId,     // uint256
     bidder,       // address (msg.sender) — chống copy commitment của người khác
-    amount,       // uint256, base units (7_500 tPOTv3 = 7_500 × 10^14)
+    amount,       // uint256, EVM units (7_500 tPOTv3 = 7_500 × 10^18)
     salt,         // bytes32 ngẫu nhiên (crypto.getRandomValues)
     docKeyHash    // bytes32 = keccak256(AES key) — ràng buộc hồ sơ với giá
 ));
@@ -105,26 +107,24 @@ commitment = keccak256(abi.encode(
 
 Trong TS dùng `encodeAbiParameters` + `keccak256` của viem. Viết test đối chiếu hash giữa Foundry và TS.
 
-### 4.3 Interface dự kiến
+### 4.3 Interface (đã triển khai — xem `contracts/src/interfaces/IBlindBidMarket.sol`)
 
 ```solidity
-function createTender(
-    string calldata metadataURI,   // IPFS: tên, mô tả, tiêu chí, category, điều kiện tham gia
-    uint256 budgetMin, uint256 budgetMax,  // tPOTv3 14 decimals, công khai
-    uint64 submissionDeadline, uint64 revealDeadline,
-    uint256 bidBond                // native tPOTv3 base units (14 decimals), có thể = 0
-) external returns (uint256 tenderId);
-
-function submitBid(uint256 tenderId, bytes32 commitment, string calldata encryptedDocURI) external payable; // msg.value == bidBond
-function updateBid(uint256 tenderId, bytes32 commitment, string calldata encryptedDocURI) external;
-function revealBid(uint256 tenderId, uint256 amount, bytes32 salt, bytes32 docKey) external;
-function award(uint256 tenderId, address winner, string calldata reasonURI) external; // onlyBuyer, chỉ chọn bid đã reveal
+function createTender(bytes32 metadata, uint128 budgetMin, uint128 budgetMax,
+    uint64 submissionDeadline, uint64 revealDeadline, uint96 bidBond) external returns (uint256 tenderId);
+function submitBid(uint256 tenderId, bytes32 commitment, bytes32 encryptedDoc) external payable;
+    // lần đầu msg.value == bidBond; gọi lại khi còn Open để thay commitment (msg.value == 0)
+function revealBid(uint256 tenderId, uint128 amount, bytes32 salt, bytes32 docKey) external;
+function award(uint256 tenderId, address winner, bytes32 reason) external;  // onlyBuyer, winner đã reveal
 function cancel(uint256 tenderId) external;          // onlyBuyer, chỉ khi Open và chưa có bid
 function withdrawBond(uint256 tenderId) external;    // pull-payment
+function sweepForfeitedBonds(uint256 tenderId) external; // bond không reveal → treasury cố định
 
-// views: getTender, getTenderState, getBid, getBidders(tenderId), tenderCount
-// events: TenderCreated, BidSubmitted(tenderId, bidder) [không có giá], BidUpdated,
-//         BidRevealed(tenderId, bidder, amount), TenderAwarded, TenderCancelled, BondWithdrawn
+// Không có view (ngoài treasury, MIN_REVEAL_WINDOW): app đọc storage + event.
+// metadata / encryptedDoc / reason = digest SHA-256 32 byte của IPFS CIDv1 (web/lib/cid.ts).
+// File lý do trao thầu chứa link + hash báo cáo AI (nếu có).
+// events: TenderCreated (kèm budget), BidSubmitted(first), BidRevealed(amount, salt, docKey),
+//         TenderAwarded(reason), TenderCancelled, BondWithdrawn, ForfeitedBondsSwept
 ```
 
 ### 4.4 Bid bond (chống bỏ reveal)
@@ -228,7 +228,8 @@ Private key deploy chỉ đặt trong `contracts/.env`, không bao giờ trong `
 - Không thêm tính năng Giai đoạn 2 khi chưa được yêu cầu.
 - Không bao giờ log/gửi `amount`, `salt`, `docKey` lên server, analytics hay console ở production.
 - Không hiển thị bất kỳ thông tin giá nào trong UI khi state ≠ Evaluation/Awarded, kể cả cho buyer.
-- Số tiền: luôn dùng `bigint` + `parseUnits/formatUnits`, ghi rõ 14 decimals ở tên biến (`amount14`, `bondBaseUnits`).
+- Số tiền: luôn dùng `bigint` + `parseUnits/formatUnits`, ghi rõ 18 decimals ở tên biến (`amount18`, `bondBaseUnits`).
+- Mỗi byte code/state đều tốn ký quỹ: thay đổi contract phải đo kích thước (`forge build --sizes`) và chi phí deploy (`cast estimate --create`) trước khi deploy; đổi thứ tự state/struct phải cập nhật `web/lib/market-storage.ts` (test `test_storageLayoutMatchesApp` sẽ báo).
 - Dữ liệu mẫu (3 tender demo: Enterprise Website Development, Commercial Building Renovation, Digital Marketing Campaign) chỉ dùng cho seed script testnet, không hardcode trong UI.
 - Ưu tiên hướng dẫn PortaldotV3 được liên kết trong README và tài liệu Hardhat/Foundry khi cần xác minh triển khai.
 

@@ -1,28 +1,16 @@
-// Deploys the test-only PlinthsTestNFT collection and mints the three items from scripts/test-nft/uris.json.
-//   npm run nft:portaldotv3          (NFT_RECIPIENT defaults to the deployer)
-const fs = require("node:fs");
-const path = require("node:path");
+// Deploys the test-only PlinthsTestNFT collection. Its constructor mints the three items (metadata in
+// scripts/test-nft/uris.json, hard-coded in the contract) to the deployer; there is no mint function.
+//   npm run nft:portaldotv3
 const hre = require("hardhat");
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   if (!deployer) throw new Error("Set PRIVATE_KEY to a funded PortaldotV3 EVM account.");
-
-  const items = JSON.parse(fs.readFileSync(path.join(__dirname, "test-nft", "uris.json"), "utf8"));
-  const recipient = process.env.NFT_RECIPIENT || deployer.address;
-
-  const nft = await (await hre.ethers.getContractFactory("PlinthsTestNFT", deployer)).deploy(deployer.address);
+  const nft = await (await hre.ethers.getContractFactory("PlinthsTestNFT", deployer)).deploy();
   const receipt = await nft.deploymentTransaction().wait();
   console.log("PlinthsTestNFT:", await nft.getAddress());
   console.log("Deploy block:  ", receipt.blockNumber);
-  console.log("Recipient:     ", recipient);
-
-  for (const item of items) {
-    const tx = await nft.mint(recipient, item.tokenURI);
-    await tx.wait();
-    const id = await nft.totalMinted();
-    console.log(`Minted #${id} ${item.name} → ${item.tokenURI} (tx ${tx.hash})`);
-  }
+  console.log("Owner of #1–#3:", deployer.address);
 }
 
 main().catch((error) => {

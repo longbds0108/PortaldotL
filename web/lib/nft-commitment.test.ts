@@ -14,7 +14,7 @@ const fixture = JSON.parse(
 const input = (v: (typeof fixture.vectors)[number]) => ({
   auctionId: BigInt(v.auctionId),
   bidder: v.bidder,
-  amount14: BigInt(v.amount),
+  amount18: BigInt(v.amount),
   salt: v.salt,
 });
 
@@ -27,7 +27,7 @@ describe("NFT auction commitment (TS ↔ Solidity)", () => {
   it("binds every field", () => {
     const v = fixture.vectors[1];
     const i = input(v);
-    expect(verifyNftCommitment({ ...i, amount14: i.amount14 + 1n }, v.commitment)).toBe(false);
+    expect(verifyNftCommitment({ ...i, amount18: i.amount18 + 1n }, v.commitment)).toBe(false);
     expect(verifyNftCommitment({ ...i, auctionId: i.auctionId + 1n }, v.commitment)).toBe(false);
     expect(verifyNftCommitment({ ...i, salt: randomBytes32() }, v.commitment)).toBe(false);
     expect(verifyNftCommitment({ ...i, bidder: "0x000000000000000000000000000000000000dEaD" }, v.commitment)).toBe(false);
@@ -36,10 +36,10 @@ describe("NFT auction commitment (TS ↔ Solidity)", () => {
 
 describe("listing data", () => {
   it("is abi.encode(uint256 reserve, uint64 bidDeadline, uint64 revealDeadline)", () => {
-    const data = encodeListingData({ reserve14: 5n * 10n ** 14n, bidDeadline: 1_800_000_000n, revealDeadline: 1_800_086_400n });
+    const data = encodeListingData({ reserve18: 5n * 10n ** 18n, bidDeadline: 1_800_000_000n, revealDeadline: 1_800_086_400n });
     expect(data).toBe(
       "0x" +
-        (5n * 10n ** 14n).toString(16).padStart(64, "0") +
+        (5n * 10n ** 18n).toString(16).padStart(64, "0") +
         (1_800_000_000n).toString(16).padStart(64, "0") +
         (1_800_086_400n).toString(16).padStart(64, "0"),
     );

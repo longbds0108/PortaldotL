@@ -33,7 +33,7 @@ function verifyBid(tenderId: bigint, tender: Tender, row: BidRow): Verdict {
   const recomputed = computeCommitment({
     tenderId,
     bidder,
-    amount14: bid.amount,
+    amount18: bid.amount,
     salt: bid.salt as Hex,
     docKey: bid.docKey as Hex,
   });
@@ -56,13 +56,16 @@ function Results({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
     enabled: !!tender.reasonURI,
     staleTime: Infinity,
   });
+  // The AI report (if any) is linked, with its hash, from the reason document whose digest is on-chain.
+  const aiURI = reason.data?.aiSummaryURI;
+  const aiHash = reason.data?.aiSummaryHash;
   const aiReview = useQuery({
-    queryKey: ["agent-report", tender.aiSummaryURI, tender.aiSummaryHash],
+    queryKey: ["agent-report", aiURI, aiHash],
     queryFn: async () => {
-      const report = agentReportSchema.parse(await fetchJson(tender.aiSummaryURI));
-      return { report, verified: hashAgentReport(report).toLowerCase() === tender.aiSummaryHash.toLowerCase() };
+      const report = agentReportSchema.parse(await fetchJson(aiURI!));
+      return { report, verified: hashAgentReport(report).toLowerCase() === aiHash!.toLowerCase() };
     },
-    enabled: !!tender.aiSummaryURI,
+    enabled: !!aiURI && !!aiHash,
     staleTime: Infinity,
   });
 
@@ -125,12 +128,12 @@ function Results({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
         )}
       </Card>
 
-      {tender.aiSummaryURI && (
+      {aiURI && aiHash && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Sparkles className="size-4" /> AI proposal comparison</CardTitle>
             <CardDescription>
-              AI-assisted evidence only. The buyer selected the winner. On-chain summary hash: <code className="break-all">{shortHash(tender.aiSummaryHash)}</code>
+              AI-assisted evidence only. The buyer selected the winner. Report hash (in the on-chain award reason): <code className="break-all">{shortHash(aiHash)}</code>
               {aiReview.data && <span className={aiReview.data.verified ? "ml-2 text-success" : "ml-2 text-destructive"}>{aiReview.data.verified ? "· Hash verified" : "· Hash mismatch"}</span>}
               <span className="block">The hash verifies report integrity, not the AI&apos;s accuracy.</span>
             </CardDescription>

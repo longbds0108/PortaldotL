@@ -7,7 +7,7 @@ import { PORTALDOT_RPC_URL, WALLETCONNECT_PROJECT_ID } from "./env";
 export const chain = defineChain({
   id: 420420777,
   name: "PortaldotV3 Testnet",
-  nativeCurrency: { name: "tPOTv3", symbol: "tPOTv3", decimals: 14 },
+  nativeCurrency: { name: "tPOTv3", symbol: "tPOTv3", decimals: 18 },
   rpcUrls: { default: { http: [PORTALDOT_RPC_URL] } },
   testnet: true,
 });

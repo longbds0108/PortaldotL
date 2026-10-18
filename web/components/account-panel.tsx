@@ -41,7 +41,7 @@ function AccountPanel({ address }: { address: `0x${string}` }) {
   const panelId = useId();
   const reduce = useReducedMotion();
   const prefs = usePreferences();
-  // Native tPOTv3 (14 decimals), floored to two decimals — same figure as the dashboard.
+  // Native tPOTv3 (18 decimals), floored to two decimals — same figure as the dashboard.
   const balance = useBalance({ address, chainId: chain.id, query: { refetchInterval: 15_000 } });
   const hidden = prefs.hideSmallBalances && balance.data !== undefined && balance.data.value < SMALL_BALANCE_BASE_UNITS;
   const balanceText = balance.data ? formatNativeAmountFloor(balance.data.value) : balance.isError ? "—" : "…";

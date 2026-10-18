@@ -3,7 +3,7 @@ import { formatDuration, formatNativeAmount } from "./format";
 
 /** Bond above this share of the maximum budget (or the 100 tPOTv3 absolute threshold) is flagged as high. */
 const HIGH_BOND_BPS = 500n; // 5%
-const HIGH_BOND_ABS = 100n * 10n ** 14n; // 100 tPOTv3
+const HIGH_BOND_ABS = 100n * 10n ** 18n; // 100 tPOTv3
 
 export function bidRisks(tender: Pick<Tender, "submissionDeadline" | "revealDeadline" | "bidBond" | "budgetMax">) {
   const revealWindowS = Number(tender.revealDeadline - tender.submissionDeadline);

@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { zeroHash } from "viem";
 import { ConfigGate } from "@/components/gates";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -49,13 +48,11 @@ function Inner({ children }: { children: (ctx: { row: TenderRow; meta?: TenderMe
       cancelled: false,
       awarded: state === TenderState.Awarded,
       forfeitSwept: false,
-      budgetMin: 25_000n * 10n ** 14n,
-      budgetMax: 40_000n * 10n ** 14n,
-      bidBond: 100n * 10n ** 14n,
+      budgetMin: 25_000n * 10n ** 18n,
+      budgetMax: 40_000n * 10n ** 18n,
+      bidBond: 100n * 10n ** 18n,
       metadataURI: "preview://tender",
       reasonURI: "",
-      aiSummaryURI: "",
-      aiSummaryHash: zeroHash,
     };
     const preview: TenderRow = { id, tender: sampleTender, state };
     const previewMeta: TenderMetadata = {

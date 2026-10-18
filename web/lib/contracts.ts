@@ -32,40 +32,49 @@ export function pricesVisible(state: TenderState | undefined): boolean {
   return state === TenderState.Evaluation || state === TenderState.Awarded;
 }
 
+/**
+ * Tender as the app sees it: contract storage (lib/market-storage.ts) merged with its events (lib/market-logs.ts).
+ * Document fields hold `digest://…` URIs (lib/cid.ts); "" when absent. Amounts are 18-decimal EVM units.
+ */
 export type Tender = {
   buyer: Address;
   submissionDeadline: bigint;
   revealDeadline: bigint;
   createdBlock: bigint;
-  awardedBlock: bigint;
+  awardedBlock: bigint; // 0 until awarded
   winner: Address;
   bidCount: number;
   revealedCount: number;
   cancelled: boolean;
   awarded: boolean;
   forfeitSwept: boolean;
-  budgetMin: bigint;
-  budgetMax: bigint;
+  budgetMin: bigint; // from TenderCreated
+  budgetMax: bigint; // from TenderCreated
   bidBond: bigint;
-  metadataURI: string;
-  reasonURI: string;
-  aiSummaryURI: string;
-  aiSummaryHash: Hex;
+  metadataURI: string; // from TenderCreated
+  reasonURI: string; // from TenderAwarded; the reason document links the optional AI report
 };
 
+/** Bid as the app sees it (storage + BidSubmitted / BidRevealed events). */
 export type Bid = {
   commitment: Hex;
-  encryptedDocURI: string;
-  committedAt: bigint;
+  encryptedDocURI: string; // latest BidSubmitted
+  committedAt: bigint; // timestamp of the latest BidSubmitted
   committedBlock: bigint;
-  revealedBlock: bigint;
+  revealedBlock: bigint; // 0 until revealed
   revealed: boolean;
   bondWithdrawn: boolean;
   bond: bigint;
-  amount: bigint;
-  salt: Hex;
-  docKey: Hex;
+  amount: bigint; // 0 until revealed
+  salt: Hex; // from BidRevealed, zero until revealed
+  docKey: Hex; // from BidRevealed, zero until revealed
 };
+
+/** Bonds of unrevealed bids the treasury can claim now (contract: sweepForfeitedBonds). */
+export function forfeitedBonds(tender: Tender, nowSec: number | undefined): bigint {
+  if (nowSec === undefined || nowSec < Number(tender.revealDeadline) || tender.forfeitSwept) return 0n;
+  return tender.bidBond * BigInt(tender.bidCount - tender.revealedCount);
+}
 
 /** Contract custom errors → user-facing text. */
 export const ERROR_TEXT: Record<string, string> = {
@@ -73,13 +82,12 @@ export const ERROR_TEXT: Record<string, string> = {
   InvalidState: "This action is not allowed in the tender's current phase.",
   InvalidDeadlines: "Deadlines are invalid: submission must be in the future and the reveal window at least 24 hours.",
   InvalidBudget: "Minimum budget must not exceed maximum budget.",
-  EmptyURI: "Missing document reference.",
+  EmptyDocument: "Missing document reference.",
   NotBuyer: "Only the tender's buyer can do this.",
   BuyerCannotBid: "Buyers cannot bid on their own tender.",
-  AlreadyBid: "You already have a bid on this tender — update it instead.",
   NoBid: "You have no bid on this tender.",
   ZeroCommitment: "Invalid commitment.",
-  WrongBond: "The bid bond sent does not match the tender's bond.",
+  WrongBond: "The bid bond sent does not match the tender's bond (a replacement bid sends none).",
   AlreadyRevealed: "This bid is already revealed.",
   CommitmentMismatch: "Amount, salt or document key does not match your sealed commitment. Check your backup file.",
   ZeroAmount: "Bid amount must be greater than zero.",
@@ -88,5 +96,5 @@ export const ERROR_TEXT: Record<string, string> = {
   NothingToWithdraw: "Nothing to withdraw.",
   TransferFailed: "The tPOTv3 transfer failed. Check the wallet and retry.",
   ZeroTreasury: "Treasury address is not set.",
-  InvalidAISummary: "The AI report must include both a public URI and its content hash, or neither.",
+  ReentrancyGuardReentrantCall: "Another payout is in progress. Retry in a moment.",
 };

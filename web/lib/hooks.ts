@@ -8,26 +8,35 @@ import {
   HttpRequestError,
   LimitExceededRpcError,
   UserRejectedRequestError,
+  zeroAddress,
+  zeroHash,
   type Address,
   type ContractFunctionArgs,
   type ContractFunctionName,
   type Hash,
+  type PublicClient,
   type TransactionReceipt,
 } from "viem";
-import { useAccount, usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
-import {
-  ERROR_TEXT,
-  blindBidAddress,
-  blindBidMarketAbi,
-  type Bid,
-  TenderState,
-  type Tender,
-} from "./contracts";
+import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { digestToUri } from "./cid";
+import { ERROR_TEXT, blindBidAddress, blindBidMarketAbi, type Bid, TenderState, type Tender } from "./contracts";
+import { BLINDBID_DEPLOY_BLOCK } from "./env";
 import { fetchJson } from "./ipfs";
+import { fetchBidderTenderIds, fetchCreatedLogs, fetchTenderLogs, type MarketLog } from "./market-logs";
+import { readBid, readTender, readTenderCount, tenderState, type BidCore, type TenderCore } from "./market-storage";
 import { tenderMetadataSchema, type TenderMetadata } from "./metadata";
+
+/*
+ * Reads: the market has no view functions (storage deposits on PortaldotV3), so tenders and bids come from
+ * contract storage (lib/market-storage.ts) merged with their events (lib/market-logs.ts). State is derived from
+ * chain time exactly as the contract does.
+ */
 
 /** Background refresh of on-chain reads. Kept moderate: public PortaldotV3 RPCs rate-limit aggressive polling. */
 const REFRESH_MS = 15_000;
+
+const enabled = !!blindBidAddress;
+const market = blindBidAddress!;
 
 // ───────────────────────── chain time ─────────────────────────
 
@@ -56,82 +65,124 @@ export function useChainNow(): number | undefined {
   return Math.floor(nowMs / 1000 + (enabled ? offset! : 0));
 }
 
-// ───────────────────────── tenders ─────────────────────────
+// ───────────────────────── view models ─────────────────────────
 
 export type TenderRow = { id: bigint; tender: Tender; state: TenderState };
+export type BidRow = { bidder: Address; bid: Bid };
 
-const enabled = !!blindBidAddress;
-const base = { address: blindBidAddress!, abi: blindBidMarketAbi } as const;
+function toTender(core: TenderCore, logs: MarketLog[]): Tender {
+  const created = logs.find((l) => l.name === "TenderCreated");
+  const awarded = logs.find((l) => l.name === "TenderAwarded");
+  return {
+    ...core,
+    awardedBlock: awarded?.blockNumber ?? 0n,
+    budgetMin: created?.name === "TenderCreated" ? created.budgetMin : 0n,
+    budgetMax: created?.name === "TenderCreated" ? created.budgetMax : 0n,
+    metadataURI: created?.name === "TenderCreated" ? digestToUri(created.metadata) : "",
+    reasonURI: awarded?.name === "TenderAwarded" ? digestToUri(awarded.reason) : "",
+  };
+}
+
+function toBid(core: BidCore, logs: MarketLog[], bidder: Address, timestamps: Map<bigint, bigint>): Bid {
+  const mine = logs.filter((l) => "bidder" in l && l.bidder.toLowerCase() === bidder.toLowerCase());
+  const submitted = mine.filter((l) => l.name === "BidSubmitted").at(-1);
+  const revealed = mine.find((l) => l.name === "BidRevealed");
+  const committedBlock = submitted?.blockNumber ?? 0n;
+  return {
+    ...core,
+    encryptedDocURI: submitted?.name === "BidSubmitted" ? digestToUri(submitted.encryptedDoc) : "",
+    committedBlock,
+    committedAt: timestamps.get(committedBlock) ?? 0n,
+    revealedBlock: revealed?.blockNumber ?? 0n,
+    salt: revealed?.name === "BidRevealed" ? revealed.salt : zeroHash,
+    docKey: revealed?.name === "BidRevealed" ? revealed.docKey : zeroHash,
+  };
+}
+
+async function blockTimes(client: PublicClient, blocks: bigint[]): Promise<Map<bigint, bigint>> {
+  const unique = [...new Set(blocks.filter((b) => b > 0n))];
+  const out = new Map<bigint, bigint>();
+  await Promise.all(unique.map(async (b) => out.set(b, (await client.getBlock({ blockNumber: b })).timestamp)));
+  return out;
+}
+
+const withState = (id: bigint, tender: Tender, now: number | undefined): TenderRow => ({
+  id,
+  tender,
+  state: tenderState(tender, now ?? Math.floor(Date.now() / 1000)),
+});
+
+// ───────────────────────── tenders ─────────────────────────
+
+/** Storage + events of one tender (null when the id does not exist). Shared by useTender and useBids. */
+function useTenderData(id: bigint | undefined) {
+  const client = usePublicClient();
+  return useQuery({
+    queryKey: ["tender-data", id?.toString()],
+    queryFn: async () => {
+      if ((await readTenderCount(client!, market)) <= id!) return null;
+      const core = await readTender(client!, market, id!);
+      const logs = await fetchTenderLogs(client!, market, id!, core.createdBlock);
+      return { core, logs };
+    },
+    enabled: enabled && !!client && id !== undefined,
+    refetchInterval: REFRESH_MS,
+  });
+}
 
 export function useTender(id: bigint | undefined) {
-  const res = useReadContracts({
-    contracts:
-      id === undefined
-        ? []
-        : [
-            { ...base, functionName: "getTender", args: [id] },
-            { ...base, functionName: "getTenderState", args: [id] },
-          ],
-    query: { enabled: enabled && id !== undefined, refetchInterval: REFRESH_MS },
-  });
-  const [t, s] = res.data ?? [];
-  const row: TenderRow | undefined =
-    id !== undefined && t?.status === "success" && s?.status === "success"
-      ? { id, tender: t.result as Tender, state: s.result as TenderState }
-      : undefined;
-  const notFound = t?.status === "failure";
-  return { ...res, row, notFound };
+  const res = useTenderData(id);
+  const now = useChainNow();
+  const row = id !== undefined && res.data ? withState(id, toTender(res.data.core, res.data.logs), now) : undefined;
+  return { row, notFound: res.data === null, isLoading: res.isLoading, refetch: res.refetch };
 }
 
 /** Loads tenders by id (all tenders when `ids` is undefined), newest first. */
 export function useTenders(ids?: readonly bigint[]) {
-  const count = useReadContract({
-    ...base,
-    functionName: "tenderCount",
-    query: { enabled: enabled && ids === undefined, refetchInterval: REFRESH_MS },
+  const client = usePublicClient();
+  const now = useChainNow();
+  const key = ids?.map(String).join(",") ?? "all";
+  const res = useQuery({
+    queryKey: ["tenders", key],
+    queryFn: async () => {
+      const count = await readTenderCount(client!, market);
+      const list = (ids ?? Array.from({ length: Number(count) }, (_, i) => BigInt(i))).filter((id) => id < count);
+      const [cores, created] = await Promise.all([
+        Promise.all(list.map((id) => readTender(client!, market, id))),
+        fetchCreatedLogs(client!, market, BLINDBID_DEPLOY_BLOCK),
+      ]);
+      const byId = new Map(created.map((l) => [l.tenderId, l]));
+      return list.map((id, i) => ({ id, tender: toTender(cores[i], byId.has(id) ? [byId.get(id)!] : []) }));
+    },
+    enabled: enabled && !!client && (ids === undefined || ids.length > 0),
+    refetchInterval: REFRESH_MS,
   });
-  const list =
-    ids ??
-    (count.data !== undefined ? Array.from({ length: Number(count.data) }, (_, i) => BigInt(i)) : undefined);
-  const ordered = list ? [...list].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0)) : [];
-
-  const res = useReadContracts({
-    contracts: ordered.flatMap((id) => [
-      { ...base, functionName: "getTender", args: [id] } as const,
-      { ...base, functionName: "getTenderState", args: [id] } as const,
-    ]),
-    query: { enabled: enabled && ordered.length > 0, refetchInterval: REFRESH_MS },
-  });
-
-  const rows: TenderRow[] = [];
-  ordered.forEach((id, i) => {
-    const t = res.data?.[2 * i];
-    const s = res.data?.[2 * i + 1];
-    if (t?.status === "success" && s?.status === "success") {
-      rows.push({ id, tender: t.result as Tender, state: s.result as TenderState });
-    }
-  });
-  const isLoading = (ids === undefined && count.isLoading) || res.isLoading;
-  return { rows, isLoading, error: count.error ?? res.error, refetch: res.refetch };
+  const rows = (res.data ?? [])
+    .map(({ id, tender }) => withState(id, tender, now))
+    .sort((a, b) => (a.id > b.id ? -1 : a.id < b.id ? 1 : 0));
+  return { rows, isLoading: res.isLoading && (ids === undefined || ids.length > 0), error: res.error, refetch: res.refetch };
 }
 
 export function useMyTenderIds() {
+  const client = usePublicClient();
   const { address } = useAccount();
-  return useReadContract({
-    ...base,
-    functionName: "getBuyerTenders",
-    args: [address!],
-    query: { enabled: enabled && !!address, refetchInterval: REFRESH_MS },
+  return useQuery({
+    queryKey: ["my-tender-ids", address],
+    queryFn: async () =>
+      (await fetchCreatedLogs(client!, market, BLINDBID_DEPLOY_BLOCK, address!)).map((l) => l.tenderId) as readonly bigint[],
+    enabled: enabled && !!client && !!address,
+    refetchInterval: REFRESH_MS,
   });
 }
 
 export function useMyBidTenderIds() {
+  const client = usePublicClient();
   const { address } = useAccount();
-  return useReadContract({
-    ...base,
-    functionName: "getBidderTenders",
-    args: [address!],
-    query: { enabled: enabled && !!address, refetchInterval: REFRESH_MS },
+  return useQuery({
+    queryKey: ["my-bid-tender-ids", address],
+    queryFn: async () => (await fetchBidderTenderIds(client!, market, BLINDBID_DEPLOY_BLOCK, address!)) as readonly bigint[],
+    enabled: enabled && !!client && !!address,
+    refetchInterval: REFRESH_MS,
   });
 }
 
@@ -150,11 +201,12 @@ export type BuyerHistory = {
 
 /** On-chain track record of a buyer address (all tenders it created on this contract). */
 export function useBuyerHistory(buyer: Address | undefined) {
-  const ids = useReadContract({
-    ...base,
-    functionName: "getBuyerTenders",
-    args: [buyer!],
-    query: { enabled: enabled && !!buyer, refetchInterval: REFRESH_MS },
+  const client = usePublicClient();
+  const ids = useQuery({
+    queryKey: ["buyer-tender-ids", buyer],
+    queryFn: async () => (await fetchCreatedLogs(client!, market, BLINDBID_DEPLOY_BLOCK, buyer!)).map((l) => l.tenderId),
+    enabled: enabled && !!client && !!buyer,
+    refetchInterval: REFRESH_MS,
   });
   const { rows, isLoading } = useTenders(ids.data ?? []);
   const now = useChainNow();
@@ -185,44 +237,60 @@ export function useTenderMetadata(uri: string | undefined) {
 
 // ───────────────────────── bids ─────────────────────────
 
-export type BidRow = { bidder: Address; bid: Bid };
-
 export function useBids(tenderId: bigint | undefined) {
-  const bidders = useReadContract({
-    ...base,
-    functionName: "getBidders",
-    args: [tenderId!],
-    query: { enabled: enabled && tenderId !== undefined, refetchInterval: REFRESH_MS },
-  });
-  const addrs = (bidders.data ?? []) as readonly Address[];
-  const bids = useReadContracts({
-    contracts: addrs.map((a) => ({ ...base, functionName: "getBid", args: [tenderId!, a] }) as const),
-    query: { enabled: enabled && addrs.length > 0, refetchInterval: REFRESH_MS },
-  });
-  const rows: BidRow[] = [];
-  addrs.forEach((bidder, i) => {
-    const r = bids.data?.[i];
-    if (r?.status === "success") rows.push({ bidder, bid: r.result as Bid });
+  const client = usePublicClient();
+  const data = useTenderData(tenderId);
+  const logs = data.data?.logs;
+  const bidders = [
+    ...new Set((logs ?? []).flatMap((l) => (l.name === "BidSubmitted" && l.first ? [l.bidder] : []))),
+  ] as Address[];
+  const res = useQuery({
+    queryKey: ["bids", tenderId?.toString(), logs?.length],
+    queryFn: async (): Promise<BidRow[]> => {
+      const cores = await Promise.all(bidders.map((b) => readBid(client!, market, tenderId!, b)));
+      const times = await blockTimes(
+        client!,
+        (logs ?? []).filter((l) => l.name === "BidSubmitted").map((l) => l.blockNumber),
+      );
+      return bidders.map((bidder, i) => ({ bidder, bid: toBid(cores[i], logs!, bidder, times) }));
+    },
+    enabled: enabled && !!client && !!logs,
+    refetchInterval: REFRESH_MS,
   });
   return {
-    rows,
-    isLoading: bidders.isLoading || bids.isLoading,
-    error: bidders.error ?? bids.error,
+    rows: res.data ?? [],
+    isLoading: data.isLoading || res.isLoading,
+    error: data.error ?? res.error,
     refetch: async () => {
-      await bidders.refetch();
-      await bids.refetch();
+      await data.refetch();
+      await res.refetch();
     },
   };
 }
 
 export function useMyBid(tenderId: bigint | undefined) {
+  const client = usePublicClient();
   const { address } = useAccount();
-  return useReadContract({
-    ...base,
-    functionName: "getBid",
-    args: [tenderId!, address!],
-    query: { enabled: enabled && tenderId !== undefined && !!address, refetchInterval: REFRESH_MS },
+  const data = useTenderData(tenderId);
+  const logs = data.data?.logs;
+  const res = useQuery({
+    queryKey: ["my-bid", tenderId?.toString(), address, logs?.length],
+    queryFn: async (): Promise<Bid> => {
+      const core = await readBid(client!, market, tenderId!, address!);
+      const mine = (logs ?? []).filter((l) => l.name === "BidSubmitted" && l.bidder.toLowerCase() === address!.toLowerCase());
+      return toBid(core, logs ?? [], address!, await blockTimes(client!, mine.map((l) => l.blockNumber)));
+    },
+    enabled: enabled && !!client && !!address && tenderId !== undefined && !!logs,
+    refetchInterval: REFRESH_MS,
   });
+  return {
+    data: res.data,
+    isLoading: data.isLoading || res.isLoading,
+    refetch: async () => {
+      await data.refetch();
+      return res.refetch();
+    },
+  };
 }
 
 /**
@@ -230,18 +298,21 @@ export function useMyBid(tenderId: bigint | undefined) {
  * (a bond is forfeited once the reveal window closed without a reveal).
  */
 export function useMyLockedBonds(rows: TenderRow[]) {
+  const client = usePublicClient();
   const { address } = useAccount();
-  const res = useReadContracts({
-    contracts: rows.map((r) => ({ ...base, functionName: "getBid", args: [r.id, address!] }) as const),
-    query: { enabled: enabled && !!address && rows.length > 0, refetchInterval: REFRESH_MS },
+  const res = useQuery({
+    queryKey: ["my-bonds", address, rows.map((r) => r.id.toString()).join(",")],
+    queryFn: async () => Promise.all(rows.map((r) => readBid(client!, market, r.id, address!))),
+    enabled: enabled && !!client && !!address && rows.length > 0,
+    refetchInterval: REFRESH_MS,
   });
   let lockedWei = 0n;
   let count = 0;
   const bids = new Map<bigint, Bid>();
   rows.forEach((r, i) => {
-    const out = res.data?.[i];
-    if (out?.status !== "success") return;
-    const bid = out.result as Bid;
+    const core = res.data?.[i];
+    if (!core) return;
+    const bid = toBid(core, [], address ?? zeroAddress, new Map());
     bids.set(r.id, bid);
     const revealClosed = r.state !== TenderState.Open && r.state !== TenderState.Reveal;
     const forfeited = revealClosed && !bid.revealed;

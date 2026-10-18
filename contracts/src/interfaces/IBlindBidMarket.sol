@@ -3,11 +3,19 @@ pragma solidity ^0.8.24;
 
 /// @title IBlindBidMarket
 /// @notice Public sealed-bid (commit–reveal) tender marketplace.
-/// @dev Kept as a standalone interface so the bid layer can later move to a private execution environment
-///      without changing the frontend-facing surface.
-///      Units: all budget, amount, and bond values use 14-decimal tPOTv3 base units.
+/// @dev Built for PortaldotV3 (pallet-revive), which charges a storage deposit per byte of deployed code and of
+///      contract state. To stay affordable the contract keeps only what its rules need, packed into a few slots,
+///      and has no view functions:
+///        - the app reads `Tender` / `Bid` straight from storage (eth_getStorageAt, layout pinned by a test in
+///          web/lib/market-storage.test.ts against the Foundry storage layout);
+///        - everything that is only displayed — metadata / proposal / reason documents, budgets, the revealed salt
+///          and doc key, bidder lists — is in events (eth_getLogs, indexed by tenderId / buyer / bidder).
+///      Documents are referenced by the 32-byte SHA-256 digest of their IPFS CIDv1 (raw or dag-pb codec); the app
+///      rebuilds the CID. The award reason document links the optional AI comparison report and its hash.
+///      Units: bond, budgets and amounts are EVM native-value units, the same unit as msg.value (18 decimals on
+///      PortaldotV3's EVM layer).
 interface IBlindBidMarket {
-    /// @dev Derived from block.timestamp + flags in `getTenderState`; never stored.
+    /// @dev Derived from block.timestamp + flags; the app mirrors this rule client-side.
     enum TenderState {
         Open, // accepting commitments
         Reveal, // submission closed, bidders reveal
@@ -17,79 +25,62 @@ interface IBlindBidMarket {
         Failed // reveal closed with no revealed bid
     }
 
+    /// @dev 3 storage slots.
     struct Tender {
         address buyer;
         uint64 submissionDeadline;
-        uint64 revealDeadline;
-        uint64 createdBlock;
-        uint64 awardedBlock; // 0 until awarded
-        address winner;
         uint32 bidCount;
+        address winner; // address(0) until awarded
+        uint64 revealDeadline;
         uint32 revealedCount;
+        uint96 bidBond;
+        uint64 createdBlock; // block of TenderCreated, so the app can fetch its log directly
         bool cancelled;
         bool awarded;
         bool forfeitSwept; // forfeited bonds already sent to the treasury
-        uint256 budgetMin; // 14 decimals
-        uint256 budgetMax; // 14 decimals
-        uint256 bidBond; // tPOTv3 base units (14 decimals)
-        string metadataURI;
-        string reasonURI;
-        string aiSummaryURI;
-        bytes32 aiSummaryHash;
     }
 
+    /// @dev 2 storage slots.
     struct Bid {
         bytes32 commitment;
-        string encryptedDocURI;
-        uint64 committedAt; // block.timestamp of the last submit/update
-        uint64 committedBlock; // block.number of the last submit/update (lets the UI fetch the exact log)
-        uint64 revealedBlock; // 0 until revealed
+        uint96 bond;
+        uint128 amount; // 0 until revealed
         bool revealed;
         bool bondWithdrawn;
-        uint256 bond; // tPOTv3 base units (14 decimals)
-        uint256 amount; // 14 decimals, 0 until revealed
-        bytes32 salt; // 0 until revealed
-        bytes32 docKey; // AES-256 key, 0 until revealed
     }
 
     // ───────────── events (no event exposes a price before reveal) ─────────────
     event TenderCreated(
         uint256 indexed tenderId,
         address indexed buyer,
-        string metadataURI,
+        bytes32 metadata,
         uint256 budgetMin,
         uint256 budgetMax,
         uint64 submissionDeadline,
         uint64 revealDeadline,
         uint256 bidBond
     );
-    event BidSubmitted(uint256 indexed tenderId, address indexed bidder, bytes32 commitment, string encryptedDocURI);
-    event BidUpdated(uint256 indexed tenderId, address indexed bidder, bytes32 commitment, string encryptedDocURI);
-    event BidRevealed(uint256 indexed tenderId, address indexed bidder, uint256 amount);
-    event TenderAwarded(
-        uint256 indexed tenderId,
-        address indexed winner,
-        uint256 amount,
-        string reasonURI,
-        string aiSummaryURI,
-        bytes32 aiSummaryHash
+    /// @dev Emitted for the first bid and for every replacement while Open (`first` tells them apart).
+    event BidSubmitted(
+        uint256 indexed tenderId, address indexed bidder, bytes32 commitment, bytes32 encryptedDoc, bool first
     );
+    event BidRevealed(uint256 indexed tenderId, address indexed bidder, uint256 amount, bytes32 salt, bytes32 docKey);
+    event TenderAwarded(uint256 indexed tenderId, address indexed winner, uint256 amount, bytes32 reason);
     event TenderCancelled(uint256 indexed tenderId);
-    event BondWithdrawn(uint256 indexed tenderId, address indexed bidder, uint256 bondWei);
-    event ForfeitedBondsSwept(uint256 indexed tenderId, address indexed treasury, uint256 bondWei);
+    event BondWithdrawn(uint256 indexed tenderId, address indexed bidder, uint256 amount);
+    event ForfeitedBondsSwept(uint256 indexed tenderId, uint256 amount);
 
     // ───────────── errors ─────────────
     error TenderNotFound();
-    error InvalidState(TenderState current);
+    error InvalidState();
     error InvalidDeadlines();
     error InvalidBudget();
-    error EmptyURI();
+    error EmptyDocument();
     error NotBuyer();
     error BuyerCannotBid();
-    error AlreadyBid();
-    error NoBid();
     error ZeroCommitment();
-    error WrongBond(uint256 expected, uint256 got);
+    error WrongBond();
+    error NoBid();
     error AlreadyRevealed();
     error CommitmentMismatch();
     error ZeroAmount();
@@ -98,45 +89,30 @@ interface IBlindBidMarket {
     error NothingToWithdraw();
     error TransferFailed();
     error ZeroTreasury();
-    error InvalidAISummary();
 
     // ───────────── buyer ─────────────
     function createTender(
-        string calldata metadataURI,
-        uint256 budgetMin,
-        uint256 budgetMax,
+        bytes32 metadata,
+        uint128 budgetMin,
+        uint128 budgetMax,
         uint64 submissionDeadline,
         uint64 revealDeadline,
-        uint256 bidBond
+        uint96 bidBond
     ) external returns (uint256 tenderId);
 
-    function award(
-        uint256 tenderId,
-        address winner,
-        string calldata reasonURI,
-        string calldata aiSummaryURI,
-        bytes32 aiSummaryHash
-    ) external;
+    function award(uint256 tenderId, address winner, bytes32 reason) external;
     function cancel(uint256 tenderId) external;
 
     // ───────────── bidder ─────────────
-    function submitBid(uint256 tenderId, bytes32 commitment, string calldata encryptedDocURI) external payable;
-    function updateBid(uint256 tenderId, bytes32 commitment, string calldata encryptedDocURI) external;
-    function revealBid(uint256 tenderId, uint256 amount, bytes32 salt, bytes32 docKey) external;
+    /// @notice First call commits and locks the bond (msg.value == bidBond); later calls while Open replace the
+    ///         commitment and proposal (msg.value == 0).
+    function submitBid(uint256 tenderId, bytes32 commitment, bytes32 encryptedDoc) external payable;
+    function revealBid(uint256 tenderId, uint128 amount, bytes32 salt, bytes32 docKey) external;
     function withdrawBond(uint256 tenderId) external;
 
     // ───────────── anyone ─────────────
-    /// @notice Sends bonds of bids not revealed by the deadline to the treasury (never to the buyer).
+    /// @notice After revealDeadline, once: bidBond × (bidCount − revealedCount) goes to the treasury (never the buyer).
     function sweepForfeitedBonds(uint256 tenderId) external;
 
-    // ───────────── views ─────────────
-    function tenderCount() external view returns (uint256);
-    function getTender(uint256 tenderId) external view returns (Tender memory);
-    function getTenderState(uint256 tenderId) external view returns (TenderState);
-    function getBid(uint256 tenderId, address bidder) external view returns (Bid memory);
-    function getBidders(uint256 tenderId) external view returns (address[] memory);
-    function getBuyerTenders(address buyer) external view returns (uint256[] memory);
-    function getBidderTenders(address bidder) external view returns (uint256[] memory);
-    function forfeitedBonds(uint256 tenderId) external view returns (uint256);
     function treasury() external view returns (address);
 }

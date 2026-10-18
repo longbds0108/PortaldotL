@@ -22,15 +22,15 @@ const fixture = JSON.parse(
 describe("commitment (TS ↔ Solidity)", () => {
   it.each(fixture.vectors.map((v, i) => [i, v] as const))("matches shared vector #%i", (_, v) => {
     expect(hashDocKey(v.docKey)).toBe(v.docKeyHash);
-    const input = { tenderId: BigInt(v.tenderId), bidder: v.bidder, amount14: BigInt(v.amount), salt: v.salt, docKey: v.docKey };
+    const input = { tenderId: BigInt(v.tenderId), bidder: v.bidder, amount18: BigInt(v.amount), salt: v.salt, docKey: v.docKey };
     expect(computeCommitment(input)).toBe(v.commitment);
     expect(verifyCommitment(input, v.commitment.toUpperCase().replace("0X", "0x") as Hex)).toBe(true);
   });
 
   it("binds every field", () => {
     const v = fixture.vectors[1];
-    const input = { tenderId: BigInt(v.tenderId), bidder: v.bidder, amount14: BigInt(v.amount), salt: v.salt, docKey: v.docKey };
-    expect(verifyCommitment({ ...input, amount14: input.amount14 + 1n }, v.commitment)).toBe(false);
+    const input = { tenderId: BigInt(v.tenderId), bidder: v.bidder, amount18: BigInt(v.amount), salt: v.salt, docKey: v.docKey };
+    expect(verifyCommitment({ ...input, amount18: input.amount18 + 1n }, v.commitment)).toBe(false);
     expect(verifyCommitment({ ...input, tenderId: input.tenderId + 1n }, v.commitment)).toBe(false);
     expect(verifyCommitment({ ...input, salt: randomBytes32() }, v.commitment)).toBe(false);
     expect(verifyCommitment({ ...input, docKey: randomBytes32() }, v.commitment)).toBe(false);

@@ -1,3 +1,4 @@
+import { candidateUris, digestOfUri, isDigestUri } from "./cid";
 import { IPFS_GATEWAY } from "./env";
 
 /**
@@ -50,14 +51,26 @@ export async function uploadBlob(blob: Blob, name: string): Promise<string> {
 }
 
 export function resolveUri(uri: string): string {
+  // On-chain documents are digests (lib/cid.ts); the raw-codec CID is the usual home, so link to it.
+  if (isDigestUri(uri)) return resolveUri(candidateUris(digestOfUri(uri))[0]);
   if (uri.startsWith("ipfs://")) return IPFS_GATEWAY + uri.slice("ipfs://".length);
   if (uri.startsWith("devipfs://")) return `/api/ipfs/dev/${encodeURIComponent(uri.slice("devipfs://".length))}`;
   if (uri.startsWith("data:") || uri.startsWith("https://") || uri.startsWith("http://")) return uri;
   throw new Error(`Unsupported URI: ${uri.slice(0, 32)}`);
 }
 
+/** Fetches a document, trying every location of an on-chain digest (raw CID, dag-pb CID, dev store) in turn. */
+export async function fetchDocument(uri: string): Promise<Response> {
+  const tries = isDigestUri(uri) ? candidateUris(digestOfUri(uri)) : [uri];
+  let last = 0;
+  for (const u of tries) {
+    const res = await fetch(resolveUri(u)).catch(() => undefined);
+    if (res?.ok) return res;
+    last = res?.status ?? 0;
+  }
+  throw new Error(`Could not load ${uri.slice(0, 40)} (${last || "network error"})`);
+}
+
 export async function fetchJson(uri: string): Promise<unknown> {
-  const res = await fetch(resolveUri(uri));
-  if (!res.ok) throw new Error(`Could not load ${uri.slice(0, 40)} (${res.status})`);
-  return res.json();
+  return (await fetchDocument(uri)).json();
 }

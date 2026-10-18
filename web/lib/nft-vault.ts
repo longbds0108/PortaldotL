@@ -19,10 +19,10 @@ export const nftVaultEntrySchema = z.object({
   contract: address,
   auctionId: uintString,
   bidder: address,
-  /** tPOTv3 14 decimals, decimal string */
-  amount14: uintString,
-  /** tPOTv3 14 decimals locked with the bid (public on-chain; kept for reference) */
-  deposit14: uintString,
+  /** tPOTv3 18 decimals, decimal string */
+  amount18: uintString,
+  /** tPOTv3 18 decimals locked with the bid (public on-chain; kept for reference) */
+  deposit18: uintString,
   salt: hex32,
   createdAt: z.number().int(),
 });
@@ -101,6 +101,6 @@ export function parseNftBackup(text: string): NftVaultEntry[] {
   return r.data;
 }
 
-export function nftEntrySecrets(e: NftVaultEntry): { amount14: bigint; salt: Hex } {
-  return { amount14: BigInt(e.amount14), salt: e.salt as Hex };
+export function nftEntrySecrets(e: NftVaultEntry): { amount18: bigint; salt: Hex } {
+  return { amount18: BigInt(e.amount18), salt: e.salt as Hex };
 }

@@ -24,7 +24,7 @@ export function previewTokenURI(tokenId: bigint): string | undefined {
   return PREVIEW_TOKENS.find((t) => t.tokenId === tokenId)?.tokenURI;
 }
 
-const T = (n: number) => BigInt(n) * 10n ** 14n;
+const T = (n: number) => BigInt(n) * 10n ** 18n;
 const H = 3600;
 
 type Preview = { row: AuctionRow; bids: { bidder: Address; bid: AuctionBid }[] };

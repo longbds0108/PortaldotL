@@ -15,12 +15,18 @@ export const tenderMetadataSchema = z.object({
 });
 export type TenderMetadata = z.infer<typeof tenderMetadataSchema>;
 
-/** Award justification (IPFS) referenced by `reasonURI`. Published only at award time. */
+/**
+ * Award justification (IPFS) whose digest is stored on-chain with the award. Published only at award time.
+ * When the buyer used Plinths Agent, it links the published AI report and the report's keccak256 hash, so the
+ * report is verifiable through the reason document (the contract stores nothing else).
+ */
 export const awardReasonSchema = z.object({
   version: z.literal(1),
   tenderId: z.string(),
   winner: z.string(),
   reason: z.string().min(1).max(5000),
   decidedAt: z.string(),
+  aiSummaryURI: z.string().max(200).optional(),
+  aiSummaryHash: z.string().regex(/^0x[0-9a-fA-F]{64}$/).optional(),
 });
 export type AwardReason = z.infer<typeof awardReasonSchema>;

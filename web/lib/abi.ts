@@ -39,17 +39,7 @@ export const blindBidMarketAbi = [
         "internalType": "address"
       },
       {
-        "name": "reasonURI",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "aiSummaryURI",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "aiSummaryHash",
+        "name": "reason",
         "type": "bytes32",
         "internalType": "bytes32"
       }
@@ -75,19 +65,19 @@ export const blindBidMarketAbi = [
     "name": "createTender",
     "inputs": [
       {
-        "name": "metadataURI",
-        "type": "string",
-        "internalType": "string"
+        "name": "metadata",
+        "type": "bytes32",
+        "internalType": "bytes32"
       },
       {
         "name": "budgetMin",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "uint128",
+        "internalType": "uint128"
       },
       {
         "name": "budgetMax",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "uint128",
+        "internalType": "uint128"
       },
       {
         "name": "submissionDeadline",
@@ -101,8 +91,8 @@ export const blindBidMarketAbi = [
       },
       {
         "name": "bidBond",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "uint96",
+        "internalType": "uint96"
       }
     ],
     "outputs": [
@@ -116,293 +106,6 @@ export const blindBidMarketAbi = [
   },
   {
     "type": "function",
-    "name": "forfeitedBonds",
-    "inputs": [
-      {
-        "name": "tenderId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBid",
-    "inputs": [
-      {
-        "name": "tenderId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "bidder",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "internalType": "struct IBlindBidMarket.Bid",
-        "components": [
-          {
-            "name": "commitment",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "encryptedDocURI",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "committedAt",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "committedBlock",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "revealedBlock",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "revealed",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "bondWithdrawn",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "bond",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "amount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "salt",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "docKey",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          }
-        ]
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBidderTenders",
-    "inputs": [
-      {
-        "name": "bidder",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBidders",
-    "inputs": [
-      {
-        "name": "tenderId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBuyerTenders",
-    "inputs": [
-      {
-        "name": "buyer",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getTender",
-    "inputs": [
-      {
-        "name": "tenderId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "internalType": "struct IBlindBidMarket.Tender",
-        "components": [
-          {
-            "name": "buyer",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "submissionDeadline",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "revealDeadline",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "createdBlock",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "awardedBlock",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "winner",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "bidCount",
-            "type": "uint32",
-            "internalType": "uint32"
-          },
-          {
-            "name": "revealedCount",
-            "type": "uint32",
-            "internalType": "uint32"
-          },
-          {
-            "name": "cancelled",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "awarded",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "forfeitSwept",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "budgetMin",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "budgetMax",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "bidBond",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "metadataURI",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "reasonURI",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "aiSummaryURI",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "aiSummaryHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          }
-        ]
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getTenderState",
-    "inputs": [
-      {
-        "name": "tenderId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint8",
-        "internalType": "enum IBlindBidMarket.TenderState"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "revealBid",
     "inputs": [
       {
@@ -412,8 +115,8 @@ export const blindBidMarketAbi = [
       },
       {
         "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "uint128",
+        "internalType": "uint128"
       },
       {
         "name": "salt",
@@ -444,9 +147,9 @@ export const blindBidMarketAbi = [
         "internalType": "bytes32"
       },
       {
-        "name": "encryptedDocURI",
-        "type": "string",
-        "internalType": "string"
+        "name": "encryptedDoc",
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [],
@@ -467,19 +170,6 @@ export const blindBidMarketAbi = [
   },
   {
     "type": "function",
-    "name": "tenderCount",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "treasury",
     "inputs": [],
     "outputs": [
@@ -490,29 +180,6 @@ export const blindBidMarketAbi = [
       }
     ],
     "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "updateBid",
-    "inputs": [
-      {
-        "name": "tenderId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "commitment",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "encryptedDocURI",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -548,6 +215,18 @@ export const blindBidMarketAbi = [
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "salt",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "docKey",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
       }
     ],
     "anonymous": false
@@ -575,41 +254,16 @@ export const blindBidMarketAbi = [
         "internalType": "bytes32"
       },
       {
-        "name": "encryptedDocURI",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "BidUpdated",
-    "inputs": [
-      {
-        "name": "tenderId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "bidder",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "commitment",
+        "name": "encryptedDoc",
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
       },
       {
-        "name": "encryptedDocURI",
-        "type": "string",
+        "name": "first",
+        "type": "bool",
         "indexed": false,
-        "internalType": "string"
+        "internalType": "bool"
       }
     ],
     "anonymous": false
@@ -631,7 +285,7 @@ export const blindBidMarketAbi = [
         "internalType": "address"
       },
       {
-        "name": "bondWei",
+        "name": "amount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -650,13 +304,7 @@ export const blindBidMarketAbi = [
         "internalType": "uint256"
       },
       {
-        "name": "treasury",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "bondWei",
+        "name": "amount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -687,19 +335,7 @@ export const blindBidMarketAbi = [
         "internalType": "uint256"
       },
       {
-        "name": "reasonURI",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      },
-      {
-        "name": "aiSummaryURI",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      },
-      {
-        "name": "aiSummaryHash",
+        "name": "reason",
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
@@ -737,10 +373,10 @@ export const blindBidMarketAbi = [
         "internalType": "address"
       },
       {
-        "name": "metadataURI",
-        "type": "string",
+        "name": "metadata",
+        "type": "bytes32",
         "indexed": false,
-        "internalType": "string"
+        "internalType": "bytes32"
       },
       {
         "name": "budgetMin",
@@ -777,11 +413,6 @@ export const blindBidMarketAbi = [
   },
   {
     "type": "error",
-    "name": "AlreadyBid",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "AlreadyRevealed",
     "inputs": []
   },
@@ -797,17 +428,12 @@ export const blindBidMarketAbi = [
   },
   {
     "type": "error",
-    "name": "EmptyURI",
+    "name": "EmptyDocument",
     "inputs": []
   },
   {
     "type": "error",
     "name": "HasBids",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidAISummary",
     "inputs": []
   },
   {
@@ -823,13 +449,7 @@ export const blindBidMarketAbi = [
   {
     "type": "error",
     "name": "InvalidState",
-    "inputs": [
-      {
-        "name": "current",
-        "type": "uint8",
-        "internalType": "enum IBlindBidMarket.TenderState"
-      }
-    ]
+    "inputs": []
   },
   {
     "type": "error",
@@ -869,18 +489,7 @@ export const blindBidMarketAbi = [
   {
     "type": "error",
     "name": "WrongBond",
-    "inputs": [
-      {
-        "name": "expected",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "got",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
+    "inputs": []
   },
   {
     "type": "error",

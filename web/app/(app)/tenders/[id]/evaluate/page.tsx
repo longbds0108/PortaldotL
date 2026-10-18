@@ -4,7 +4,7 @@ import { AlertTriangle, Download, Loader2, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { zeroHash, type Address, type Hex } from "viem";
+import type { Address, Hex } from "viem";
 import { useAccount } from "wagmi";
 import { ChainReference } from "@/components/chain-reference";
 import { WalletGate } from "@/components/gates";
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/input";
 import { blindBidAddress, TenderState, pricesVisible } from "@/lib/contracts";
+import { uriToDigest } from "@/lib/cid";
 import { decryptDocument, encryptedEnvelopeSchema } from "@/lib/crypto";
 import { agentReportKey, readAgentReport, type AgentReport } from "@/lib/agent";
 import { formatBudget, formatTokenAmount } from "@/lib/format";
@@ -96,30 +97,29 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
     setError(undefined);
     if (!winner) return setError("Select a winning bid.");
     if (reason.trim().length < 10) return setError("Explain the decision (at least 10 characters). It will be public.");
-    const doc: AwardReason = {
-      version: 1,
-      tenderId: id.toString(),
-      winner,
-      reason: reason.trim(),
-      decidedAt: new Date().toISOString(),
-    };
     setUploading(true);
-    let reasonURI: string;
-    let aiSummaryURI = "";
-    let aiSummaryHash: Hex = zeroHash;
+    let reasonDigest: Hex;
     try {
-      reasonURI = await uploadJson(doc, "award-reason.json");
-      if (aiReport) {
-        aiSummaryURI = await uploadJson(aiReport.report, "plinths-ai-assessment.json");
-        aiSummaryHash = aiReport.hash;
-      }
+      // The optional AI report is linked (with its hash) from the reason document, whose digest goes on-chain,
+      // so the report stays verifiable without storing anything else in the contract.
+      const doc: AwardReason = {
+        version: 1,
+        tenderId: id.toString(),
+        winner,
+        reason: reason.trim(),
+        decidedAt: new Date().toISOString(),
+        ...(aiReport
+          ? { aiSummaryURI: await uploadJson(aiReport.report, "plinths-ai-assessment.json"), aiSummaryHash: aiReport.hash }
+          : {}),
+      };
+      reasonDigest = uriToDigest(await uploadJson(doc, "award-reason.json"));
     } catch (e) {
       setError(describeError(e));
       return;
     } finally {
       setUploading(false);
     }
-    if (await tx.send("award", [id, winner, reasonURI, aiSummaryURI, aiSummaryHash])) router.push(`/tenders/${id}/results`);
+    if (await tx.send("award", [id, winner, reasonDigest])) router.push(`/tenders/${id}/results`);
   }
 
   return (

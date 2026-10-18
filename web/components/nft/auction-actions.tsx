@@ -80,13 +80,13 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
   const [error, setError] = useState<string>();
   const [done, setDone] = useState(false);
 
-  const amount14 = isValidAmountInput(amountInput) ? parseTokenAmount(amountInput) : undefined;
-  const deposit14 = isValidAmountInput(depositInput) ? parseTokenAmount(depositInput) : undefined;
+  const amount18 = isValidAmountInput(amountInput) ? parseTokenAmount(amountInput) : undefined;
+  const deposit18 = isValidAmountInput(depositInput) ? parseTokenAmount(depositInput) : undefined;
   const current = existing?.deposit ?? 0n;
-  const topUp = deposit14 !== undefined && deposit14 > current ? deposit14 - current : 0n;
-  const belowReserve = amount14 !== undefined && amount14 > 0n && amount14 < auction.reservePrice;
-  const overDeposit = amount14 !== undefined && deposit14 !== undefined && amount14 > deposit14;
-  const exactDeposit = amount14 !== undefined && deposit14 !== undefined && amount14 === deposit14;
+  const topUp = deposit18 !== undefined && deposit18 > current ? deposit18 - current : 0n;
+  const belowReserve = amount18 !== undefined && amount18 > 0n && amount18 < auction.reservePrice;
+  const overDeposit = amount18 !== undefined && deposit18 !== undefined && amount18 > deposit18;
+  const exactDeposit = amount18 !== undefined && deposit18 !== undefined && amount18 === deposit18;
 
   function reset() {
     setPrepared(undefined);
@@ -96,8 +96,8 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
   }
 
   function suggest(factor: number) {
-    if (!amount14) return;
-    const value = (amount14 * BigInt(Math.round(factor * 100))) / 100n;
+    if (!amount18) return;
+    const value = (amount18 * BigInt(Math.round(factor * 100))) / 100n;
     const max = value > current ? value : current;
     setDepositInput(formatTokenFloor(max, TOKEN_DECIMALS, TOKEN_DECIMALS, 2));
     reset();
@@ -105,9 +105,9 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
 
   function seal() {
     setError(undefined);
-    if (!amount14) return setError("Enter your price in tPOTv3 (max 14 decimals).");
-    if (deposit14 === undefined || deposit14 === 0n) return setError("Enter the deposit to lock.");
-    if (deposit14 < current) return setError(`Your deposit cannot go below the ${formatNativeAmount(current)} already locked.`);
+    if (!amount18) return setError("Enter your price in tPOTv3 (max 18 decimals).");
+    if (deposit18 === undefined || deposit18 === 0n) return setError("Enter the deposit to lock.");
+    if (deposit18 < current) return setError(`Your deposit cannot go below the ${formatNativeAmount(current)} already locked.`);
     if (overDeposit) return setError("Your price is above your deposit, so it would not count. Raise the deposit.");
     if (!address || !nftAuctionAddress) return;
     const salt = randomBytes32();
@@ -117,13 +117,13 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
       contract: nftAuctionAddress,
       auctionId: id.toString(),
       bidder: address,
-      amount14: amount14.toString(),
-      deposit14: deposit14.toString(),
+      amount18: amount18.toString(),
+      deposit18: deposit18.toString(),
       salt,
       createdAt: Date.now(),
     };
     saveNftEntries([entry]);
-    setPrepared({ entry, commitment: computeNftCommitment({ auctionId: id, bidder: address, amount14, salt }) });
+    setPrepared({ entry, commitment: computeNftCommitment({ auctionId: id, bidder: address, amount18, salt }) });
   }
 
   function backup() {
@@ -136,7 +136,7 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
     if (!prepared) return;
     const receipt = existing
       ? await tx.send("updateBid", [id, prepared.commitment], topUp)
-      : await tx.send("placeBid", [id, prepared.commitment], deposit14);
+      : await tx.send("placeBid", [id, prepared.commitment], deposit18);
     if (receipt) {
       setDone(true);
       onDone();
@@ -179,7 +179,7 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
               <button
                 key={label}
                 type="button"
-                disabled={!amount14}
+                disabled={!amount18}
                 onClick={() => suggest(f as number)}
                 className="rounded-full border border-overlay/10 px-3 py-1 text-[0.7rem] text-foreground-soft transition-colors hover:text-foreground disabled:opacity-40"
               >
@@ -196,7 +196,7 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
 
         <FieldError>{error}</FieldError>
         {!prepared ? (
-          <Button className="w-full" onClick={seal} disabled={!nftAuctionEnabled || !amount14 || !deposit14}>
+          <Button className="w-full" onClick={seal} disabled={!nftAuctionEnabled || !amount18 || !deposit18}>
             <Lock /> Seal bid
           </Button>
         ) : (
@@ -210,7 +210,7 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
             </label>
             <Button className="w-full" size="lg" disabled={!backedUp || !ack || tx.busy} onClick={submit}>
               {tx.busy && <Loader2 className="animate-spin" />}
-              {existing ? `Update bid${topUp > 0n ? ` + ${formatNativeAmount(topUp)}` : ""}` : `Bid · lock ${deposit14 !== undefined ? formatNativeAmount(deposit14) : ""}`}
+              {existing ? `Update bid${topUp > 0n ? ` + ${formatNativeAmount(topUp)}` : ""}` : `Bid · lock ${deposit18 !== undefined ? formatNativeAmount(deposit18) : ""}`}
             </Button>
             <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
           </div>
@@ -260,7 +260,7 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
   const entry = imported ?? stored;
   const secrets = entry ? nftEntrySecrets(entry) : undefined;
   const matches = !!secrets && !!bid && !!address && verifyNftCommitment({ auctionId: id, bidder: address, ...secrets }, bid.commitment);
-  const counts = !!secrets && !!bid && secrets.amount14 >= auction.reservePrice && secrets.amount14 <= bid.deposit;
+  const counts = !!secrets && !!bid && secrets.amount18 >= auction.reservePrice && secrets.amount18 <= bid.deposit;
 
   if (bid?.revealed) {
     const counted = bid.amount >= auction.reservePrice && bid.amount <= bid.deposit;
@@ -290,7 +290,7 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
 
   async function reveal() {
     if (!secrets) return;
-    if (await tx.send("revealBid", [id, secrets.amount14, secrets.salt])) onDone();
+    if (await tx.send("revealBid", [id, secrets.amount18, secrets.salt])) onDone();
   }
 
   return (
@@ -306,8 +306,8 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
       <CardContent className="space-y-4">
         {entry && secrets ? (
           <div className="grid gap-2 rounded-[14px] border border-overlay/[0.08] p-3 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Your price</span><b className="font-medium">{formatNativeAmount(secrets.amount14)}</b></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Deposit</span><span>{formatNativeAmount(bid?.deposit ?? BigInt(entry.deposit14))}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Your price</span><b className="font-medium">{formatNativeAmount(secrets.amount18)}</b></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Deposit</span><span>{formatNativeAmount(bid?.deposit ?? BigInt(entry.deposit18))}</span></div>
             <p className={cn("flex items-center gap-1.5 text-xs", matches ? "text-success-fg" : "text-destructive")}>
               {matches ? <CheckCircle2 className="size-3.5" /> : <AlertTriangle className="size-3.5" />}
               {matches ? "Matches your sealed commitment" : "Does not match the commitment on-chain — check you imported the latest backup"}

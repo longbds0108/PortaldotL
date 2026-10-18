@@ -64,7 +64,7 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
         <H3>Supported assets</H3>
         <Chips items={[{ label: "tPOTv3", tone: "blue" }]} />
         <P>
-          Budgets, bid amounts, and bonds use 14-decimal tPOTv3 base units. tPOTv3 is also the native gas token.
+          Budgets, bid amounts, and bonds use 18-decimal tPOTv3 base units. tPOTv3 is also the native gas token.
         </P>
         <Callout label="New here?" tone="blue">
           Start with <Link className={linkCls} href="/docs/getting-started">Getting started</Link> to add the network to
@@ -89,7 +89,7 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
             ["Network name", "PortaldotV3 Testnet"],
             ["EVM RPC", <Code key="rpc">{PORTALDOT_RPC_URL}</Code>],
             ["Chain ID", <Code key="id">420420777</Code>],
-            ["Currency symbol", "tPOTv3 (14 decimals)"],
+            ["Currency symbol", "tPOTv3 (18 decimals)"],
             ["Substrate node", <Code key="ws">wss://test-node-v3.portaldot.dev</Code>],
             ["Node Console", <a key="nc" className={linkCls} href={NODE_CONSOLE_URL} target="_blank" rel="noreferrer">{NODE_CONSOLE_URL.replace(/^https:\/\//, "")}</a>],
           ]}
@@ -190,7 +190,7 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
             ["Title, category, scope", "IPFS metadata", "Categories: Technology, Construction, Services."],
             ["Eligibility", "IPFS metadata", "Not verified on-chain — you exclude ineligible bids during evaluation."],
             ["Evaluation criteria", "IPFS metadata", "Shown to bidders and on the evaluation page."],
-            ["Budget min / max", "On-chain", "tPOTv3, 14 decimals. Public. Minimum must not exceed maximum."],
+            ["Budget min / max", "On-chain", "tPOTv3, 18 decimals. Public. Minimum must not exceed maximum."],
             ["Submission deadline", "On-chain", "Must be in the future."],
             ["Reveal deadline", "On-chain", "At least 24 hours after the submission deadline."],
             ["Bid bond", "On-chain", "Optional, native tPOTv3. Every bidder must send exactly this amount."],
@@ -281,9 +281,9 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
         />
         <H3>Published with the award</H3>
         <P>
-          If you award after a review, the report is uploaded to IPFS and its <Code>keccak256</Code> hash is stored
-          on-chain with the winner (<Code>aiSummaryURI</Code>, <Code>aiSummaryHash</Code>). The results page fetches the
-          report and checks it against that hash, so nobody can swap it afterwards.
+          If you award after a review, the report is uploaded to IPFS and linked, with its <Code>keccak256</Code> hash,
+          from the award reason document — whose digest is stored on-chain with the winner. The results page follows
+          that link and checks the report against the hash, so nobody can swap it afterwards.
         </P>
         <Table
           head={["Limit", "Value"]}
@@ -490,19 +490,25 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
           rows={[
             [<Code key="1">createTender</Code>, "Buyer", "Publish a tender."],
             [<Code key="2">cancel</Code>, "Buyer", "Cancel while Open with no bids."],
-            [<Code key="3">submitBid</Code>, "Bidder", "Commit a bid (with the bond, if any)."],
-            [<Code key="4">updateBid</Code>, "Bidder", "Replace the commitment while Open."],
+            [<Code key="3">submitBid</Code>, "Bidder", "Commit a bid with the bond; call again while Open to replace it (no second bond)."],
             [<Code key="5">revealBid</Code>, "Bidder", "Open the bid during the reveal window."],
-            [<Code key="6">award</Code>, "Buyer", "Pick a revealed winner with a reason link and, optionally, the AI report link and hash."],
+            [<Code key="6">award</Code>, "Buyer", "Pick a revealed winner with the reason document's digest (it links the optional AI report)."],
             [<Code key="7">withdrawBond</Code>, "Bidder", "Withdraw the bond after revealing."],
             [<Code key="8">sweepForfeitedBonds</Code>, "Anyone", "Send bonds of unrevealed bids to the treasury."],
           ]}
         />
         <H3>Events</H3>
         <P>
-          <Code>TenderCreated</Code>, <Code>BidSubmitted</Code>, <Code>BidUpdated</Code>, <Code>BidRevealed</Code>,{" "}
-          <Code>TenderAwarded</Code>, <Code>TenderCancelled</Code>, <Code>BondWithdrawn</Code>,{" "}
-          <Code>ForfeitedBondsSwept</Code>. Bid events carry the commitment, never the amount.
+          <Code>TenderCreated</Code>, <Code>BidSubmitted</Code>, <Code>BidRevealed</Code>, <Code>TenderAwarded</Code>,{" "}
+          <Code>TenderCancelled</Code>, <Code>BondWithdrawn</Code>, <Code>ForfeitedBondsSwept</Code>. Bid events carry the
+          commitment, never the amount.
+        </P>
+        <H3>Why so little is stored</H3>
+        <P>
+          PortaldotV3 charges a storage deposit for every byte of contract code and state, so the contract keeps only
+          what its rules need and has no view functions. Documents are referenced by the 32-byte digest of their IPFS
+          CID; budgets, revealed salts and keys, and bidder lists live in the events above. The app reads the contract
+          storage and events directly. Amounts use the EVM&apos;s 18-decimal unit, the same as <Code>msg.value</Code>.
         </P>
       </>
     ),

@@ -1,7 +1,9 @@
 import { createPublicClient, getAddress, http, isAddress, verifyMessage, type Hex } from "viem";
 import { z } from "zod";
 import { agentAnalysisSchema } from "@/lib/agent";
-import { blindBidMarketAbi } from "@/lib/abi";
+import { TenderState } from "@/lib/contracts";
+import { fetchTenderLogs } from "@/lib/market-logs";
+import { readBid, readTender, readTenderCount, tenderState } from "@/lib/market-storage";
 import { BLINDBID_ADDRESS, PORTALDOT_RPC_URL } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -22,7 +24,7 @@ const inputSchema = z.object({
   }),
   bids: z.array(z.object({
     bidder: z.string().refine(isAddress).transform((value) => getAddress(value)),
-    amount14: z.string().regex(/^\d{1,80}$/),
+    amount18: z.string().regex(/^\d{1,80}$/),
     amount: z.string().min(1).max(100),
     text: z.string().min(1).max(18_000),
   })).min(1).max(50),
@@ -62,21 +64,24 @@ export async function POST(request: Request) {
 
   const client = createPublicClient({ transport: http(PORTALDOT_RPC_URL, { timeout: 15_000, retryCount: 2 }) });
   try {
-    const [state, tender, bidders] = await Promise.all([
-      client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getTenderState", args: [BigInt(input.tenderId)] }),
-      client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getTender", args: [BigInt(input.tenderId)] }),
-      client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getBidders", args: [BigInt(input.tenderId)] }),
-    ]);
-    if (state !== 2) return Response.json({ error: "AI review is available only after the reveal deadline." }, { status: 409 });
-    const chainTender = tender as unknown as { buyer: string };
-    if (chainTender.buyer.toLowerCase() !== input.buyer.toLowerCase()) return Response.json({ error: "Only the tender buyer can request an AI review." }, { status: 403 });
-    const chainBids = await Promise.all((bidders as readonly `0x${string}`[]).map(async (bidder) => {
-      const bid = await client.readContract({ address: contractAddress, abi: blindBidMarketAbi, functionName: "getBid", args: [BigInt(input.tenderId), bidder] });
-      return { bidder, ...(bid as unknown as { revealed: boolean; amount: bigint }) };
-    }));
+    // The market has no views: read its storage + events, and derive the phase from the latest block time.
+    const id = BigInt(input.tenderId);
+    if ((await readTenderCount(client, contractAddress)) <= id) {
+      return Response.json({ error: "Tender not found." }, { status: 404 });
+    }
+    const [tender, block] = await Promise.all([readTender(client, contractAddress, id), client.getBlock({ blockTag: "latest" })]);
+    if (tenderState(tender, Number(block.timestamp)) !== TenderState.Evaluation) {
+      return Response.json({ error: "AI review is available only after the reveal deadline." }, { status: 409 });
+    }
+    if (tender.buyer.toLowerCase() !== input.buyer.toLowerCase()) return Response.json({ error: "Only the tender buyer can request an AI review." }, { status: 403 });
+    const logs = await fetchTenderLogs(client, contractAddress, id, tender.createdBlock);
+    const bidders = [...new Set(logs.flatMap((l) => (l.name === "BidSubmitted" && l.first ? [l.bidder] : [])))];
+    const chainBids = await Promise.all(
+      bidders.map(async (bidder) => ({ bidder, ...(await readBid(client, contractAddress, id, bidder)) })),
+    );
     const revealed = chainBids.filter((bid) => bid.revealed);
     if (revealed.length !== input.bids.length) return Response.json({ error: "Analysis must include every bid revealed on-chain." }, { status: 409 });
-    const submitted = new Map(input.bids.map((bid) => [bid.bidder.toLowerCase(), bid.amount14]));
+    const submitted = new Map(input.bids.map((bid) => [bid.bidder.toLowerCase(), bid.amount18]));
     if (revealed.some((bid) => submitted.get(bid.bidder.toLowerCase()) !== bid.amount.toString())) {
       return Response.json({ error: "Every analyzed offer must match a revealed bid on-chain." }, { status: 409 });
     }

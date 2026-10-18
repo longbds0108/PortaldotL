@@ -76,7 +76,7 @@ function ListForm() {
   const pickable = isPreviewCollection ? PREVIEW_TOKENS.map((t) => t.tokenId) : owned.tokenIds;
 
   const reserveValid = reserveInput.trim() === "" || isValidAmountInput(reserveInput);
-  const reserve14 = reserveInput.trim() && reserveValid ? parseTokenAmount(reserveInput) : 0n;
+  const reserve18 = reserveInput.trim() && reserveValid ? parseTokenAmount(reserveInput) : 0n;
   const ownsIt = isPreviewCollection || (!!token.owner && !!address && token.owner.toLowerCase() === address.toLowerCase());
 
   const tokenProblem: string | undefined =
@@ -99,7 +99,7 @@ function ListForm() {
     if (!ready || !nftAuctionAddress || !address || now === undefined || tokenId === undefined || !collection) return;
     // Deadlines from chain time at the moment of listing, so the contract's checks pass.
     const bd = BigInt(now + Number(bidHours) * 3600);
-    const data = encodeListingData({ reserve14, bidDeadline: bd, revealDeadline: bd + BigInt(Number(revealHours) * 3600) });
+    const data = encodeListingData({ reserve18, bidDeadline: bd, revealDeadline: bd + BigInt(Number(revealHours) * 3600) });
     const receipt = await tx.run({
       address: collection,
       abi: erc721Abi,
@@ -203,7 +203,7 @@ function ListForm() {
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">tPOTv3</span>
               </div>
               {!reserveValid ? (
-                <FieldError>Enter a tPOTv3 amount with at most 14 decimals.</FieldError>
+                <FieldError>Enter a tPOTv3 amount with at most 18 decimals.</FieldError>
               ) : (
                 <p className="text-xs text-muted-foreground">Bids below the reserve do not count. If no bid reaches it, the NFT returns to you.</p>
               )}
@@ -261,7 +261,7 @@ function ListForm() {
               )
             )}
             <div className="grid gap-2 border-t border-overlay/[0.07] pt-4 text-sm">
-              <Row label="Reserve">{reserve14 > 0n ? formatNativeAmount(reserve14) : "No reserve"}</Row>
+              <Row label="Reserve">{reserve18 > 0n ? formatNativeAmount(reserve18) : "No reserve"}</Row>
               <Row label="Bidding ends">{formatDateTime(bidDeadline)}</Row>
               <Row label="Reveal ends">{formatDateTime(revealDeadline)}</Row>
             </div>

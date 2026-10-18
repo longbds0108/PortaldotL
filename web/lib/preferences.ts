@@ -13,8 +13,8 @@ export type Preferences = {
 
 export type ThemeChoice = "dark" | "light" | "system";
 
-/** 1 tPOTv3 in native base units (14 decimals). */
-export const SMALL_BALANCE_BASE_UNITS = 10n ** 14n;
+/** 1 tPOTv3 in native base units (18 decimals). */
+export const SMALL_BALANCE_BASE_UNITS = 10n ** 18n;
 
 const DEFAULTS: Preferences = { hideSmallBalances: false, theme: "dark" };
 

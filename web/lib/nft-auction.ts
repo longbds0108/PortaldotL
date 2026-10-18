@@ -67,8 +67,8 @@ export type AuctionBid = {
 export type AuctionRow = { id: bigint; auction: Auction; state: AuctionState };
 
 /** `data` for IERC721.safeTransferFrom(seller, auction, tokenId, data): abi.encode(reserve, bidDeadline, revealDeadline). */
-export function encodeListingData(p: { reserve14: bigint; bidDeadline: bigint; revealDeadline: bigint }): Hex {
-  return encodeAbiParameters([{ type: "uint256" }, { type: "uint64" }, { type: "uint64" }], [p.reserve14, p.bidDeadline, p.revealDeadline]);
+export function encodeListingData(p: { reserve18: bigint; bidDeadline: bigint; revealDeadline: bigint }): Hex {
+  return encodeAbiParameters([{ type: "uint256" }, { type: "uint64" }, { type: "uint64" }], [p.reserve18, p.bidDeadline, p.revealDeadline]);
 }
 
 /** Minimal ERC-721 surface the app reads and writes. */
