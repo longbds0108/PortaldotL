@@ -12,7 +12,9 @@ Public confidential bidding marketplace for **PortaldotV3 Testnet**. Prices use 
 | Native token | `tPOTv3` (14 decimals; pays gas) |
 | Node Console | [node-console.portaldot.dev](https://node-console.portaldot.dev/) (native Substrate tools) |
 
-Budgets, bid amounts, and bonds use the EVM's 18-decimal unit for tPOTv3 (the native token has 14 decimals on the Substrate side; the EVM layer scales it to 18). The contract has not yet been deployed on this testnet; configure its address after deployment.
+Budgets, bid amounts, and bonds use the EVM's 18-decimal unit for tPOTv3 (the native token has 14 decimals on the Substrate side; the EVM layer scales it to 18). 
+
+**Deployed on PortaldotV3 Testnet:** `BlindBidMarket` at `0x6e79287f62B47307B5b7349072c51AdAF8833d54` (block `91531`, treasury `0xF9642B695D4DDf58599c953a791F94c2e96b6a57`).
 
 ## Contracts (`contracts/`)
 
@@ -59,7 +61,8 @@ Add these variables in Vercel Project Settings → Environment Variables for Pro
 
 | Variable | Required for | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_BLINDBID_ADDRESS` | Marketplace contract reads and transactions | Set the deployed BlindBidMarket address on PortaldotV3 Testnet. The contract has not yet been deployed. |
+| `NEXT_PUBLIC_BLINDBID_ADDRESS` | Marketplace contract reads and transactions | `0x6e79287f62B47307B5b7349072c51AdAF8833d54` (BlindBidMarket on PortaldotV3 Testnet). |
+| `NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK` | Event queries start here | `91531` |
 | `PINATA_JWT` | Creating tenders and uploading encrypted bids/reports | Server-only secret; required for uploads on Vercel. |
 | `DEEPSEEK_API_KEY` | Agent chat and proposal comparisons | Server-only secret; do not prefix it with `NEXT_PUBLIC_`. |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect wallets | Optional; without it, browser-injected wallets remain available. |
