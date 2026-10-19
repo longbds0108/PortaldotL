@@ -7,6 +7,7 @@ import { useAccount, useSwitchChain } from "wagmi";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { AddNetworkButton } from "@/components/add-network-button";
 import { blindBidAddress } from "@/lib/contracts";
 import { chain } from "@/lib/wagmi";
 
@@ -41,6 +42,7 @@ export function WalletGate({ children, message = "Connect your wallet to continu
         <Button size="sm" disabled={isPending} onClick={() => switchChain({ chainId: chain.id })}>
           Switch network
         </Button>
+        <AddNetworkButton />
       </Alert>
     );
   }

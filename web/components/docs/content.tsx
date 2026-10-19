@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AddNetworkButton } from "@/components/add-network-button";
 import type { ReactNode } from "react";
 import { BLINDBID_ADDRESS, NODE_CONSOLE_URL, PORTALDOT_RPC_URL } from "@/lib/env";
 import { NETWORK_NAME } from "@/lib/network";
@@ -94,6 +95,13 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
             ["Node Console", <a key="nc" className={linkCls} href={NODE_CONSOLE_URL} target="_blank" rel="noreferrer">{NODE_CONSOLE_URL.replace(/^https:\/\//, "")}</a>],
           ]}
         />
+        <div className="mt-5">
+          <AddNetworkButton variant="default" />
+          <p className="mt-2 text-[13px] text-[#979eb8]">
+            One click adds the network to your wallet. If MetaMask already has a PortaldotV3 network on an old RPC, open
+            that network&apos;s settings and set its RPC to the one above.
+          </p>
+        </div>
         <H3>Set up in three steps</H3>
         <Steps
           items={[

@@ -8,6 +8,7 @@ import {
   HttpRequestError,
   InsufficientFundsError,
   LimitExceededRpcError,
+  ResourceUnavailableRpcError,
   UserRejectedRequestError,
   WaitForTransactionReceiptTimeoutError,
   zeroAddress,
@@ -23,7 +24,8 @@ import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { toast } from "@/components/toaster";
 import { digestToUri } from "./cid";
 import { ERROR_TEXT, blindBidAddress, blindBidMarketAbi, type Bid, TenderState, type Tender } from "./contracts";
-import { BLINDBID_DEPLOY_BLOCK } from "./env";
+import { BLINDBID_DEPLOY_BLOCK, PORTALDOT_RPC_URL } from "./env";
+import { chain } from "./wagmi";
 import { fetchJson } from "./ipfs";
 import { fetchBidderTenderIds, fetchCreatedLogs, fetchTenderLogs, type MarketLog } from "./market-logs";
 import { readBid, readTender, readTenderCount, tenderState, type BidCore, type TenderCore } from "./market-storage";
@@ -432,6 +434,10 @@ export function describeError(e: unknown): string {
     if (e.walk((x) => x instanceof UserRejectedRequestError)) return "You rejected the request in your wallet. Nothing was sent.";
     if (e.walk((x) => x instanceof InsufficientFundsError) || /insufficient funds/i.test(e.details ?? e.message)) {
       return "Not enough tPOTv3 in this wallet for the network fee, the storage deposit and any bond. Fund it through its SS58 account, then retry.";
+    }
+    // -32002 from the wallet: it cannot reach the RPC configured for this network, or another request is pending.
+    if (e.walk((x) => x instanceof ResourceUnavailableRpcError)) {
+      return `Your wallet could not reach its ${chain.name} RPC (or another request is waiting in the wallet). In your wallet's network settings, set the RPC to ${PORTALDOT_RPC_URL}, then retry.`;
     }
     if (e.walk((x) => x instanceof WaitForTransactionReceiptTimeoutError)) {
       return "No confirmation after 3 minutes. The transaction may still go through — refresh before retrying.";

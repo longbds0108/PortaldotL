@@ -4,16 +4,18 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
+import { addPortaldotToWallet } from "@/components/add-network-button";
 import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
 import { cn } from "@/lib/utils";
 import { chain } from "@/lib/wagmi";
 
 /**
- * Network pill next to the balance. Clicking asks the wallet to switch to PortaldotV3 Testnet (wagmi adds the chain
- * to the wallet first if it does not know it). Disconnected, it opens the connect modal instead.
+ * Network pill next to the balance. Clicking asks the wallet to add PortaldotV3 Testnet — or to add the current RPC to
+ * an existing network with this chain id (e.g. one still on the retired feso-apps RPC) — and switch to it.
+ * Disconnected, it opens the connect modal instead.
  */
 export function NetworkChip() {
-  const { isConnected, chainId } = useAccount();
+  const { isConnected, chainId, connector } = useAccount();
   const { switchChain, isPending } = useSwitchChain();
   const { openConnectModal } = useConnectModal();
   const [failed, setFailed] = useState(false);
@@ -30,7 +32,7 @@ export function NetworkChip() {
     : status === "ok"
       ? `Wallet is on ${NETWORK_NAME}`
       : status === "wrong"
-        ? `Switch wallet to ${NETWORK_NAME}`
+        ? `Add / switch wallet to ${NETWORK_NAME}`
         : "Connect a wallet";
 
   return (
@@ -39,9 +41,12 @@ export function NetworkChip() {
       title={title}
       aria-label={`${NETWORK_NAME}: ${title}`}
       disabled={isPending}
-      onClick={() => {
+      onClick={async () => {
         if (!isConnected) return openConnectModal?.();
-        switchChain({ chainId: chain.id }, { onError: () => setFailed(true) });
+        const provider = (await connector?.getProvider?.().catch(() => undefined)) as Parameters<typeof addPortaldotToWallet>[0];
+        // Add (or refresh the RPC of) the network first, then switch; fall back to wagmi's switch.
+        const added = await addPortaldotToWallet(provider).then(() => true, () => false);
+        if (!added) switchChain({ chainId: chain.id }, { onError: () => setFailed(true) });
       }}
       className={cn(
         "flex h-10 shrink-0 items-center gap-2 rounded-full border border-border bg-card/80 px-2.5 text-[0.8rem] font-medium text-foreground transition-colors duration-200 hover:border-ring disabled:cursor-progress sm:pl-2.5 sm:pr-3.5",
