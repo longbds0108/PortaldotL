@@ -39,7 +39,12 @@ function verifyBid(tenderId: bigint, tender: Tender, row: BidRow): Verdict {
   });
   const checks = [
     { label: "Revealed amount, salt and document key hash to the sealed commitment", ok: recomputed.toLowerCase() === bid.commitment.toLowerCase() },
-    { label: "Commitment was last set before the submission deadline", ok: bid.committedAt < tender.submissionDeadline },
+    // The contract only accepts commitments while the tender is Open; the block time, when the RPC still serves that
+    // block, is shown as an extra check.
+    {
+      label: "Commitment was set before the submission deadline (the contract only accepts bids while Open)",
+      ok: bid.committedBlock > 0n && (bid.committedAt === 0n || bid.committedAt < tender.submissionDeadline),
+    },
   ];
   return { ok: checks.every((c) => c.ok), checks };
 }
@@ -262,7 +267,9 @@ function BidProofRow({
       <td className="px-2 py-3 font-mono text-xs" title={bid.commitment}>
         {shortHash(bid.commitment)}
       </td>
-      <td className="px-2 py-3 text-xs text-muted-foreground">{formatDateTime(bid.committedAt)}</td>
+      <td className="px-2 py-3 text-xs text-muted-foreground">
+        {bid.committedAt > 0n ? formatDateTime(bid.committedAt) : `block ${bid.committedBlock.toString()}`}
+      </td>
       <td className="px-2 py-3 text-right tabular-nums">
         {!bid.revealed ? (
           <Badge variant="muted">

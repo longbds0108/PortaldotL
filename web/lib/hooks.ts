@@ -17,7 +17,6 @@ import {
   type ContractFunctionArgs,
   type ContractFunctionName,
   type Hash,
-  type PublicClient,
   type TransactionReceipt,
 } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
@@ -30,6 +29,7 @@ import { fetchJson } from "./ipfs";
 import { fetchBidderTenderIds, fetchCreatedLogs, fetchTenderLogs, type MarketLog } from "./market-logs";
 import { readBid, readTender, readTenderCount, tenderState, type BidCore, type TenderCore } from "./market-storage";
 import { tenderMetadataSchema, type TenderMetadata } from "./metadata";
+import { blockTimestamps } from "./timeline";
 
 /*
  * Reads: the market has no view functions (storage deposits on PortaldotV3), so tenders and bids come from
@@ -108,13 +108,6 @@ function toBid(core: BidCore, logs: MarketLog[], bidder: Address, timestamps: Ma
     salt: revealed?.name === "BidRevealed" ? revealed.salt : zeroHash,
     docKey: revealed?.name === "BidRevealed" ? revealed.docKey : zeroHash,
   };
-}
-
-async function blockTimes(client: PublicClient, blocks: bigint[]): Promise<Map<bigint, bigint>> {
-  const unique = [...new Set(blocks.filter((b) => b > 0n))];
-  const out = new Map<bigint, bigint>();
-  await Promise.all(unique.map(async (b) => out.set(b, (await client.getBlock({ blockNumber: b })).timestamp)));
-  return out;
 }
 
 const withState = (id: bigint, tender: Tender, now: number | undefined): TenderRow => ({
@@ -259,7 +252,7 @@ export function useBids(tenderId: bigint | undefined) {
     queryKey: ["bids", tenderId?.toString(), logs?.length],
     queryFn: async (): Promise<BidRow[]> => {
       const cores = await Promise.all(bidders.map((b) => readBid(client!, market, tenderId!, b)));
-      const times = await blockTimes(
+      const times = await blockTimestamps(
         client!,
         (logs ?? []).filter((l) => l.name === "BidSubmitted").map((l) => l.blockNumber),
       );
@@ -289,7 +282,7 @@ export function useMyBid(tenderId: bigint | undefined) {
     queryFn: async (): Promise<Bid> => {
       const core = await readBid(client!, market, tenderId!, address!);
       const mine = (logs ?? []).filter((l) => l.name === "BidSubmitted" && l.bidder.toLowerCase() === address!.toLowerCase());
-      return toBid(core, logs ?? [], address!, await blockTimes(client!, mine.map((l) => l.blockNumber)));
+      return toBid(core, logs ?? [], address!, await blockTimestamps(client!, mine.map((l) => l.blockNumber)));
     },
     enabled: enabled && !!client && !!address && tenderId !== undefined && !!logs,
     refetchInterval: REFRESH_MS,

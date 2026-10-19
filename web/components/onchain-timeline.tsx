@@ -23,7 +23,7 @@ export function OnchainTimeline({ tenderId, tender, bids }: { tenderId: bigint; 
   const key = bids.map((b) => `${b.bidder}:${b.bid.committedBlock}:${b.bid.revealedBlock}`).join(",");
   const { data, isLoading, error } = useQuery({
     queryKey: ["timeline", tenderId.toString(), tender.awardedBlock.toString(), key],
-    queryFn: () => fetchTimeline(client!, tenderId, tender, bids),
+    queryFn: () => fetchTimeline(client!, tenderId, tender),
     enabled: !!client,
   });
 
@@ -38,7 +38,7 @@ export function OnchainTimeline({ tenderId, tender, bids }: { tenderId: bigint; 
           <span className="absolute -left-[25px] top-1.5 size-2.5 rounded-full bg-primary ring-4 ring-background" />
           <p className="text-sm font-medium">{LABEL[e.kind](e)}</p>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span>{formatDateTime(e.timestamp)}</span>
+            {e.timestamp > 0n && <span>{formatDateTime(e.timestamp)}</span>}
             <span>block {e.blockNumber.toString()}</span>
             <ChainReference type="tx" value={e.txHash} />
           </p>
