@@ -114,7 +114,7 @@ export function SiteHeader() {
         <Brand />
         <div className="ml-auto flex items-center gap-2">
           {/* Desktop: theme switch sits in the header; on small screens it lives in the menu. */}
-          <ThemePicker labels={false} className="hidden w-[122px] rounded-full lg:flex [&>button]:rounded-full [&_span.absolute]:rounded-full" />
+          <ThemePicker labels={false} className="hidden w-[116px] rounded-full lg:flex [&>button]:h-[30px] [&>button]:rounded-full [&_span.absolute]:rounded-full" />
           <NetworkChip />
           <AccountMenu />
           <button
