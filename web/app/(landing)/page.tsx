@@ -235,7 +235,6 @@ export default function LandingPage() {
         {/* ───────── Lifecycle ───────── */}
         <section id="lifecycle" className="bb-life bb-theme-dark" data-header-theme="dark">
           <div className="bb-life__rail">
-            <p className="bb-kicker">{"// THE LIFECYCLE"}</p>
             <h2>
               Open to all
               <br />
@@ -286,7 +285,6 @@ export default function LandingPage() {
         <section id="protocol" className="bb-proto bb-theme-light" data-header-theme="light">
           <div className="bb-proto__head">
             <div>
-              <span className="bb-proto__kicker">{"// The protocol"}</span>
               <h2 className="bb-proto__title">
                 <Scramble text="Prices nobody can read until everyone can" />
               </h2>
@@ -344,7 +342,6 @@ export default function LandingPage() {
         {/* ───────── How it works ───────── */}
         <section id="how" className="bb-steps bb-theme-dark" data-header-theme="dark">
           <div className="bb-steps__head">
-            <span className="bb-steps__kicker">{"// How it works"}</span>
             <h2 className="bb-steps__title">From tender to proof in four steps</h2>
           </div>
           <div className="bb-steps__row">

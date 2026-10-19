@@ -232,8 +232,7 @@
 /* ───────────── protocol (light, bento) ───────────── */
 .bb-proto { padding: 118px 30px 134px; }
 .bb-proto__head { max-width: 1320px; margin: 0 auto 52px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 36px 64px; align-items: start; }
-.bb-proto__kicker { font: .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #8a8594; }
-.bb-proto__title { margin: 18px 0 30px; font-size: clamp(2.6rem, 5vw, 5.2rem); font-weight: 400; line-height: .98; letter-spacing: -.04em; color: #14121a; }
+.bb-proto__title { margin: 0 0 30px; font-size: clamp(2.6rem, 5vw, 5.2rem); font-weight: 400; line-height: .98; letter-spacing: -.04em; color: #14121a; }
 .bb-proto__cta { display: inline-flex; align-items: center; gap: 16px; padding: 10px 12px 10px 26px; border-radius: 999px; color: #fff; background: #14121a; font-size: .98rem; text-decoration: none; transition: background .18s ease, transform .18s ease; }
 .bb-proto__cta:hover { background: #000; transform: translateY(-2px); }
 .bb-proto__cta-arrow { display: inline-grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: #14121a; background: #fff; }
@@ -279,8 +278,7 @@
 /* ───────────── how it works (4 connected steps) ───────────── */
 .bb-steps { position: relative; padding: 118px 30px 134px; background: radial-gradient(60% 120px at 50% 0, rgba(99,118,214,.22), transparent 70%), var(--ink); }
 .bb-steps__head { max-width: 1320px; margin: 0 auto 56px; text-align: center; }
-.bb-steps__kicker { color: #8a8594; font: .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; }
-.bb-steps__title { margin-top: 16px; color: #f4f2f7; font-size: clamp(1.9rem, 3.4vw, 3rem); font-weight: 500; line-height: 1.04; letter-spacing: -.03em; }
+.bb-steps__title { color: #f4f2f7; font-size: clamp(1.9rem, 3.4vw, 3rem); font-weight: 500; line-height: 1.04; letter-spacing: -.03em; }
 .bb-steps__row { position: relative; max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(16px, 1.8vw, 28px); }
 .bb-steps__row::before { content: ""; position: absolute; left: 0; right: 0; top: 62px; height: 1px; background: linear-gradient(90deg, transparent, rgba(123,150,255,.18) 12%, rgba(123,150,255,.18) 88%, transparent); }
 .bb-steps__spark {
