@@ -6,8 +6,10 @@ import {
   BaseError,
   ContractFunctionRevertedError,
   HttpRequestError,
+  InsufficientFundsError,
   LimitExceededRpcError,
   UserRejectedRequestError,
+  WaitForTransactionReceiptTimeoutError,
   zeroAddress,
   zeroHash,
   type Address,
@@ -18,6 +20,7 @@ import {
   type TransactionReceipt,
 } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { toast } from "@/components/toaster";
 import { digestToUri } from "./cid";
 import { ERROR_TEXT, blindBidAddress, blindBidMarketAbi, type Bid, TenderState, type Tender } from "./contracts";
 import { BLINDBID_DEPLOY_BLOCK } from "./env";
@@ -45,16 +48,8 @@ const market = blindBidAddress!;
  * Countdowns use this — never the user's wall clock — because the contract decides with block.timestamp.
  */
 export function useChainNow(): number | undefined {
-  const client = usePublicClient();
-  const { data: offset } = useQuery({
-    queryKey: ["chain-time-offset"],
-    queryFn: async () => {
-      const block = await client!.getBlock({ blockTag: "latest" });
-      return Number(block.timestamp) - Date.now() / 1000;
-    },
-    enabled: !!client && enabled,
-    refetchInterval: 30_000,
-  });
+  const head = useChainHead();
+  const offset = head.data?.offset;
   const [nowMs, setNowMs] = useState<number>();
   useEffect(() => {
     setNowMs(Date.now());
@@ -63,6 +58,20 @@ export function useChainNow(): number | undefined {
   }, []);
   if (nowMs === undefined || (enabled && offset === undefined)) return undefined;
   return Math.floor(nowMs / 1000 + (enabled ? offset! : 0));
+}
+
+/** Latest block (number, timestamp) and its offset from the device clock. Shared by every countdown. */
+export function useChainHead() {
+  const client = usePublicClient();
+  return useQuery({
+    queryKey: ["chain-head"],
+    queryFn: async () => {
+      const block = await client!.getBlock({ blockTag: "latest" });
+      return { number: block.number, timestamp: block.timestamp, offset: Number(block.timestamp) - Date.now() / 1000 };
+    },
+    enabled: !!client && enabled,
+    refetchInterval: 15_000,
+  });
 }
 
 // ───────────────────────── view models ─────────────────────────
@@ -331,6 +340,30 @@ type WriteFn = ContractFunctionName<Abi, "nonpayable" | "payable">;
 
 export type TxStatus = "idle" | "simulating" | "signing" | "confirming" | "success" | "error";
 
+/** How long to wait for a receipt before telling the user the transaction is still pending. */
+export const RECEIPT_TIMEOUT_MS = 180_000;
+
+const TX_LABEL: Record<string, string> = {
+  createTender: "Publish tender",
+  submitBid: "Sealed bid",
+  revealBid: "Reveal bid",
+  award: "Award tender",
+  cancel: "Cancel tender",
+  withdrawBond: "Withdraw bond",
+  sweepForfeitedBonds: "Send forfeited bonds",
+};
+
+/** Mirrors a transaction's stages in a toast (one toast per transaction, updated in place). */
+export function txToaster(label: string) {
+  const id = toast.show({ kind: "loading", title: label, description: "Checking the transaction…" });
+  return {
+    signing: () => toast.show({ id, kind: "loading", title: label, description: "Confirm it in your wallet." }),
+    confirming: () => toast.show({ id, kind: "loading", title: label, description: "Waiting for PortaldotV3 to confirm…" }),
+    success: () => toast.show({ id, kind: "success", title: `${label} confirmed`, description: "Recorded on PortaldotV3." }),
+    error: (message: string) => toast.show({ id, kind: "error", title: `${label} failed`, description: message }),
+  };
+}
+
 export function useBlindBidTx() {
   const client = usePublicClient();
   const { address } = useAccount();
@@ -347,6 +380,7 @@ export function useBlindBidTx() {
     ): Promise<TransactionReceipt | undefined> => {
       setError(undefined);
       setHash(undefined);
+      const t = txToaster(TX_LABEL[functionName] ?? "Transaction");
       try {
         if (!client || !address || !blindBidAddress) throw new Error("Connect your wallet first.");
         setStatus("simulating");
@@ -360,18 +394,23 @@ export function useBlindBidTx() {
           account: address,
         } as never);
         setStatus("signing");
+        t.signing();
         const txHash = await writeContractAsync({
           ...(request as object),
         } as never);
         setHash(txHash);
         setStatus("confirming");
-        const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1 });
+        t.confirming();
+        const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1, timeout: RECEIPT_TIMEOUT_MS });
         if (receipt.status !== "success") throw new Error("Transaction reverted.");
         setStatus("success");
+        t.success();
         return receipt;
       } catch (e) {
+        const message = describeError(e);
         setStatus("error");
-        setError(describeError(e));
+        setError(message);
+        t.error(message);
         return undefined;
       }
     },
@@ -390,7 +429,13 @@ export function useBlindBidTx() {
 
 export function describeError(e: unknown): string {
   if (e instanceof BaseError) {
-    if (e.walk((x) => x instanceof UserRejectedRequestError)) return "Request rejected in wallet.";
+    if (e.walk((x) => x instanceof UserRejectedRequestError)) return "You rejected the request in your wallet. Nothing was sent.";
+    if (e.walk((x) => x instanceof InsufficientFundsError) || /insufficient funds/i.test(e.details ?? e.message)) {
+      return "Not enough tPOTv3 in this wallet for the network fee, the storage deposit and any bond. Fund it through its SS58 account, then retry.";
+    }
+    if (e.walk((x) => x instanceof WaitForTransactionReceiptTimeoutError)) {
+      return "No confirmation after 3 minutes. The transaction may still go through — refresh before retrying.";
+    }
     if (
       e.walk((x) => x instanceof LimitExceededRpcError || (x instanceof HttpRequestError && x.status === 429))
     ) {

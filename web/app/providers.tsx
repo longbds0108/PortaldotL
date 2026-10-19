@@ -8,6 +8,7 @@ import { MotionConfig } from "motion/react";
 import { WagmiProvider } from "wagmi";
 import { useAppliedTheme } from "@/lib/preferences";
 import { wagmiConfig } from "@/lib/wagmi";
+import { Toaster } from "@/components/toaster";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -21,6 +22,7 @@ export function Providers({ children }: { children: ReactNode }) {
           theme={theme === "light" ? lightTheme(rk) : darkTheme(rk)}
         >
           <MotionConfig reducedMotion="user">{children}</MotionConfig>
+          <Toaster />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

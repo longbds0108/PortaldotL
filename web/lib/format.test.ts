@@ -24,7 +24,7 @@ describe("money formatting", () => {
     expect(isValidAmountInput("1.123456789012345678")).toBe(true);
   });
   it("formats durations", () => {
-    expect(formatDuration(90061)).toBe("1d 1h 1m");
+    expect(formatDuration(90061)).toBe("1d 1h 1m 1s");
     expect(formatDuration(59)).toBe("59s");
     expect(formatDuration(-5)).toBe("0s");
   });

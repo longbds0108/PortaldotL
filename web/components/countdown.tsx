@@ -3,7 +3,7 @@
 import { Clock } from "lucide-react";
 import { blindBidAddress } from "@/lib/contracts";
 import { formatDateTime, formatDuration, localTimeZone } from "@/lib/format";
-import { useChainNow } from "@/lib/hooks";
+import { useChainHead, useChainNow } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 
 /** Countdown driven by chain time (latest block timestamp), not the device clock. */
@@ -44,10 +44,24 @@ export function TimeNote() {
       </p>
     );
   }
+  return <ChainTimeNote />;
+}
+
+function ChainTimeNote() {
+  const head = useChainHead();
+  const now = useChainNow();
   return (
-    <p className="text-xs text-muted-foreground">
-      Countdowns follow the latest PortaldotV3 block timestamp; dates are shown in your time zone ({localTimeZone()}).
-      Deadlines are enforced by the contract.
-    </p>
+    <div className="space-y-1 text-xs text-muted-foreground">
+      <p>
+        Countdowns follow the latest PortaldotV3 block timestamp; dates are shown in your time zone ({localTimeZone()}).
+        Deadlines are enforced by the contract.
+      </p>
+      {now !== undefined && head.data && (
+        <p className="tabular-nums">
+          Chain time now: <span className="text-foreground-soft">{formatDateTime(now)}</span> · latest block #
+          {head.data.number.toString()}
+        </p>
+      )}
+    </div>
   );
 }

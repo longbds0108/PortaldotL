@@ -278,6 +278,7 @@
 /* ───────────── how it works (4 connected steps) ───────────── */
 .bb-steps { position: relative; padding: 118px 30px 134px; background: radial-gradient(60% 120px at 50% 0, rgba(99,118,214,.22), transparent 70%), var(--ink); }
 .bb-steps__head { max-width: 1320px; margin: 0 auto 56px; text-align: center; }
+.bb-steps__lead { max-width: 58ch; margin: 16px auto 0; color: #9a93ad; font-size: clamp(.95rem, 1.2vw, 1.05rem); line-height: 1.55; }
 .bb-steps__title { color: #f4f2f7; font-size: clamp(1.9rem, 3.4vw, 3rem); font-weight: 500; line-height: 1.04; letter-spacing: -.03em; }
 .bb-steps__row { position: relative; max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(16px, 1.8vw, 28px); }
 .bb-steps__row::before { content: ""; position: absolute; left: 0; right: 0; top: 62px; height: 1px; background: linear-gradient(90deg, transparent, rgba(123,150,255,.18) 12%, rgba(123,150,255,.18) 88%, transparent); }

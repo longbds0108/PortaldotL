@@ -89,7 +89,8 @@ export function formatDuration(totalSeconds: number): string {
   const h = Math.floor((totalSeconds % 86_400) / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = Math.floor(totalSeconds % 60);
-  if (d > 0) return `${d}d ${h}h ${m}m`;
+  // Always to the second: bidders need to see exactly how long is left (block-time based, see useChainNow).
+  if (d > 0) return `${d}d ${h}h ${m}m ${s}s`;
   if (h > 0) return `${h}h ${m}m ${s}s`;
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;

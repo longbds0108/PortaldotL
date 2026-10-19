@@ -12,7 +12,7 @@ import {
   type TransactionReceipt,
 } from "viem";
 import { useAccount, usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
-import { describeError, type TxStatus } from "./hooks";
+import { RECEIPT_TIMEOUT_MS, describeError, txToaster, type TxStatus } from "./hooks";
 import {
   ERC721_ENUMERABLE_INTERFACE_ID,
   ERC721_INTERFACE_ID,
@@ -248,6 +248,16 @@ export function describeNftError(e: unknown): string {
   return describeError(e);
 }
 
+const NFT_TX_LABEL: Record<string, string> = {
+  safeTransferFrom: "List NFT",
+  placeBid: "Sealed bid",
+  updateBid: "Update bid",
+  revealBid: "Reveal bid",
+  settle: "Settle auction",
+  withdraw: "Withdraw",
+  cancel: "Cancel auction",
+};
+
 type WriteRequest = { address: Address; abi: Abi; functionName: string; args: readonly unknown[]; value?: bigint };
 
 /** Simulate → sign → wait, like useBlindBidTx, for the auction contract and ERC-721 listing transfers. */
@@ -263,21 +273,27 @@ export function useNftTx() {
     async (req: WriteRequest): Promise<TransactionReceipt | undefined> => {
       setError(undefined);
       setHash(undefined);
+      const t = txToaster(NFT_TX_LABEL[req.functionName] ?? "Transaction");
       try {
         if (!client || !address) throw new Error("Connect your wallet first.");
         setStatus("simulating");
         const { request } = await client.simulateContract({ ...req, account: address } as never);
         setStatus("signing");
+        t.signing();
         const txHash = await writeContractAsync({ ...(request as object) } as never);
         setHash(txHash);
         setStatus("confirming");
-        const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1 });
+        t.confirming();
+        const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1, timeout: RECEIPT_TIMEOUT_MS });
         if (receipt.status !== "success") throw new Error("Transaction reverted.");
         setStatus("success");
+        t.success();
         return receipt;
       } catch (e) {
+        const message = describeNftError(e);
         setStatus("error");
-        setError(describeNftError(e));
+        setError(message);
+        t.error(message);
         return undefined;
       }
     },

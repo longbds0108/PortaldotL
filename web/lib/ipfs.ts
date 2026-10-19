@@ -59,8 +59,17 @@ export function resolveUri(uri: string): string {
   throw new Error(`Unsupported URI: ${uri.slice(0, 32)}`);
 }
 
-/** Fetches a document, trying every location of an on-chain digest (raw CID, dag-pb CID, dev store) in turn. */
+/**
+ * Fetches a document. On-chain digests go through the app's cached proxy first (/api/doc, CDN-cached forever since
+ * IPFS content is immutable), then fall back to every direct location (raw CID, dag-pb CID, dev store) in turn.
+ */
 export async function fetchDocument(uri: string): Promise<Response> {
+  if (isDigestUri(uri) && typeof window !== "undefined") {
+    const res = await fetch(`/api/doc/${digestOfUri(uri).slice(2)}`).catch(() => undefined);
+    if (res?.ok) return res;
+    // The proxy already tried every gateway; only retry directly if the proxy itself was unreachable or failed.
+    if (res?.status === 404) throw new Error(`Document not found on IPFS yet (${uri.slice(0, 40)})`);
+  }
   const tries = isDigestUri(uri) ? candidateUris(digestOfUri(uri)) : [uri];
   let last = 0;
   for (const u of tries) {

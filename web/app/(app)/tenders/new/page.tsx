@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { parseEventLogs, type Hex } from "viem";
 import { z } from "zod";
-import { TimeNote } from "@/components/countdown";
+import { Countdown, TimeNote } from "@/components/countdown";
 import { ConfigGate, WalletGate } from "@/components/gates";
 import { PageHeader } from "@/components/page-header";
 import { TxStatus } from "@/components/tx-status";
@@ -192,7 +192,7 @@ function CreateTenderForm() {
               <Label htmlFor="eligibility">Eligibility requirements</Label>
               <Textarea id="eligibility" rows={3} placeholder="Licences, experience, certifications…" {...register("eligibility")} />
               <p className="text-xs text-muted-foreground">
-                Not verified on-chain in this version — you exclude ineligible bids during evaluation.
+                Not verified on-chain yet (verifiable attestations are on the roadmap) — you exclude ineligible bids during evaluation.
               </p>
             </div>
             <div className="space-y-2">
@@ -270,8 +270,13 @@ function CreateTenderForm() {
   );
 }
 
-/** The native picker follows the browser language; always echo the chosen time in English. */
+/** The native picker follows the browser language; echo the chosen time in English with a live chain-time countdown. */
 function DatePreview({ unix }: { unix: number }) {
   if (!unix) return null;
-  return <p className="text-xs text-muted-foreground">{formatDateTime(unix)}</p>;
+  return (
+    <div className="space-y-1 text-xs text-muted-foreground">
+      <p>{formatDateTime(unix)}</p>
+      <Countdown deadline={BigInt(unix)} label="In" passedLabel="Already passed in chain time — pick a later time" className="text-xs" />
+    </div>
+  );
 }

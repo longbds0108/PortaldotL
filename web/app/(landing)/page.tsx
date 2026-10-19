@@ -343,6 +343,10 @@ export default function LandingPage() {
         <section id="how" className="bb-steps bb-theme-dark" data-header-theme="dark">
           <div className="bb-steps__head">
             <h2 className="bb-steps__title">From tender to proof in four steps</h2>
+            <p className="bb-steps__lead">
+              One sealed-bid engine: tenders today, NFT auctions next. After the reveal, Plinths Agent can summarise
+              proposals for the buyer — it never picks the winner.
+            </p>
           </div>
           <div className="bb-steps__row">
             {STEPS.map((s, i) => (
@@ -414,7 +418,8 @@ export default function LandingPage() {
                 </span>
                 <p className="bb-footer__desc">
                   Plinths is a public marketplace for sealed-bid tenders on PortaldotV3. Buyers publish opportunities,
-                  suppliers compete fairly, and prices stay sealed until the submission deadline.
+                  suppliers compete fairly, and prices stay sealed until the submission deadline. The same sealed-bid
+                  engine is coming to NFT auctions.
                 </p>
               </div>
               <div className="bb-footer__nav">
