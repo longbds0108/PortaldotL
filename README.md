@@ -38,11 +38,16 @@ After any contract change, regenerate the frontend ABI with `cd web && pnpm sync
 
 PortaldotV3 has few NFT tools yet, so `PlinthsTestNFT` is a minimal test-only ERC-721 whose constructor gives three items (artwork and metadata already on IPFS, `scripts/test-nft/uris.json`) to the deployer. Plinths itself never mints. `npm run deploy:nft:portaldotv3` deploys both (about 258 + 178 tPOTv3) and prints the three `NEXT_PUBLIC_*` values for `web/.env.local`; the NFT pages switch from "coming soon" to live once `NEXT_PUBLIC_NFT_AUCTION_ADDRESS` is set. `npm run nft:upload` re-uploads the art (needs `PINATA_JWT`).
 
+### Proof of Fairness
+
+- **Dispute Center** — `DisputeRegistry` keeps one storage slot per dispute (opener, target, reason, status); statements, cited transactions and attachments live in an evidence document on IPFS. Who settles a dispute depends on its type: the in-browser Verification Engine (`web/lib/dispute-engine.ts`) for rules on-chain data proves (late bids/reveals, reveal mismatches, NFT/payouts after settlement), the appointed arbitration panel (a fixed account, ideally a multisig) for judgement calls, and the parties' own agreed mechanism for quality of goods or services. The Dispute Assistant (`/api/agent/dispute`) briefs the panel but never decides. `npm run deploy:disputes:portaldotv3` deploys it (about 114 tPOTv3); set `NEXT_PUBLIC_DISPUTES_ADDRESS` / `_DEPLOY_BLOCK`. Plinths provides evidence and a transparent process, not legal authority.
+- **Analytics** and **Reputation** need no contract: they read every tender, auction and event (`web/lib/market-data.ts`) and compute in the browser (`web/lib/analytics.ts`, `web/lib/reputation.ts`). Reputation scores behaviour on Plinths with published rules and a per-change history; only decided disputes on panel or engine grounds affect it.
+
 ### Storage deposits on PortaldotV3
 
 PortaldotV3 (pallet-revive) charges a storage deposit of roughly 0.08 tPOTv3 per byte of deployed code and contract state. `BlindBidMarket` is therefore storage-lean: it has no view functions, documents are 32-byte IPFS digests, and display-only data lives in events; the app reads storage (`eth_getStorageAt`) and logs (`eth_getLogs`). Deploying it costs about 262 tPOTv3. Compiler settings favour size (`via_ir`, `optimizer_runs = 1`, no metadata, EVM `shanghai`). On the EVM layer, balances and `msg.value` use 18 decimals.
 
-Local end-to-end check of the app's read layer: `anvil --chain-id 420420777`, `forge build`, then `cd web && CHAIN_TEST_RPC=http://127.0.0.1:8545 pnpm vitest run lib/market.chain.test.ts lib/nft.chain.test.ts` (each warps time: restart anvil between runs).
+Local end-to-end check of the app's read layer: `anvil --chain-id 420420777`, `forge build`, then `cd web && CHAIN_TEST_RPC=http://127.0.0.1:8545 pnpm vitest run lib/market.chain.test.ts lib/nft.chain.test.ts lib/dispute.chain.test.ts` (each warps time: restart anvil between runs).
 
 ## Web (`web/`)
 

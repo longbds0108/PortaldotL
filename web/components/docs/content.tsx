@@ -576,6 +576,58 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
     ),
   },
 
+  disputes: {
+    title: "Dispute process",
+    body: (
+      <>
+        <P>
+          The Dispute Center lets anyone raise a concern about a tender or an NFT auction, back it with evidence, and follow
+          it to an outcome that stays on record. Plinths provides the evidence and a transparent process. It is not a legal
+          authority, and a dispute never reverses an award or a settlement already on-chain.
+        </P>
+        <H3>Who decides depends on the problem</H3>
+        <Table
+          head={["Problem", "Decided by", "How"]}
+          rows={[
+            ["Reveal does not match its sealed bid", "Verification Engine", "Recomputes every revealed hash from public data. The contract already refuses a reveal that does not match."],
+            ["Bid or reveal after the deadline", "Verification Engine", "Compares each transaction's block time with the deadlines. The contract already refuses late calls."],
+            ["NFT or payout not delivered", "Verification Engine", "Checks settlement, the NFT's owner and every deposit or bond against the contract rules."],
+            ["Unfair evaluation", "Arbitration panel", "The appointed panel weighs the evidence and publishes a reasoned decision."],
+            ["Suspected fraudulent proposal", "Arbitration panel", "Same as above: a human judgement based on the evidence."],
+            ["Quality of goods or services", "The parties", "Negotiation or the mechanism the parties agreed on. Plinths keeps the evidence and the record."],
+          ]}
+        />
+        <Callout label="Why not automate everything" tone="blue">
+          A smart contract can only settle what it can check with on-chain data. Quality, real-world obligations and fairness
+          of an evaluation need people.
+        </Callout>
+        <Steps
+          items={[
+            { title: "File", body: "Pick the tender or auction and the type of problem, write a title and an explanation, cite transaction hashes and attach images, PDF or text." },
+            { title: "Evidence check", body: "Each cited transaction is matched against the target's own on-chain events. The Verification Engine shows what the contract rules say." },
+            { title: "Discussion", body: "The organizer, bidders and anyone else can add responses with more evidence while the dispute is open or under review." },
+            { title: "Outcome on record", body: "The panel account records the outcome — Resolved or Rejected — with a published decision document. It cannot be edited afterwards." },
+          ]}
+        />
+        <H3>The Dispute Assistant</H3>
+        <P>
+          An AI assistant can prepare a briefing for the panel: a neutral summary, a timeline, which claims are backed by
+          on-chain data, what is missing, and questions to ask. It never decides, scores or recommends an outcome, and it
+          treats everything the parties wrote as untrusted.
+        </P>
+        <H3>Good to know</H3>
+        <Ul
+          items={[
+            "Everything you submit is public on IPFS and linked on-chain. Do not include private data or secrets.",
+            "Attachments are embedded in the evidence document (images, PDF, plain text; up to 8 MB in total).",
+            "The panel account is fixed when the dispute contract is deployed; a multisig is recommended for a real panel.",
+            "Resolved disputes are shown on the participants' Reputation profiles with their outcome.",
+          ]}
+        />
+      </>
+    ),
+  },
+
   faq: {
     title: "FAQ",
     body: (

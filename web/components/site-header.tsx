@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  Award,
   Bot,
+  ChartColumn,
   FilePlus2,
   FolderKanban,
   Gavel,
@@ -10,6 +12,8 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
+  Scale,
+  ShieldCheck,
   Store,
   UserCog,
   X,
@@ -23,20 +27,37 @@ import { AccountMenu } from "@/components/account-panel";
 import { NetworkChip } from "@/components/network-chip";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemePicker } from "@/components/theme-picker";
-import { NFT_AUCTION_ADDRESS } from "@/lib/env";
+import { DISPUTES_ADDRESS, NFT_AUCTION_ADDRESS } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { useAppliedTheme } from "@/lib/preferences";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 
-const NAV: { href: string; label: string; icon: LucideIcon; badge?: string }[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/marketplace", label: "Marketplace", icon: Store },
-  { href: "/tenders/new", label: "Create Tender", icon: FilePlus2 },
-  { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
-  { href: "/my/bids", label: "My Bids", icon: Gavel },
-  { href: "/nft", label: "NFT Auctions", icon: Gem, badge: NFT_AUCTION_ADDRESS ? undefined : "Soon" },
-  { href: "/agent", label: "Agent", icon: Bot },
-  { href: "/profile", label: "Profile & Settings", icon: UserCog },
+type NavLink = { href: string; label: string; icon: LucideIcon; badge?: string; iconClass?: string };
+type NavSection = { label?: string; labelIcon?: LucideIcon; badge?: string; items: NavLink[] };
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    items: [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/marketplace", label: "Marketplace", icon: Store },
+      { href: "/tenders/new", label: "Create Tender", icon: FilePlus2 },
+      { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
+      { href: "/my/bids", label: "My Bids", icon: Gavel },
+      { href: "/nft", label: "NFT Auctions", icon: Gem, badge: NFT_AUCTION_ADDRESS ? undefined : "Soon" },
+      { href: "/agent", label: "Agent", icon: Bot },
+    ],
+  },
+  {
+    // Section label, like "Workspace": these pages make the market's fairness checkable.
+    label: "Proof of Fairness",
+    labelIcon: ShieldCheck,
+    items: [
+      { href: "/disputes", label: "Dispute Center", icon: Scale, badge: DISPUTES_ADDRESS ? undefined : "Soon" },
+      { href: "/analytics", label: "Analytics", icon: ChartColumn },
+      { href: "/reputation", label: "Reputation", icon: Award },
+    ],
+  },
+  { items: [{ href: "/profile", label: "Profile & Settings", icon: UserCog }] },
 ];
 
 /** Brand glyphs (lucide has no brand icons). Filled, drawn in currentColor. */
@@ -92,6 +113,8 @@ export function SiteHeader() {
       <div className="flex h-14 items-center gap-3 rounded-[15px] border border-overlay/[0.055] bg-[var(--header)] px-3 shadow-[0_16px_45px_var(--surface-shadow)] backdrop-blur-[16px] sm:h-[62px] sm:px-5">
         <Brand />
         <div className="ml-auto flex items-center gap-2">
+          {/* Desktop: theme switch sits in the header; on small screens it lives in the menu. */}
+          <ThemePicker labels={false} className="hidden w-[122px] rounded-full lg:flex [&>button]:rounded-full [&_span.absolute]:rounded-full" />
           <NetworkChip />
           <AccountMenu />
           <button
@@ -117,10 +140,8 @@ export function SiteHeader() {
             className="mt-2 overflow-hidden rounded-[15px] border border-overlay/[0.055] bg-[var(--header-solid)] shadow-[0_16px_45px_var(--popover-shadow)] backdrop-blur-[16px] lg:hidden"
           >
             <LayoutGroup id="mobile-nav">
-              <div className="grid gap-1 p-2">
-                {NAV.map((n) => (
-                  <NavItem key={n.href} item={n} active={isActive(n.href)} collapsed={false} onClick={() => setOpen(false)} />
-                ))}
+              <div className="p-2">
+                <NavSections collapsed={false} isActive={isActive} onNavigate={() => setOpen(false)} />
               </div>
               <div className="flex gap-1.5 border-t border-overlay/[0.055] px-3.5 py-2">
                 {SOCIAL.map((s) => (
@@ -194,10 +215,8 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
         </button>
       </div>
       <LayoutGroup id="sidebar-nav">
-        <nav className="grid gap-1.5">
-          {NAV.map((n) => (
-            <NavItem key={n.href} item={n} active={isActive(n.href)} collapsed={collapsed} transition={transition} />
-          ))}
+        <nav className="min-h-0 overflow-y-auto overflow-x-hidden">
+          <NavSections collapsed={collapsed} isActive={isActive} transition={transition} />
         </nav>
       </LayoutGroup>
       <div className={cn("mt-4 flex gap-1.5 border-t border-overlay/[0.055] pt-4", collapsed ? "flex-col" : "px-1.5")}>
@@ -205,24 +224,43 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
           <SocialItem key={s.href} item={s} />
         ))}
       </div>
-      <div className="mt-auto pt-6">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={collapsed ? "rail" : "full"}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={animate ? { duration: 0.18, ease: [0.22, 1, 0.36, 1] } : INSTANT}
-          >
-            {collapsed ? (
-              <ThemePicker vertical labels={false} />
-            ) : (
-              <ThemePicker />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
     </motion.aside>
+  );
+}
+
+/** Nav links in sections; a section after the first starts with a rule and, when expanded, its label. */
+function NavSections({
+  collapsed,
+  isActive,
+  transition = SPRING,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  isActive: (href: string) => boolean;
+  transition?: Transition;
+  onNavigate?: () => void;
+}) {
+  return (
+    <>
+      {NAV_SECTIONS.map((section, i) => (
+        <div key={section.label ?? i} className={cn("grid gap-1", i > 0 && "mt-2.5 border-t border-overlay/[0.055] pt-2.5")}>
+          {section.label && !collapsed && (
+            <p className="eyebrow mx-3 mb-1 flex items-center gap-2 whitespace-nowrap text-[0.62rem] tracking-[0.14em] text-muted-foreground">
+              {section.labelIcon && <section.labelIcon className="size-3.5 text-success-fg" aria-hidden="true" />}
+              {section.label}
+              {section.badge && (
+                <span className="rounded-full border border-[rgba(131,170,255,.3)] px-1.5 py-px text-[0.56rem] font-medium tracking-[0.06em] text-link">
+                  {section.badge}
+                </span>
+              )}
+            </p>
+          )}
+          {section.items.map((n) => (
+            <NavItem key={n.href} item={n} active={isActive(n.href)} collapsed={collapsed} transition={transition} onClick={onNavigate} />
+          ))}
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -233,7 +271,7 @@ function NavItem({
   transition = SPRING,
   onClick,
 }: {
-  item: (typeof NAV)[number];
+  item: NavLink;
   active: boolean;
   collapsed: boolean;
   transition?: Transition;
@@ -248,7 +286,7 @@ function NavItem({
       aria-label={item.label}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "relative flex min-h-[43px] items-center gap-3 overflow-hidden whitespace-nowrap rounded-[11px] px-3 text-[0.78rem] text-foreground-soft transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground",
+        "relative flex min-h-[40px] items-center gap-3 overflow-hidden whitespace-nowrap rounded-[11px] px-3 text-[0.78rem] text-foreground-soft transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground",
         active && "font-semibold text-foreground hover:bg-transparent hover:text-foreground",
       )}
     >
@@ -262,7 +300,7 @@ function NavItem({
           aria-hidden="true"
         />
       )}
-      <Icon className="relative z-[1] size-[18px] shrink-0" aria-hidden="true" />
+      <Icon className={cn("relative z-[1] size-[18px] shrink-0", item.iconClass)} aria-hidden="true" />
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.span

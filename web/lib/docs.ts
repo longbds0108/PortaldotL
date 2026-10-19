@@ -35,6 +35,7 @@ export const DOC_GROUPS: { label: string; pages: DocPage[] }[] = [
     ],
   },
   { label: "NFT auctions", pages: [{ slug: "nft-auctions", title: "Sealed-bid NFT auctions", group: "NFT auctions" }] },
+  { label: "Proof of Fairness", pages: [{ slug: "disputes", title: "Dispute process", group: "Proof of Fairness" }] },
   { label: "Resources", pages: [{ slug: "faq", title: "FAQ", group: "Resources" }] },
 ];
 

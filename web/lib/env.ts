@@ -19,6 +19,13 @@ const rawTestNft = process.env.NEXT_PUBLIC_TEST_NFT_ADDRESS ?? "";
 /** The PlinthsTestNFT collection (3 items), suggested on the listing form. Optional. */
 export const TEST_NFT_ADDRESS: Address | undefined = isAddress(rawTestNft) ? getAddress(rawTestNft) : undefined;
 
+const rawDisputes = process.env.NEXT_PUBLIC_DISPUTES_ADDRESS ?? "";
+
+/** Deployed DisputeRegistry, or undefined: the Dispute Center then shows its design without data. */
+export const DISPUTES_ADDRESS: Address | undefined = isAddress(rawDisputes) ? getAddress(rawDisputes) : undefined;
+
+export const DISPUTES_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_DISPUTES_DEPLOY_BLOCK || 0);
+
 export const PORTALDOT_RPC_URL = process.env.NEXT_PUBLIC_PORTALDOT_RPC_URL || "https://test-evm-rpc-v3.portaldot.dev";
 
 export const NODE_CONSOLE_URL = "https://node-console.portaldot.dev";

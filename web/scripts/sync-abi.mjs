@@ -9,6 +9,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const TARGETS = [
   { artifact: "BlindBidMarket.sol/BlindBidMarket.json", out: "../lib/abi.ts", name: "blindBidMarketAbi" },
   { artifact: "ISealedNFTAuction.sol/ISealedNFTAuction.json", out: "../lib/nft-abi.ts", name: "sealedNftAuctionAbi" },
+  { artifact: "DisputeRegistry.sol/DisputeRegistry.json", out: "../lib/dispute-abi.ts", name: "disputeRegistryAbi" },
 ];
 
 for (const t of TARGETS) {
