@@ -31,11 +31,18 @@ export const DOC_GROUPS: { label: string; pages: DocPage[] }[] = [
       { slug: "lifecycle", title: "Tender lifecycle", group: "Protocol" },
       { slug: "proof-of-process", title: "Proof of process", group: "Protocol" },
       { slug: "security", title: "Security & privacy", group: "Protocol" },
-      { slug: "smart-contract", title: "Smart contract", group: "Protocol" },
+      { slug: "smart-contract", title: "Smart contracts", group: "Protocol" },
     ],
   },
   { label: "NFT auctions", pages: [{ slug: "nft-auctions", title: "Sealed-bid NFT auctions", group: "NFT auctions" }] },
-  { label: "Proof of Fairness", pages: [{ slug: "disputes", title: "Dispute process", group: "Proof of Fairness" }] },
+  {
+    label: "Proof of Fairness",
+    pages: [
+      { slug: "disputes", title: "Dispute process", group: "Proof of Fairness" },
+      { slug: "analytics", title: "Analytics", group: "Proof of Fairness" },
+      { slug: "reputation", title: "Reputation", group: "Proof of Fairness" },
+    ],
+  },
   { label: "Resources", pages: [{ slug: "faq", title: "FAQ", group: "Resources" }] },
 ];
 

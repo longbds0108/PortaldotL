@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Activity, ArrowLeftRight, Download, FileText, Gem, Info, Users, Wallet } from "lucide-react";
+import { Activity, ArrowLeftRight, Download, FileText, Gem, Users, Wallet } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { usePublicClient } from "wagmi";
 import { Gauge, MeterRow, PHASES, PhaseLegend, StackBar } from "@/components/dashboard/charts";
@@ -98,22 +98,16 @@ export function AnalyticsPage() {
           <Skeleton className="h-80" />
         </div>
       ) : (
-        <Dashboard a={a} blockTime={snap.data.blockTime} head={snap.data.head.number} />
+        <Dashboard a={a} />
       )}
     </>
   );
 }
 
-function Dashboard({ a, blockTime, head }: { a: Analytics; blockTime: number; head: bigint }) {
+function Dashboard({ a }: { a: Analytics }) {
   const t = a.tender;
   return (
     <div className="space-y-5">
-      <p className="flex items-start gap-2 text-[0.72rem] text-muted-foreground">
-        <Info className="mt-0.5 size-3.5 shrink-0" />
-        Data as of block #{head.toString()}. The RPC only keeps recent blocks, so event times are estimated from block numbers (~
-        {blockTime.toFixed(1)} s per block).
-      </p>
-
       <Section label="Overview">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Kpi icon={FileText} label="Tenders" value={a.overview.tenders} hint="Published in this period" />

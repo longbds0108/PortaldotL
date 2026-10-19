@@ -160,6 +160,7 @@ export function SiteHeader() {
 }
 
 /** Persistent left navigation for the workspace (desktop), collapsible to an icon rail. */
+// Spacing tightens below 860px of viewport height so the whole menu fits without scrolling.
 export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: boolean }) {
   const isActive = useIsActive();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -185,9 +186,9 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
       initial={false}
       animate={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
       transition={transition}
-      className="sticky top-[90px] hidden h-[calc(100vh-90px)] shrink-0 self-start overflow-hidden border-r border-overlay/[0.055] bg-[linear-gradient(90deg,var(--sidebar-from),var(--sidebar-to))] px-[15px] py-8 lg:flex lg:flex-col"
+      className="sticky top-[90px] hidden h-[calc(100vh-90px)] shrink-0 self-start overflow-hidden border-r border-overlay/[0.055] bg-[linear-gradient(90deg,var(--sidebar-from),var(--sidebar-to))] px-[15px] py-5 lg:flex lg:flex-col [@media(min-height:860px)]:py-8"
     >
-      <div className="relative mb-3 flex h-[34px] items-center">
+      <div className="relative mb-2 flex h-[34px] items-center [@media(min-height:860px)]:mb-3">
         <AnimatePresence initial={false}>
           {!collapsed && (
             <motion.span
@@ -219,7 +220,7 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
           <NavSections collapsed={collapsed} isActive={isActive} transition={transition} />
         </nav>
       </LayoutGroup>
-      <div className={cn("mt-4 flex gap-1.5 border-t border-overlay/[0.055] pt-4", collapsed ? "flex-col" : "px-1.5")}>
+      <div className={cn("mt-auto flex gap-1 border-t border-overlay/[0.055] pt-3", collapsed ? "flex-col items-center" : "px-1.5")}>
         {SOCIAL.map((s) => (
           <SocialItem key={s.href} item={s} />
         ))}
@@ -243,7 +244,7 @@ function NavSections({
   return (
     <>
       {NAV_SECTIONS.map((section, i) => (
-        <div key={section.label ?? i} className={cn("grid gap-1", i > 0 && "mt-2.5 border-t border-overlay/[0.055] pt-2.5")}>
+        <div key={section.label ?? i} className={cn("grid gap-0.5 [@media(min-height:860px)]:gap-1", i > 0 && "mt-2 border-t border-overlay/[0.055] pt-2 [@media(min-height:860px)]:mt-2.5 [@media(min-height:860px)]:pt-2.5")}>
           {section.label && !collapsed && (
             <p className="eyebrow mx-3 mb-1 flex items-center gap-2 whitespace-nowrap text-[0.62rem] tracking-[0.14em] text-muted-foreground">
               {section.labelIcon && <section.labelIcon className="size-3.5 text-success-fg" aria-hidden="true" />}
@@ -286,7 +287,7 @@ function NavItem({
       aria-label={item.label}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "relative flex min-h-[40px] items-center gap-3 overflow-hidden whitespace-nowrap rounded-[11px] px-3 text-[0.78rem] text-foreground-soft transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground",
+        "relative flex min-h-[34px] items-center gap-3 [@media(min-height:860px)]:min-h-[40px] overflow-hidden whitespace-nowrap rounded-[11px] px-3 text-[0.78rem] text-foreground-soft transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground",
         active && "font-semibold text-foreground hover:bg-transparent hover:text-foreground",
       )}
     >
@@ -334,9 +335,9 @@ function SocialItem({ item }: { item: (typeof SOCIAL)[number] }) {
       rel="noreferrer"
       aria-label={`${item.label} (opens in a new tab)`}
       title={item.label}
-      className="grid size-[42px] shrink-0 place-items-center rounded-[11px] text-foreground-soft transition-[color,background-color,transform] duration-200 hover:-translate-y-px hover:bg-overlay/[0.045] hover:text-foreground"
+      className="grid size-[34px] shrink-0 place-items-center rounded-[10px] text-foreground-soft transition-[color,background-color,transform] duration-200 hover:-translate-y-px hover:bg-overlay/[0.045] hover:text-foreground"
     >
-      <Icon className={item.label === "X" ? "size-[20px]" : "size-[23px]"} />
+      <Icon className={item.label === "X" ? "size-[15px]" : "size-[18px]"} />
     </a>
   );
 }

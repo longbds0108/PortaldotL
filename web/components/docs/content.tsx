@@ -1,25 +1,26 @@
 import Link from "next/link";
 import { AddNetworkButton } from "@/components/add-network-button";
 import type { ReactNode } from "react";
-import { BLINDBID_ADDRESS, NFT_AUCTION_ADDRESS, NODE_CONSOLE_URL, PORTALDOT_RPC_URL, TEST_NFT_ADDRESS } from "@/lib/env";
+import { BLINDBID_ADDRESS, DISPUTES_ADDRESS, NFT_AUCTION_ADDRESS, NODE_CONSOLE_URL, PORTALDOT_RPC_URL, TEST_NFT_ADDRESS } from "@/lib/env";
 import { NETWORK_NAME } from "@/lib/network";
+import { BASE_SCORE, RULES } from "@/lib/reputation";
 import { B, Callout, Cards, Chips, Code, DocCard, H3, P, Pre, Steps, Table, Ul } from "./ui";
 
 /*
  * Every statement here is grounded in the code: contracts/src/BlindBidMarket.sol, CommitmentLib.sol,
- * SealedNFTAuction.sol, NFTCommitmentLib.sol,
+ * SealedNFTAuction.sol, NFTCommitmentLib.sol, DisputeRegistry.sol, web/lib/analytics.ts, web/lib/reputation.ts,
  * the web app (web/app, web/lib) and CLAUDE.md. Keep it in sync when behaviour changes.
  */
 
 const COMMITMENT = `commitment = keccak256(abi.encode(
     tenderId,      // uint256
     bidder,        // address — msg.sender, so a copied hash cannot be reused
-    amount,        // uint256, tPOTv3 base units (7,500 tPOTv3 = 7,500 × 10^14)
+    amount,        // uint256, tPOTv3 base units (7,500 tPOTv3 = 7,500 × 10^18)
     salt,          // bytes32, random (crypto.getRandomValues)
     keccak256(docKey)  // binds the encrypted proposal to the price
 ))`;
 
-const contractLink = BLINDBID_ADDRESS ? <Code>{BLINDBID_ADDRESS}</Code> : "not deployed";
+const addr = (a: string | undefined) => (a ? <Code>{a}</Code> : "not deployed");
 
 const linkCls = "text-[#8fb4ff] hover:underline";
 
@@ -61,6 +62,14 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
           </DocCard>
           <DocCard label="Verify" tone="teal">
             Anyone can open the results page and recompute every revealed bid&apos;s commitment in the browser.
+          </DocCard>
+          <DocCard label="Sealed-bid NFT auctions" tone="blue">
+            List an ERC-721 you own and sell it with sealed bids in tPOTv3. See{" "}
+            <Link className={linkCls} href="/docs/nft-auctions">NFT auctions</Link>.
+          </DocCard>
+          <DocCard label="Proof of Fairness" tone="teal">
+            <Link className={linkCls} href="/docs/disputes">Dispute Center</Link>, <Link className={linkCls} href="/docs/analytics">Analytics</Link> and{" "}
+            <Link className={linkCls} href="/docs/reputation">Reputation</Link> make the whole market checkable from public data.
           </DocCard>
         </Cards>
         <H3>Supported assets</H3>
@@ -479,15 +488,26 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
   },
 
   "smart-contract": {
-    title: "Smart contract",
+    title: "Smart contracts",
     body: (
       <>
+        <P>
+          Plinths runs on three Solidity contracts on {NETWORK_NAME}, plus a test-only NFT collection. All of them are
+          storage-lean and have no admin keys that could change a tender, an auction or a dispute after the fact.
+        </P>
+        <Table
+          head={["Contract", "Address", "Role"]}
+          rows={[
+            ["BlindBidMarket", addr(BLINDBID_ADDRESS), "Tenders: sealed bids, reveals, awards and bid bonds."],
+            ["SealedNFTAuction", addr(NFT_AUCTION_ADDRESS), "Sealed-bid auctions for any ERC-721, paid in tPOTv3."],
+            ["DisputeRegistry", addr(DISPUTES_ADDRESS), "Public dispute records with evidence and the panel's decisions."],
+            ["PlinthsTestNFT", addr(TEST_NFT_ADDRESS), "Three test NFTs to try auctions; no value, no mint function."],
+          ]}
+        />
+        <H3>BlindBidMarket</H3>
         <Table
           head={["Item", "Value"]}
           rows={[
-            ["Contract", "BlindBidMarket (Solidity EVM contract)"],
-            ["Address", contractLink],
-            ["Network", NETWORK_NAME],
             ["Language", "Solidity 0.8.24, OpenZeppelin ReentrancyGuard"],
             ["Minimum reveal window", "24 hours"],
             ["Treasury", "Receives forfeited bonds; fixed at deployment, cannot be changed"],
@@ -512,11 +532,31 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
           <Code>TenderCancelled</Code>, <Code>BondWithdrawn</Code>, <Code>ForfeitedBondsSwept</Code>. Bid events carry the
           commitment, never the amount.
         </P>
+        <H3>SealedNFTAuction</H3>
+        <Table
+          head={["Function", "Who", "Purpose"]}
+          rows={[
+            [<Code key="l">safeTransferFrom → onERC721Received</Code>, "Seller", "List: the NFT moves into the contract and the auction starts in the same transaction."],
+            [<Code key="p">placeBid</Code>, "Bidder", "Seal a bid with a deposit; call again while open to replace it and top up."],
+            [<Code key="r">revealBid</Code>, "Bidder", "Open the bid during the reveal window."],
+            [<Code key="s">settle</Code>, "Anyone", "After the reveal deadline: NFT to the winner or back to the seller. The seller also uses it to cancel before any bid."],
+            [<Code key="w">withdraw</Code>, "Anyone owed", "Seller proceeds, deposit refunds, or a non-revealer's deposit minus 10%."],
+          ]}
+        />
+        <H3>DisputeRegistry</H3>
+        <Table
+          head={["Function", "Who", "Purpose"]}
+          rows={[
+            [<Code key="o">openDispute</Code>, "Anyone", "Open a dispute about a tender or an auction with an evidence document."],
+            [<Code key="re">respond</Code>, "Anyone", "Add a response with more evidence while the dispute is not closed."],
+            [<Code key="st">setStatus</Code>, "Panel account", "Start a review, or close as Resolved or Rejected with a published decision."],
+          ]}
+        />
         <H3>Why so little is stored</H3>
         <P>
-          PortaldotV3 charges a storage deposit for every byte of contract code and state, so the contract keeps only
+          PortaldotV3 charges a storage deposit for every byte of contract code and state, so each contract keeps only
           what its rules need and has no view functions. Documents are referenced by the 32-byte digest of their IPFS
-          CID; budgets, revealed salts and keys, and bidder lists live in the events above. The app reads the contract
+          CID; budgets, revealed salts and keys, bidder lists and dispute texts live in events. The app reads the contract
           storage and events directly. Amounts use the EVM&apos;s 18-decimal unit, the same as <Code>msg.value</Code>.
         </P>
       </>
@@ -628,6 +668,78 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
     ),
   },
 
+  analytics: {
+    title: "Analytics",
+    body: (
+      <>
+        <P>
+          The <Link className={linkCls} href="/analytics">Analytics</Link> page turns the market&apos;s public on-chain data
+          into numbers for buyers, bidders and reviewers. It is computed in your browser from the contracts&apos; storage
+          and events; no server or database sits in between, and sealed prices never appear before they are revealed.
+        </P>
+        <Table
+          head={["Section", "What it shows"]}
+          rows={[
+            ["Overview", "Tenders published, NFT auctions listed, wallets that took part, successful transactions."],
+            ["Tender analytics", "Phase mix, share of tenders that received bids, reveal rate, award rate and cancellations."],
+            ["NFT auction analytics", "Bidders, sealed bids, sales, auctions waiting for settlement, and settled volume in tPOTv3."],
+            ["Transaction analytics", "Transactions per day and by type, with the gas they paid."],
+            ["Participant analytics", "Unique, new and returning wallets, and how many act as buyers, bidders or sellers."],
+            ["Settlement analytics", "Completion rate, refunds and payouts, and what is still waiting for an award or a settlement."],
+          ]}
+        />
+        <H3>Filters and export</H3>
+        <P>
+          Switch between the last 7, 30 or 90 days and all time. <B>CSV</B> exports one row per on-chain event (block,
+          time, transaction, market, event, wallet, amount); <B>JSON</B> exports the full report with the same events.
+        </P>
+        <Callout label="Good to know" tone="amber">
+          The RPC only serves recent block data, so times of older events are estimated from block numbers, and gas is
+          known only for recent transactions. Failed calls leave no events, so they are not counted.
+        </Callout>
+      </>
+    ),
+  },
+
+  reputation: {
+    title: "Reputation",
+    body: (
+      <>
+        <P>
+          <Link className={linkCls} href="/reputation">Reputation</Link> builds a track record for every wallet from its
+          verifiable history on Plinths. It scores behaviour and completed obligations on Plinths — it is{" "}
+          <B>not</B> a moral judgement or a real-world trust rating.
+        </P>
+        <H3>The rules</H3>
+        <P>Every wallet starts at {BASE_SCORE}; the score stays between 0 and 100. Each change is listed in the wallet&apos;s history with its reason and transaction.</P>
+        <Table
+          head={["Event", "Points"]}
+          rows={Object.values(RULES).map((r) => [r.text, `${r.points > 0 ? "+" : ""}${r.points}`])}
+        />
+        <H3>What a profile shows</H3>
+        <Ul
+          items={[
+            "As a bidder: tenders and auctions joined, sealed bids, reveals in time, missed reveals and wins.",
+            "As a tender creator: tenders published, awarded, failed, cancelled, and awards still pending or overdue.",
+            "As an NFT seller: auctions listed, sold, no sale, cancelled and volume.",
+            "Badges for verifiable achievements, such as Perfect reveals, Tender finisher or Clean seller.",
+            "Disputes opened by the wallet or about its tenders and auctions, with their outcome.",
+          ]}
+        />
+        <H3>Levels</H3>
+        <P>New (fewer than three scored actions), Building, Reliable (65+), Trusted (85+), At risk (below 40).</P>
+        <Callout label="Disputes and the score" tone="blue">
+          Only decided disputes count: an upheld dispute about a wallet&apos;s tender or auction lowers its score. Open or
+          rejected disputes have no effect, and quality-of-goods cases are settled between the parties, outside Plinths.
+        </Callout>
+        <P>
+          Look up any wallet by address on the Reputation page, or share a profile link; the leaderboard lists wallets
+          with at least three scored actions.
+        </P>
+      </>
+    ),
+  },
+
   faq: {
     title: "FAQ",
     body: (
@@ -661,6 +773,22 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
         </P>
         <H3>Where can I view EVM transactions?</H3>
         <P>The current Portaldot guide does not specify an EVM block-explorer URL. The app shows transaction hashes and addresses without explorer links; the Node Console is for native Portaldot tooling.</P>
+        <H3>How do I try NFT auctions without my own NFT?</H3>
+        <P>
+          Plinths Test NFT has three items for testing. The listing form suggests the collection; ask the team for a test
+          item, or list any ERC-721 you already own on {NETWORK_NAME}.
+        </P>
+        <H3>Who decides a dispute?</H3>
+        <P>
+          It depends on the problem: rules that on-chain data proves are settled by the Verification Engine, judgement calls
+          by the appointed arbitration panel, and quality of goods or services by the parties&apos; own agreement. See{" "}
+          <Link className={linkCls} href="/docs/disputes">Dispute process</Link>.
+        </P>
+        <H3>Can my reputation be edited by Plinths?</H3>
+        <P>
+          No. It is recomputed in your browser from on-chain history with the published rules; there is no stored score to
+          edit. See <Link className={linkCls} href="/docs/reputation">Reputation</Link>.
+        </P>
         <H3>What do I pay with?</H3>
         <P>
           tPOTv3 pays for bids and network gas. This is a testnet build; use the PortaldotV3 Node Console for network tools.
