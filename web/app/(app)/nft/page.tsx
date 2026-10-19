@@ -1,9 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { NftComingSoon } from "@/components/nft/coming-soon";
+import NftMarketPage from "@/components/nft/market-page";
 import { PageHeader } from "@/components/page-header";
+import { NFT_AUCTION_ADDRESS } from "@/lib/env";
 import { NETWORK_NAME } from "@/lib/network";
 
+/** Live auctions once NEXT_PUBLIC_NFT_AUCTION_ADDRESS is set; until then the roadmap page. */
 export default function NftAuctionsPage() {
+  if (NFT_AUCTION_ADDRESS) return <NftMarketPage />;
   return (
     <>
       <PageHeader

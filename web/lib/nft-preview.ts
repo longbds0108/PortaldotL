@@ -40,7 +40,7 @@ export function buildPreviewAuctions(): Preview[] {
     bidCount: 0,
     revealedCount: 0,
     settled: false,
-    cancelled: false,
+    cancelled: false, proceedsPaid: false,
     reservePrice: 0n,
     highestBidder: zeroAddress,
     highestBid: 0n,

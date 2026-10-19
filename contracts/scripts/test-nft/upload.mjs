@@ -1,5 +1,5 @@
 // Uploads the three test NFT images and their metadata JSON to IPFS (Pinata, public network)
-// and writes scripts/test-nft/uris.json, which deploy-test-nft.cjs mints from.
+// and writes scripts/test-nft/uris.json, which PlinthsTestNFT hard-codes (deployed by deploy-nft.cjs).
 //
 //   PINATA_JWT=... node scripts/test-nft/upload.mjs
 //

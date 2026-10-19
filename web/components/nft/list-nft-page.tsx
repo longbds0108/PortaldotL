@@ -16,7 +16,8 @@ import { FieldError, Input, Label } from "@/components/ui/input";
 import { SelectMenu } from "@/components/ui/select";
 import { formatDateTime, formatNativeAmount, isValidAmountInput, parseTokenAmount, shortAddress } from "@/lib/format";
 import { useChainNow } from "@/lib/hooks";
-import { ERC721_ENUMERABLE_INTERFACE_ID, encodeListingData, erc721Abi, nftAuctionAddress } from "@/lib/nft-auction";
+import { TEST_NFT_ADDRESS } from "@/lib/env";
+import { ERC721_ENUMERABLE_INTERFACE_ID, encodeListingData, erc721Abi, nftAuctionAddress, sealedNftAuctionAbi } from "@/lib/nft-auction";
 import { createdAuctionId, nftAuctionEnabled, useNftMetadata, useNftToken, useNftTx, useOwnedTokens } from "@/lib/nft-hooks";
 import { PREVIEW_COLLECTION, PREVIEW_TOKENS } from "@/lib/nft-preview";
 import { NETWORK_NAME } from "@/lib/network";
@@ -27,6 +28,10 @@ const BID_OPTIONS = [
   { value: "72", label: "3 days" },
   { value: "168", label: "7 days" },
 ];
+/** The collection's errors plus the auction's, so a revert inside onERC721Received (bubbled up) is readable. */
+const LISTING_ABI = [...erc721Abi, ...sealedNftAuctionAbi.filter((x) => x.type === "error")];
+const TEST_TOKEN_IDS = [1n, 2n, 3n];
+
 const REVEAL_OPTIONS = [
   { value: "24", label: "24 hours (minimum)" },
   { value: "48", label: "48 hours" },
@@ -52,7 +57,7 @@ function ListForm() {
   const { address } = useAccount();
   const now = useChainNow();
   const tx = useNftTx();
-  const [collectionInput, setCollectionInput] = useState(nftAuctionEnabled ? "" : PREVIEW_COLLECTION);
+  const [collectionInput, setCollectionInput] = useState(nftAuctionEnabled ? (TEST_NFT_ADDRESS ?? "") : PREVIEW_COLLECTION);
   const [tokenIdInput, setTokenIdInput] = useState(nftAuctionEnabled ? "" : "1");
   const [bidHours, setBidHours] = useState("72");
   const [revealHours, setRevealHours] = useState("24");
@@ -73,7 +78,8 @@ function ListForm() {
     query: { enabled: !!collection && !isPreviewCollection },
   });
   const owned = useOwnedTokens(collection, address, enumerable.data);
-  const pickable = isPreviewCollection ? PREVIEW_TOKENS.map((t) => t.tokenId) : owned.tokenIds;
+  const isTestCollection = !!TEST_NFT_ADDRESS && collection === TEST_NFT_ADDRESS;
+  const pickable = isPreviewCollection ? PREVIEW_TOKENS.map((t) => t.tokenId) : isTestCollection ? TEST_TOKEN_IDS : owned.tokenIds;
 
   const reserveValid = reserveInput.trim() === "" || isValidAmountInput(reserveInput);
   const reserve18 = reserveInput.trim() && reserveValid ? parseTokenAmount(reserveInput) : 0n;
@@ -102,7 +108,7 @@ function ListForm() {
     const data = encodeListingData({ reserve18, bidDeadline: bd, revealDeadline: bd + BigInt(Number(revealHours) * 3600) });
     const receipt = await tx.run({
       address: collection,
-      abi: erc721Abi,
+      abi: LISTING_ABI,
       functionName: "safeTransferFrom",
       args: [address, nftAuctionAddress, tokenId, data],
     });
@@ -154,7 +160,7 @@ function ListForm() {
           {pickable.length > 0 && (
             <div className="mt-5">
               <p className="mb-2 text-[0.76rem] text-muted-foreground">
-                {isPreviewCollection ? "Plinths test collection" : "Your NFTs in this collection"} — pick one
+                {isPreviewCollection || isTestCollection ? "Plinths test collection" : "Your NFTs in this collection"} — pick one
               </p>
               <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                 {pickable.map((id) => (
@@ -169,7 +175,7 @@ function ListForm() {
               </div>
             </div>
           )}
-          {!isPreviewCollection && enumerable.data === false && (
+          {!isPreviewCollection && !isTestCollection && enumerable.data === false && (
             <p className="mt-3 text-xs text-muted-foreground">
               This collection cannot list a wallet&apos;s tokens on-chain, so enter the token ID yourself.
             </p>

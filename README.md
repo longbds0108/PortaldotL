@@ -32,15 +32,17 @@ After deployment, set the printed address as `BLINDBID_ADDRESS` in `contracts/.e
 
 After any contract change, regenerate the frontend ABI with `cd web && pnpm sync-abi`.
 
-### Test NFTs (for the planned NFT auction market)
+### NFT auctions
 
-PortaldotV3 has few NFT tools yet, so `PlinthsTestNFT` is a minimal test-only ERC-721 whose constructor mints three items (artwork and metadata already on IPFS, `scripts/test-nft/uris.json`) to the deployer. Plinths itself never mints. `npm run nft:portaldotv3` deploys it; `npm run nft:upload` re-uploads the art (needs `PINATA_JWT`).
+`SealedNFTAuction` runs sealed-bid (commit–reveal) auctions for any ERC-721 on PortaldotV3, paid in tPOTv3. The seller lists with one `safeTransferFrom` into the contract; bidders lock a public deposit larger than their sealed price; after bidding closes they reveal; the highest counted price wins and `settle` delivers the NFT. Payments are pull-style (`withdraw`): outbid bidders are free at once, the winner gets the deposit above the price, and a bidder who never reveals loses 10% of the deposit to the treasury. The seller can cancel (via `settle`) while bidding is open and nobody has bid. Like the tender market it has no views; the app reads storage and events (`web/lib/nft-storage.ts`, `web/lib/nft-logs.ts`).
+
+PortaldotV3 has few NFT tools yet, so `PlinthsTestNFT` is a minimal test-only ERC-721 whose constructor gives three items (artwork and metadata already on IPFS, `scripts/test-nft/uris.json`) to the deployer. Plinths itself never mints. `npm run deploy:nft:portaldotv3` deploys both (about 258 + 178 tPOTv3) and prints the three `NEXT_PUBLIC_*` values for `web/.env.local`; the NFT pages switch from "coming soon" to live once `NEXT_PUBLIC_NFT_AUCTION_ADDRESS` is set. `npm run nft:upload` re-uploads the art (needs `PINATA_JWT`).
 
 ### Storage deposits on PortaldotV3
 
 PortaldotV3 (pallet-revive) charges a storage deposit of roughly 0.08 tPOTv3 per byte of deployed code and contract state. `BlindBidMarket` is therefore storage-lean: it has no view functions, documents are 32-byte IPFS digests, and display-only data lives in events; the app reads storage (`eth_getStorageAt`) and logs (`eth_getLogs`). Deploying it costs about 262 tPOTv3. Compiler settings favour size (`via_ir`, `optimizer_runs = 1`, no metadata, EVM `shanghai`). On the EVM layer, balances and `msg.value` use 18 decimals.
 
-Local end-to-end check of the app's read layer: `anvil --chain-id 420420777`, `forge build`, then `cd web && CHAIN_TEST_RPC=http://127.0.0.1:8545 pnpm vitest run lib/market.chain.test.ts`.
+Local end-to-end check of the app's read layer: `anvil --chain-id 420420777`, `forge build`, then `cd web && CHAIN_TEST_RPC=http://127.0.0.1:8545 pnpm vitest run lib/market.chain.test.ts lib/nft.chain.test.ts` (each warps time: restart anvil between runs).
 
 ## Web (`web/`)
 

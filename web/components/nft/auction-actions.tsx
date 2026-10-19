@@ -22,6 +22,7 @@ import { chain } from "@/lib/wagmi";
 /*
  * Right-hand action panel of an auction. Which panel shows depends on the on-chain state and the viewer's role,
  * mirroring the rules in contracts/src/interfaces/ISealedNFTAuction.sol. In preview mode every button is disabled.
+ * The seller cancels with settle() while the auction is Open and has no bids (the contract folds both together).
  */
 
 const PREVIEW_HINT = "Transactions open once the auction contract is deployed.";
@@ -134,9 +135,8 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
 
   async function submit() {
     if (!prepared) return;
-    const receipt = existing
-      ? await tx.send("updateBid", [id, prepared.commitment], topUp)
-      : await tx.send("placeBid", [id, prepared.commitment], deposit18);
+    // placeBid again replaces the commitment; msg.value tops up the deposit
+    const receipt = await tx.send("placeBid", [id, prepared.commitment], existing ? topUp : deposit18);
     if (receipt) {
       setDone(true);
       onDone();
@@ -236,7 +236,7 @@ function SellerOpenPanel({ row, onDone }: { row: AuctionRow; onDone: () => void 
       </CardHeader>
       {canCancel && (
         <CardContent className="space-y-3">
-          <Button variant="outline" disabled={tx.busy} onClick={async () => (await tx.send("cancel", [row.id])) && onDone()}>
+          <Button variant="outline" disabled={tx.busy} onClick={async () => (await tx.send("settle", [row.id])) && onDone()}>
             {tx.busy ? <Loader2 className="animate-spin" /> : <Undo2 />} Cancel and return NFT
           </Button>
           <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />

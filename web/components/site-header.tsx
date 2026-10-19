@@ -23,6 +23,7 @@ import { AccountMenu } from "@/components/account-panel";
 import { NetworkChip } from "@/components/network-chip";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemePicker } from "@/components/theme-picker";
+import { NFT_AUCTION_ADDRESS } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { useAppliedTheme } from "@/lib/preferences";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
@@ -33,7 +34,7 @@ const NAV: { href: string; label: string; icon: LucideIcon; badge?: string }[] =
   { href: "/tenders/new", label: "Create Tender", icon: FilePlus2 },
   { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
   { href: "/my/bids", label: "My Bids", icon: Gavel },
-  { href: "/nft", label: "NFT Auctions", icon: Gem, badge: "Soon" },
+  { href: "/nft", label: "NFT Auctions", icon: Gem, badge: NFT_AUCTION_ADDRESS ? undefined : "Soon" },
   { href: "/agent", label: "Agent", icon: Bot },
   { href: "/profile", label: "Profile & Settings", icon: UserCog },
 ];

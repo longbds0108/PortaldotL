@@ -2,286 +2,6 @@
 export const sealedNftAuctionAbi = [
   {
     "type": "function",
-    "name": "MIN_REVEAL_WINDOW",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "NON_REVEAL_PENALTY_BPS",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "auctionCount",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "cancel",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "getAuction",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "internalType": "struct ISealedNFTAuction.Auction",
-        "components": [
-          {
-            "name": "seller",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "collection",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "bidDeadline",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "revealDeadline",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "createdBlock",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "bidCount",
-            "type": "uint32",
-            "internalType": "uint32"
-          },
-          {
-            "name": "revealedCount",
-            "type": "uint32",
-            "internalType": "uint32"
-          },
-          {
-            "name": "settled",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "cancelled",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "reservePrice",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "highestBidder",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "highestBid",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getAuctionState",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint8",
-        "internalType": "enum ISealedNFTAuction.AuctionState"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBid",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "bidder",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "internalType": "struct ISealedNFTAuction.Bid",
-        "components": [
-          {
-            "name": "commitment",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "deposit",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "committedAt",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "committedBlock",
-            "type": "uint64",
-            "internalType": "uint64"
-          },
-          {
-            "name": "revealed",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "withdrawn",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "amount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "salt",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          }
-        ]
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBidderAuctions",
-    "inputs": [
-      {
-        "name": "bidder",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getBidders",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getSellerAuctions",
-    "inputs": [
-      {
-        "name": "seller",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "onERC721Received",
     "inputs": [
       {
@@ -343,8 +63,8 @@ export const sealedNftAuctionAbi = [
       },
       {
         "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "uint112",
+        "internalType": "uint112"
       },
       {
         "name": "salt",
@@ -370,37 +90,6 @@ export const sealedNftAuctionAbi = [
   },
   {
     "type": "function",
-    "name": "treasury",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "updateBid",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "commitment",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "payable"
-  },
-  {
-    "type": "function",
     "name": "withdraw",
     "inputs": [
       {
@@ -411,30 +100,6 @@ export const sealedNftAuctionAbi = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "withdrawable",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "account",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "event",
@@ -550,6 +215,12 @@ export const sealedNftAuctionAbi = [
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "first",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
       }
     ],
     "anonymous": false
@@ -577,41 +248,16 @@ export const sealedNftAuctionAbi = [
         "internalType": "uint256"
       },
       {
-        "name": "counted",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "BidUpdated",
-    "inputs": [
-      {
-        "name": "auctionId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "bidder",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "commitment",
+        "name": "salt",
         "type": "bytes32",
         "indexed": false,
         "internalType": "bytes32"
       },
       {
-        "name": "deposit",
-        "type": "uint256",
+        "name": "counted",
+        "type": "bool",
         "indexed": false,
-        "internalType": "uint256"
+        "internalType": "bool"
       }
     ],
     "anonymous": false
@@ -640,11 +286,6 @@ export const sealedNftAuctionAbi = [
       }
     ],
     "anonymous": false
-  },
-  {
-    "type": "error",
-    "name": "AlreadyBid",
-    "inputs": []
   },
   {
     "type": "error",
@@ -679,13 +320,7 @@ export const sealedNftAuctionAbi = [
   {
     "type": "error",
     "name": "InvalidState",
-    "inputs": [
-      {
-        "name": "current",
-        "type": "uint8",
-        "internalType": "enum ISealedNFTAuction.AuctionState"
-      }
-    ]
+    "inputs": []
   },
   {
     "type": "error",
@@ -725,6 +360,11 @@ export const sealedNftAuctionAbi = [
   {
     "type": "error",
     "name": "ZeroDeposit",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroTreasury",
     "inputs": []
   }
 ] as const;

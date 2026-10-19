@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { EmptyState } from "@/components/empty-state";
 import { ConfigGate } from "@/components/gates";
+import { AuctionBrowser } from "@/components/nft/auction-browser";
 import { NftComingSoonNotice } from "@/components/nft/coming-soon";
 import { PageHeader } from "@/components/page-header";
 import { TenderCard } from "@/components/tender-card";
@@ -17,6 +18,7 @@ import { STATE_LABEL, TenderState } from "@/lib/contracts";
 import { useTenders } from "@/lib/hooks";
 import { fetchJson } from "@/lib/ipfs";
 import { CATEGORIES, tenderMetadataSchema } from "@/lib/metadata";
+import { nftAuctionEnabled } from "@/lib/nft-hooks";
 import { cn } from "@/lib/utils";
 import { NETWORK_NAME } from "@/lib/network";
 
@@ -94,15 +96,23 @@ export default function MarketplacePage() {
         title="Marketplace"
         description={
           isNft
-            ? "Coming soon: sealed-bid auctions for ERC-721 NFTs on PortaldotV3, built on the same commit–reveal engine as tenders."
+            ? nftAuctionEnabled
+              ? "Sealed-bid auctions for ERC-721 NFTs on PortaldotV3. Collectors bid in tPOTv3 and prices stay sealed until bidding ends."
+              : "Coming soon: sealed-bid auctions for ERC-721 NFTs on PortaldotV3, built on the same commit–reveal engine as tenders."
             : "Public tenders any wallet except the buyer can bid on. Budgets are public — bid amounts stay sealed until the submission deadline."
         }
         actions={
           <Button asChild>
             {isNft ? (
-              <Link href="/nft">
-                <Gem /> NFT roadmap
-              </Link>
+              nftAuctionEnabled ? (
+                <Link href="/nft/list">
+                  <Plus /> List NFT
+                </Link>
+              ) : (
+                <Link href="/nft">
+                  <Gem /> NFT roadmap
+                </Link>
+              )
             ) : (
               <Link href="/tenders/new">
                 <Plus /> Create tender
@@ -127,7 +137,7 @@ export default function MarketplacePage() {
       </div>
 
       {isNft ? (
-        <NftComingSoonNotice />
+        nftAuctionEnabled ? <AuctionBrowser /> : <NftComingSoonNotice />
       ) : (
         <ConfigGate>
           <div className="mb-6 grid gap-2 sm:grid-cols-[1fr_auto_auto]">

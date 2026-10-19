@@ -3,8 +3,8 @@ import { NFT_AUCTION_ADDRESS } from "./env";
 import { sealedNftAuctionAbi } from "./nft-abi";
 
 /*
- * Sealed-bid NFT auctions. Everything here follows contracts/src/interfaces/ISealedNFTAuction.sol;
- * the implementation is deployed later and plugged in with NEXT_PUBLIC_NFT_AUCTION_ADDRESS.
+ * Sealed-bid NFT auctions. Everything here follows contracts/src/interfaces/ISealedNFTAuction.sol
+ * (implementation: SealedNFTAuction.sol), plugged in with NEXT_PUBLIC_NFT_AUCTION_ADDRESS.
  */
 
 export { sealedNftAuctionAbi };
@@ -48,6 +48,7 @@ export type Auction = {
   revealedCount: number;
   settled: boolean;
   cancelled: boolean;
+  proceedsPaid: boolean;
   reservePrice: bigint;
   highestBidder: Address;
   highestBid: bigint;
@@ -86,6 +87,9 @@ export const erc721Abi = [
     outputs: [{ type: "uint256" }],
   },
   { type: "function", name: "supportsInterface", stateMutability: "view", inputs: [{ name: "interfaceId", type: "bytes4" }], outputs: [{ type: "bool" }] },
+  // PlinthsTestNFT's errors, so a failed listing shows a readable reason
+  { type: "error", name: "NotAuthorized", inputs: [] },
+  { type: "error", name: "UnsafeRecipient", inputs: [] },
   {
     type: "function",
     name: "safeTransferFrom",
@@ -111,16 +115,17 @@ export const NFT_ERROR_TEXT: Record<string, string> = {
   InvalidListingData: "The listing data is malformed.",
   NotSeller: "Only the seller can do this.",
   SellerCannotBid: "Sellers cannot bid on their own auction.",
-  AlreadyBid: "You already have a sealed bid here — update it instead.",
   NoBid: "You have no bid on this auction.",
   ZeroCommitment: "Invalid commitment.",
-  ZeroDeposit: "Send a deposit with your sealed bid.",
   AlreadyRevealed: "This bid is already revealed.",
   CommitmentMismatch: "Amount or salt does not match your sealed commitment. Check your backup file.",
   ZeroAmount: "Bid amount must be greater than zero.",
   HasBids: "An auction with bids can no longer be cancelled.",
   NothingToWithdraw: "Nothing to withdraw.",
   TransferFailed: "The tPOTv3 transfer failed. Check the wallet and retry.",
+  ZeroDeposit: "Send a deposit with your sealed bid.",
+  NotAuthorized: "Only the owner of this NFT can transfer or list it.",
+  UnsafeRecipient: "The auction contract did not accept the NFT.",
   ERC721IncorrectOwner: "This wallet does not own that NFT.",
   ERC721InsufficientApproval: "This wallet is not allowed to transfer that NFT.",
   ERC721NonexistentToken: "That token does not exist in this collection.",

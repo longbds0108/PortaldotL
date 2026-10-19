@@ -6,18 +6,16 @@ pragma solidity ^0.8.24;
 ///         has something to list on PortaldotV3 Testnet. There is no mint function: Plinths never mints.
 /// @dev Hand-written minimal ERC-721 (+ metadata) to keep the deployed code small — PortaldotV3 charges a storage
 ///      deposit per byte of code. Token ids are 1..3 with fixed ipfs:// metadata (contracts/scripts/test-nft).
+///      Test-only simplification: no approvals, so only the owner can transfer (wallet sends and listing on the
+///      auction both come from the owner).
 contract PlinthsTestNFT {
     string public constant name = "Plinths Test NFT";
     string public constant symbol = "PTNFT";
 
     mapping(uint256 => address) public ownerOf;
     mapping(address => uint256) public balanceOf;
-    mapping(uint256 => address) public getApproved;
-    mapping(address => mapping(address => bool)) public isApprovedForAll;
 
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
-    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
-    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     error NotAuthorized();
     error UnsafeRecipient();
@@ -37,29 +35,14 @@ contract PlinthsTestNFT {
         return "ipfs://bafkreifnkrbsirsexluo4xfwmuopfgs4gdazupwmclgapzx4tffdtnhnka";
     }
 
-    function approve(address spender, uint256 id) external {
-        address owner = ownerOf[id];
-        if (msg.sender != owner && !isApprovedForAll[owner][msg.sender]) revert NotAuthorized();
-        getApproved[id] = spender;
-        emit Approval(owner, spender, id);
-    }
-
-    function setApprovalForAll(address operator, bool approved) external {
-        isApprovedForAll[msg.sender][operator] = approved;
-        emit ApprovalForAll(msg.sender, operator, approved);
-    }
-
     function transferFrom(address from, address to, uint256 id) public {
         if (from != ownerOf[id] || to == address(0)) revert NotAuthorized();
-        if (msg.sender != from && !isApprovedForAll[from][msg.sender] && msg.sender != getApproved[id]) {
-            revert NotAuthorized();
-        }
+        if (msg.sender != from) revert NotAuthorized();
         unchecked {
             balanceOf[from]--;
             balanceOf[to]++;
         }
         ownerOf[id] = to;
-        delete getApproved[id];
         emit Transfer(from, to, id);
     }
 
@@ -72,7 +55,12 @@ contract PlinthsTestNFT {
         if (to.code.length != 0) {
             (bool ok, bytes memory ret) =
                 to.call(abi.encodeWithSelector(0x150b7a02, msg.sender, from, id, data)); // onERC721Received
-            if (!ok || ret.length < 32 || abi.decode(ret, (bytes4)) != bytes4(0x150b7a02)) revert UnsafeRecipient();
+            if (!ok) {
+                assembly ("memory-safe") {
+                    revert(add(ret, 32), mload(ret)) // bubble the receiver's reason (e.g. InvalidDeadlines)
+                }
+            }
+            if (ret.length < 32 || abi.decode(ret, (bytes4)) != bytes4(0x150b7a02)) revert UnsafeRecipient();
         }
     }
 

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { AddNetworkButton } from "@/components/add-network-button";
 import type { ReactNode } from "react";
-import { BLINDBID_ADDRESS, NODE_CONSOLE_URL, PORTALDOT_RPC_URL } from "@/lib/env";
+import { BLINDBID_ADDRESS, NFT_AUCTION_ADDRESS, NODE_CONSOLE_URL, PORTALDOT_RPC_URL, TEST_NFT_ADDRESS } from "@/lib/env";
 import { NETWORK_NAME } from "@/lib/network";
 import { B, Callout, Cards, Chips, Code, DocCard, H3, P, Pre, Steps, Table, Ul } from "./ui";
 
 /*
  * Every statement here is grounded in the code: contracts/src/BlindBidMarket.sol, CommitmentLib.sol,
+ * SealedNFTAuction.sol, NFTCommitmentLib.sol,
  * the web app (web/app, web/lib) and CLAUDE.md. Keep it in sync when behaviour changes.
  */
 
@@ -517,6 +518,59 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
           what its rules need and has no view functions. Documents are referenced by the 32-byte digest of their IPFS
           CID; budgets, revealed salts and keys, and bidder lists live in the events above. The app reads the contract
           storage and events directly. Amounts use the EVM&apos;s 18-decimal unit, the same as <Code>msg.value</Code>.
+        </P>
+      </>
+    ),
+  },
+
+  "nft-auctions": {
+    title: "Sealed-bid NFT auctions",
+    body: (
+      <>
+        <P>
+          The same commit–reveal engine runs auctions for ERC-721 NFTs on {NETWORK_NAME}, paid in native tPOTv3. Prices
+          stay sealed while bidding is open, so nobody can snipe the last minute or shade a bid by a token. Plinths does
+          not mint NFTs: you list one you already own.
+        </P>
+        <Steps
+          items={[
+            { title: "List", body: "Open NFT Auctions → List NFT, pick the NFT, the bidding and reveal windows (at least 24 h) and an optional reserve. One signature moves the NFT into the auction contract." },
+            { title: "Seal a bid", body: "Enter your price and a deposit. The price is hashed in your browser; only the hash and the deposit go on-chain. Download the backup file before sending. You can bid again while open to replace the price and add to the deposit." },
+            { title: "Reveal", body: "After bidding closes, reveal from the auction page. A price counts if it meets the reserve and is not above your deposit; the highest counted price wins, and on a tie the earlier reveal keeps the lead." },
+            { title: "Settle and withdraw", body: "After the reveal deadline anyone can settle: the NFT goes to the winner, or back to the seller if no price counted. Everyone then withdraws what they are owed." },
+          ]}
+        />
+        <Callout label="Why a deposit larger than the price" tone="blue">
+          Deposits are public. If you deposit exactly your price, everyone can read it. Lock more (the form suggests +25%,
+          +50% or ×2) and the price stays hidden until you reveal.
+        </Callout>
+        <H3>Who gets what</H3>
+        <Table
+          head={["Role", "Withdraws", "When"]}
+          rows={[
+            ["Seller", "The winning price", "After settlement"],
+            ["Winner", "Deposit minus the winning price", "After the reveal deadline"],
+            ["Revealed, not winning", "Full deposit", "As soon as someone else leads"],
+            ["Never revealed", "Deposit minus 10% (to the treasury, never to the seller)", "After the reveal deadline"],
+          ]}
+        />
+        <P>
+          The seller can cancel and take the NFT back only while bidding is open and nobody has bid.
+        </P>
+        <H3>Contracts</H3>
+        <Table
+          head={["Item", "Value"]}
+          rows={[
+            ["Auction contract", NFT_AUCTION_ADDRESS ? <Code key="a">{NFT_AUCTION_ADDRESS}</Code> : "not deployed"],
+            ["Test collection", TEST_NFT_ADDRESS ? <Code key="n">{TEST_NFT_ADDRESS}</Code> : "not deployed"],
+            ["Functions", <span key="f"><Code>placeBid</Code>, <Code>revealBid</Code>, <Code>settle</Code>, <Code>withdraw</Code>, plus the ERC-721 receiver hook that creates the auction</span>],
+            ["Commitment", <Code key="c">keccak256(abi.encode(auctionId, bidder, amount, salt))</Code>],
+          ]}
+        />
+        <P>
+          The Plinths Test NFT collection holds three items (Sealed Orb, Commit Prism, Reveal Key) for trying the flow on
+          testnet; it has no value. Like the tender contract, the auction contract has no view functions; the app reads
+          its storage and events.
         </P>
       </>
     ),

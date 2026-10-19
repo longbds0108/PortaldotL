@@ -12,6 +12,13 @@ const rawNftAuction = process.env.NEXT_PUBLIC_NFT_AUCTION_ADDRESS ?? "";
 /** Deployed ISealedNFTAuction implementation, or undefined: the NFT pages then run as a visual preview. */
 export const NFT_AUCTION_ADDRESS: Address | undefined = isAddress(rawNftAuction) ? getAddress(rawNftAuction) : undefined;
 
+export const NFT_AUCTION_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_NFT_AUCTION_DEPLOY_BLOCK || 0);
+
+const rawTestNft = process.env.NEXT_PUBLIC_TEST_NFT_ADDRESS ?? "";
+
+/** The PlinthsTestNFT collection (3 items), suggested on the listing form. Optional. */
+export const TEST_NFT_ADDRESS: Address | undefined = isAddress(rawTestNft) ? getAddress(rawTestNft) : undefined;
+
 export const PORTALDOT_RPC_URL = process.env.NEXT_PUBLIC_PORTALDOT_RPC_URL || "https://test-evm-rpc-v3.portaldot.dev";
 
 export const NODE_CONSOLE_URL = "https://node-console.portaldot.dev";

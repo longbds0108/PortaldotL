@@ -9,10 +9,12 @@ import {
   type Abi,
   type Address,
   type Hash,
+  type Hex,
   type TransactionReceipt,
 } from "viem";
 import { useAccount, usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
-import { RECEIPT_TIMEOUT_MS, describeError, txToaster, type TxStatus } from "./hooks";
+import { NFT_AUCTION_DEPLOY_BLOCK } from "./env";
+import { RECEIPT_TIMEOUT_MS, describeError, txToaster, useChainNow, type TxStatus } from "./hooks";
 import {
   ERC721_ENUMERABLE_INTERFACE_ID,
   ERC721_INTERFACE_ID,
@@ -20,19 +22,20 @@ import {
   erc721Abi,
   nftAuctionAddress,
   sealedNftAuctionAbi,
-  type Auction,
   type AuctionBid,
   type AuctionRow,
-  type AuctionState,
 } from "./nft-auction";
+import { fetchAuctionLogs, fetchBidderAuctionIds, fetchSellerAuctionIds, type NftAuctionLog } from "./nft-logs";
 import { fetchNftMetadata, type NftMetadata } from "./nft-metadata";
+import { auctionState, readAuction, readAuctionBid, readAuctionCount, withdrawableAmount, type AuctionCore } from "./nft-storage";
+import { blockTimestamps } from "./timeline";
 import { buildPreviewAuctions, previewTokenURI, PREVIEW_COLLECTION } from "./nft-preview";
 
 /** Same cadence as the tender reads: public PortaldotV3 RPCs rate-limit aggressive polling. */
 const REFRESH_MS = 15_000;
+const ZERO_HASH = `0x${"0".repeat(64)}` as const;
 
 export const nftAuctionEnabled = !!nftAuctionAddress;
-const base = { address: nftAuctionAddress!, abi: sealedNftAuctionAbi } as const;
 
 /** Stable preview data for the lifetime of the component (device clock, illustrative values). */
 function usePreview() {
@@ -40,108 +43,148 @@ function usePreview() {
   return preview;
 }
 
-// ───────────────────────── auctions ─────────────────────────
+/*
+ * SealedNFTAuction has no views: auctions and bids are read from packed storage (nft-storage.ts), and bidder
+ * lists, salts and placement times from events (nft-logs.ts). The phase is derived here from chain time.
+ */
+
+function toRow(id: bigint, core: AuctionCore, nowSec: number | undefined): AuctionRow | undefined {
+  if (nowSec === undefined) return undefined;
+  return { id, auction: core, state: auctionState(core, nowSec) };
+}
 
 /** Loads auctions by id (all when `ids` is undefined), newest first. */
 export function useAuctions(ids?: readonly bigint[]) {
   const preview = usePreview();
-  const count = useReadContract({
-    ...base,
-    functionName: "auctionCount",
-    query: { enabled: nftAuctionEnabled && ids === undefined, refetchInterval: REFRESH_MS },
+  const client = usePublicClient();
+  const now = useChainNow();
+  const q = useQuery({
+    queryKey: ["nft-auctions", ids?.map(String) ?? "all"],
+    queryFn: async () => {
+      const list = ids ?? Array.from({ length: Number(await readAuctionCount(client!, nftAuctionAddress!)) }, (_, i) => BigInt(i));
+      const ordered = [...list].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
+      return Promise.all(ordered.map(async (id) => ({ id, core: await readAuction(client!, nftAuctionAddress!, id) })));
+    },
+    enabled: nftAuctionEnabled && !!client,
+    refetchInterval: REFRESH_MS,
   });
-  const list =
-    ids ?? (count.data !== undefined ? Array.from({ length: Number(count.data) }, (_, i) => BigInt(i)) : undefined);
-  const ordered = list ? [...list].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0)) : [];
-  const res = useReadContracts({
-    contracts: ordered.flatMap((id) => [
-      { ...base, functionName: "getAuction", args: [id] } as const,
-      { ...base, functionName: "getAuctionState", args: [id] } as const,
-    ]),
-    query: { enabled: nftAuctionEnabled && ordered.length > 0, refetchInterval: REFRESH_MS },
-  });
-
   if (!nftAuctionEnabled) {
     const rows = preview.map((p) => p.row).filter((r) => !ids || ids.includes(r.id));
     return { rows, isLoading: false, error: null, refetch: () => undefined };
   }
-  const rows: AuctionRow[] = [];
-  ordered.forEach((id, i) => {
-    const a = res.data?.[2 * i];
-    const s = res.data?.[2 * i + 1];
-    if (a?.status === "success" && s?.status === "success") {
-      rows.push({ id, auction: a.result as Auction, state: s.result as AuctionState });
-    }
-  });
-  const isLoading = (ids === undefined && count.isLoading) || res.isLoading;
-  return { rows, isLoading, error: count.error ?? res.error, refetch: () => void res.refetch() };
+  const rows = (q.data ?? []).flatMap((x) => toRow(x.id, x.core, now) ?? []);
+  return { rows, isLoading: q.isLoading || (!!q.data && now === undefined), error: q.error, refetch: () => void q.refetch() };
 }
 
 export function useAuction(id: bigint | undefined) {
   const preview = usePreview();
-  const res = useReadContracts({
-    contracts:
-      id === undefined
-        ? []
-        : [
-            { ...base, functionName: "getAuction", args: [id] },
-            { ...base, functionName: "getAuctionState", args: [id] },
-          ],
-    query: { enabled: nftAuctionEnabled && id !== undefined, refetchInterval: REFRESH_MS },
+  const client = usePublicClient();
+  const now = useChainNow();
+  const q = useQuery({
+    queryKey: ["nft-auction", id?.toString()],
+    queryFn: async () => {
+      const count = await readAuctionCount(client!, nftAuctionAddress!);
+      if (id! >= count) return null;
+      return readAuction(client!, nftAuctionAddress!, id!);
+    },
+    enabled: nftAuctionEnabled && !!client && id !== undefined,
+    refetchInterval: REFRESH_MS,
   });
   if (!nftAuctionEnabled) {
     const row = preview.find((p) => p.row.id === id)?.row;
     return { row, notFound: id !== undefined && !row, isLoading: false, refetch: () => undefined };
   }
-  const [a, s] = res.data ?? [];
-  const row: AuctionRow | undefined =
-    id !== undefined && a?.status === "success" && s?.status === "success"
-      ? { id, auction: a.result as Auction, state: s.result as AuctionState }
-      : undefined;
-  return { row, notFound: a?.status === "failure", isLoading: res.isLoading, refetch: () => void res.refetch() };
+  const row = q.data && id !== undefined ? toRow(id, q.data, now) : undefined;
+  return { row, notFound: q.data === null, isLoading: q.isLoading || (!!q.data && !row), refetch: () => void q.refetch() };
 }
 
 export type AuctionBidRow = { bidder: Address; bid: AuctionBid };
 
+/** Every bid on one auction: bidders from BidPlaced events, current values from storage. */
 export function useAuctionBids(id: bigint | undefined) {
   const preview = usePreview();
-  const bidders = useReadContract({
-    ...base,
-    functionName: "getBidders",
-    args: [id!],
-    query: { enabled: nftAuctionEnabled && id !== undefined, refetchInterval: REFRESH_MS },
-  });
-  const addrs = (bidders.data ?? []) as readonly Address[];
-  const bids = useReadContracts({
-    contracts: addrs.map((a) => ({ ...base, functionName: "getBid", args: [id!, a] }) as const),
-    query: { enabled: nftAuctionEnabled && addrs.length > 0, refetchInterval: REFRESH_MS },
+  const client = usePublicClient();
+  const q = useQuery({
+    queryKey: ["nft-auction-bids", id?.toString()],
+    queryFn: async (): Promise<AuctionBidRow[]> => {
+      const core = await readAuction(client!, nftAuctionAddress!, id!);
+      const logs = await fetchAuctionLogs(client!, nftAuctionAddress!, id!, core.createdBlock || NFT_AUCTION_DEPLOY_BLOCK);
+      const placed = new Map<string, NftAuctionLog>();
+      const salts = new Map<string, Hex>();
+      for (const l of logs) {
+        if (l.name === "BidPlaced") placed.set(l.bidder.toLowerCase(), l); // last placement wins
+        if (l.name === "BidRevealed") salts.set(l.bidder.toLowerCase(), l.salt);
+      }
+      const times = await blockTimestamps(client!, [...placed.values()].map((l) => l.blockNumber));
+      return Promise.all(
+        [...placed.values()].map(async (l) => {
+          const bidder = (l as Extract<NftAuctionLog, { name: "BidPlaced" }>).bidder;
+          const b = await readAuctionBid(client!, nftAuctionAddress!, id!, bidder);
+          return {
+            bidder,
+            bid: { ...b, committedBlock: l.blockNumber, committedAt: times.get(l.blockNumber) ?? 0n, salt: salts.get(bidder.toLowerCase()) ?? ZERO_HASH },
+          };
+        }),
+      );
+    },
+    enabled: nftAuctionEnabled && !!client && id !== undefined,
+    refetchInterval: REFRESH_MS,
   });
   if (!nftAuctionEnabled) return { rows: preview.find((p) => p.row.id === id)?.bids ?? [], isLoading: false };
-  const rows: AuctionBidRow[] = [];
-  addrs.forEach((bidder, i) => {
-    const r = bids.data?.[i];
-    if (r?.status === "success") rows.push({ bidder, bid: r.result as AuctionBid });
-  });
-  return { rows, isLoading: bidders.isLoading || bids.isLoading };
+  return { rows: q.data ?? [], isLoading: q.isLoading };
 }
 
+/** The connected wallet's bid on one auction (storage only; undefined while loading or without a wallet). */
 export function useMyAuctionBid(id: bigint | undefined) {
   const { address } = useAccount();
-  return useReadContract({
-    ...base,
-    functionName: "getBid",
-    args: [id!, address!],
-    query: { enabled: nftAuctionEnabled && id !== undefined && !!address, refetchInterval: REFRESH_MS },
+  const client = usePublicClient();
+  return useQuery({
+    queryKey: ["nft-my-bid", id?.toString(), address],
+    queryFn: async (): Promise<AuctionBid> => {
+      const b = await readAuctionBid(client!, nftAuctionAddress!, id!, address!);
+      return { ...b, committedAt: 0n, committedBlock: 0n, salt: ZERO_HASH };
+    },
+    enabled: nftAuctionEnabled && !!client && id !== undefined && !!address,
+    refetchInterval: REFRESH_MS,
   });
 }
 
+/** What withdraw(id) would pay the connected wallet now — computed with the contract's own rules. */
 export function useWithdrawable(id: bigint | undefined) {
   const { address } = useAccount();
-  return useReadContract({
-    ...base,
-    functionName: "withdrawable",
-    args: [id!, address!],
-    query: { enabled: nftAuctionEnabled && id !== undefined && !!address, refetchInterval: REFRESH_MS },
+  const client = usePublicClient();
+  const now = useChainNow();
+  const q = useQuery({
+    queryKey: ["nft-withdrawable", id?.toString(), address],
+    queryFn: async () => {
+      const [core, bid] = await Promise.all([
+        readAuction(client!, nftAuctionAddress!, id!),
+        readAuctionBid(client!, nftAuctionAddress!, id!, address!),
+      ]);
+      return { core, bid };
+    },
+    enabled: nftAuctionEnabled && !!client && id !== undefined && !!address,
+    refetchInterval: REFRESH_MS,
+  });
+  const data = q.data && address && now !== undefined ? withdrawableAmount(q.data.core, q.data.bid, address, now) : undefined;
+  return { data, refetch: q.refetch };
+}
+
+/** Auction ids the connected wallet listed (as seller) or bid on. */
+export function useMyAuctionIds() {
+  const { address } = useAccount();
+  const client = usePublicClient();
+  return useQuery({
+    queryKey: ["nft-my-auction-ids", address],
+    queryFn: async () => {
+      const [selling, bidding] = await Promise.all([
+        fetchSellerAuctionIds(client!, nftAuctionAddress!, NFT_AUCTION_DEPLOY_BLOCK, address!),
+        fetchBidderAuctionIds(client!, nftAuctionAddress!, NFT_AUCTION_DEPLOY_BLOCK, address!),
+      ]);
+      return { selling, bidding };
+    },
+    enabled: nftAuctionEnabled && !!client && !!address,
+    refetchInterval: REFRESH_MS,
   });
 }
 
@@ -251,11 +294,9 @@ export function describeNftError(e: unknown): string {
 const NFT_TX_LABEL: Record<string, string> = {
   safeTransferFrom: "List NFT",
   placeBid: "Sealed bid",
-  updateBid: "Update bid",
   revealBid: "Reveal bid",
-  settle: "Settle auction",
+  settle: "Settle auction", // also the seller's cancel while Open with no bids
   withdraw: "Withdraw",
-  cancel: "Cancel auction",
 };
 
 type WriteRequest = { address: Address; abi: Abi; functionName: string; args: readonly unknown[]; value?: bigint };

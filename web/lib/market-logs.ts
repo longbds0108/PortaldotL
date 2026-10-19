@@ -26,8 +26,8 @@ const topicOf = (name: string) => {
 export const TENDER_CREATED = topicOf("TenderCreated");
 export const BID_SUBMITTED = topicOf("BidSubmitted");
 
-const uintTopic = (n: bigint) => toHex(n, { size: 32 });
-const addressTopic = (a: Address) => pad(a.toLowerCase() as Hex, { size: 32 });
+export const uintTopic = (n: bigint) => toHex(n, { size: 32 });
+export const addressTopic = (a: Address) => pad(a.toLowerCase() as Hex, { size: 32 });
 
 function decode(logs: Log[]): MarketLog[] {
   const out: MarketLog[] = [];
@@ -47,18 +47,21 @@ function decode(logs: Log[]): MarketLog[] {
   return out.sort((a, b) => (a.blockNumber === b.blockNumber ? a.logIndex - b.logIndex : a.blockNumber < b.blockNumber ? -1 : 1));
 }
 
-async function getLogs(client: PublicClient, address: Address, fromBlock: bigint, topics: (Hex | null)[]): Promise<MarketLog[]> {
+/** One raw eth_getLogs call (viem's getLogs helpers insist on an ABI event per call). */
+export async function fetchRawLogs(client: PublicClient, address: Address, fromBlock: bigint, topics: (Hex | null)[]): Promise<Log[]> {
   const logs = await client.request({
     method: "eth_getLogs",
     params: [{ address, fromBlock: toHex(fromBlock), toBlock: "latest", topics }],
   });
-  return decode(
-    (logs as Log<Hex, Hex>[]).map((l) => ({
-      ...l,
-      blockNumber: l.blockNumber != null ? BigInt(l.blockNumber) : null,
-      logIndex: l.logIndex != null ? Number(l.logIndex) : null,
-    })) as Log[],
-  );
+  return (logs as Log<Hex, Hex>[]).map((l) => ({
+    ...l,
+    blockNumber: l.blockNumber != null ? BigInt(l.blockNumber) : null,
+    logIndex: l.logIndex != null ? Number(l.logIndex) : null,
+  })) as Log[];
+}
+
+async function getLogs(client: PublicClient, address: Address, fromBlock: bigint, topics: (Hex | null)[]): Promise<MarketLog[]> {
+  return decode(await fetchRawLogs(client, address, fromBlock, topics));
 }
 
 /** All events of one tender, oldest first. `fromBlock` = its createdBlock. */
