@@ -22,6 +22,11 @@ const MAX_INLINE = 4 * 1024 * 1024;
 const GATEWAY_TIMEOUT_MS = 8_000;
 const GATEWAYS = [...new Set([IPFS_GATEWAY, "https://gateway.pinata.cloud/ipfs/", "https://ipfs.io/ipfs/", "https://dweb.link/ipfs/"])];
 const IMMUTABLE = "public, max-age=31536000, s-maxage=31536000, immutable";
+// Documents are untrusted (any IPFS file, e.g. an SVG with a script): never let them run as our origin if opened directly.
+const UNTRUSTED = {
+  "content-security-policy": "default-src 'none'; img-src data:; style-src 'unsafe-inline'; sandbox",
+  "x-content-type-options": "nosniff",
+};
 
 type Doc = { body: Uint8Array<ArrayBuffer>; type: string } | { redirect: string };
 
@@ -75,5 +80,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ digest:
 
   if (memory.size >= MEMORY_MAX) memory.delete(memory.keys().next().value!);
   memory.set(digest, doc);
-  return new NextResponse(doc.body, { headers: { "content-type": doc.type, "cache-control": IMMUTABLE } });
+  return new NextResponse(doc.body, { headers: { "content-type": doc.type, "cache-control": IMMUTABLE, ...UNTRUSTED } });
 }

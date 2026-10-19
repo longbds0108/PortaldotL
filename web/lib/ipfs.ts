@@ -1,4 +1,4 @@
-import { candidateUris, digestOfUri, isDigestUri } from "./cid";
+import { candidateUris, digestOfUri, isDigestUri, uriToDigest } from "./cid";
 import { IPFS_GATEWAY } from "./env";
 
 /**
@@ -64,8 +64,9 @@ export function resolveUri(uri: string): string {
  * IPFS content is immutable), then fall back to every direct location (raw CID, dag-pb CID, dev store) in turn.
  */
 export async function fetchDocument(uri: string): Promise<Response> {
-  if (isDigestUri(uri) && typeof window !== "undefined") {
-    const res = await fetch(`/api/doc/${digestOfUri(uri).slice(2)}`).catch(() => undefined);
+  const proxied = proxyPath(uri);
+  if (proxied && typeof window !== "undefined") {
+    const res = await fetch(proxied).catch(() => undefined);
     if (res?.ok) return res;
     // The proxy already tried every gateway; only retry directly if the proxy itself was unreachable or failed.
     if (res?.status === 404) throw new Error(`Document not found on IPFS yet (${uri.slice(0, 40)})`);
@@ -78,6 +79,16 @@ export async function fetchDocument(uri: string): Promise<Response> {
     last = res?.status ?? 0;
   }
   throw new Error(`Could not load ${uri.slice(0, 40)} (${last || "network error"})`);
+}
+
+/** /api/doc path for anything addressed by a sha2-256 CID (on-chain digests and ipfs:// CIDs), else undefined. */
+export function proxyPath(uri: string): string | undefined {
+  try {
+    const digest = isDigestUri(uri) ? digestOfUri(uri) : uri.startsWith("ipfs://") ? uriToDigest(uri) : undefined;
+    return digest ? `/api/doc/${digest.slice(2)}` : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function fetchJson(uri: string): Promise<unknown> {

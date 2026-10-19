@@ -27,13 +27,13 @@ import { cn } from "@/lib/utils";
 import { useAppliedTheme } from "@/lib/preferences";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 
-const NAV: { href: string; label: string; icon: LucideIcon }[] = [
+const NAV: { href: string; label: string; icon: LucideIcon; badge?: string }[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/marketplace", label: "Marketplace", icon: Store },
   { href: "/tenders/new", label: "Create Tender", icon: FilePlus2 },
   { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
   { href: "/my/bids", label: "My Bids", icon: Gavel },
-  { href: "/nft", label: "NFT Auctions", icon: Gem },
+  { href: "/nft", label: "NFT Auctions", icon: Gem, badge: "Soon" },
   { href: "/agent", label: "Agent", icon: Bot },
   { href: "/profile", label: "Profile & Settings", icon: UserCog },
 ];
@@ -270,9 +270,14 @@ function NavItem({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
             transition={transition}
-            className="relative z-[1]"
+            className="relative z-[1] flex items-center gap-2"
           >
             {item.label}
+            {item.badge && (
+              <span className="rounded-full border border-[rgba(131,170,255,.3)] px-1.5 py-px text-[0.6rem] font-medium uppercase tracking-[0.06em] text-link">
+                {item.badge}
+              </span>
+            )}
           </motion.span>
         )}
       </AnimatePresence>

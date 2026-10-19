@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { EmptyState } from "@/components/empty-state";
 import { ConfigGate } from "@/components/gates";
-import { AuctionBrowser } from "@/components/nft/auction-browser";
+import { NftComingSoonNotice } from "@/components/nft/coming-soon";
 import { PageHeader } from "@/components/page-header";
 import { TenderCard } from "@/components/tender-card";
 import { Button } from "@/components/ui/button";
@@ -94,14 +94,14 @@ export default function MarketplacePage() {
         title="Marketplace"
         description={
           isNft
-            ? "Sealed-bid auctions for ERC-721 NFTs on PortaldotV3. Collectors bid in tPOTv3 and prices stay sealed until bidding ends."
+            ? "Coming soon: sealed-bid auctions for ERC-721 NFTs on PortaldotV3, built on the same commit–reveal engine as tenders."
             : "Public tenders any wallet except the buyer can bid on. Budgets are public — bid amounts stay sealed until the submission deadline."
         }
         actions={
           <Button asChild>
             {isNft ? (
-              <Link href="/nft/list">
-                <Plus /> List NFT
+              <Link href="/nft">
+                <Gem /> NFT roadmap
               </Link>
             ) : (
               <Link href="/tenders/new">
@@ -127,7 +127,7 @@ export default function MarketplacePage() {
       </div>
 
       {isNft ? (
-        <AuctionBrowser />
+        <NftComingSoonNotice />
       ) : (
         <ConfigGate>
           <div className="mb-6 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
