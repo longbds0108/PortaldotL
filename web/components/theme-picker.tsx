@@ -2,7 +2,7 @@
 
 import { Monitor, Moon, Sun } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { useId, useRef } from "react";
+import { useId, useRef, useSyncExternalStore } from "react";
 import { setPreference, usePreferences, type ThemeChoice } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,8 @@ const THEMES: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
  * Light / Dark / System segmented control with a sliding thumb (radio-group semantics; arrow keys move the choice).
  * Vertical + icon-only fits the collapsed sidebar rail.
  */
+const noopSubscribe = () => () => {};
+
 export function ThemePicker({ vertical = false, labels = true, className }: { vertical?: boolean; labels?: boolean; className?: string }) {
   const { theme } = usePreferences();
   const reduce = useReducedMotion();
@@ -23,7 +25,15 @@ export function ThemePicker({ vertical = false, labels = true, className }: { ve
   // Several pickers can be mounted at once (sidebar + mobile menu): keep their thumbs independent.
   const thumbId = useId();
 
-  const choose = (v: ThemeChoice) => setPreference("theme", v);
+  // The stored choice is only known after hydration (the server renders the default), so the first switch would
+  // slide the thumb on every page load. Animate only when the person picks a theme here.
+  const userPicked = useRef(false);
+  // Before hydration the stored choice is unknown: show no thumb rather than one on the wrong option.
+  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const choose = (v: ThemeChoice) => {
+    userPicked.current = true;
+    setPreference("theme", v);
+  };
   const move = (dir: 1 | -1) => {
     const i = THEMES.findIndex((t) => t.value === theme);
     choose(THEMES[(i + dir + THEMES.length) % THEMES.length].value);
@@ -59,13 +69,13 @@ export function ThemePicker({ vertical = false, labels = true, className }: { ve
             className={cn(
               "relative flex h-9 items-center justify-center gap-1.5 rounded-[11px] text-[0.72rem] font-medium transition-colors duration-200",
               vertical ? "w-full shrink-0" : "flex-1",
-              on ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+              on && hydrated ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {on && (
+            {on && hydrated && (
               <motion.span
                 layoutId={`theme-thumb-${thumbId}`}
-                transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
+                transition={reduce || !userPicked.current ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
                 className="absolute inset-0 rounded-[11px] bg-primary shadow-sm"
               />
             )}
