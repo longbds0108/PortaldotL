@@ -276,10 +276,10 @@
   /* ───────── Hero → next section ───────── */
 
   function heroScroll() {
-    // Copy lifts away; the dashboard flattens, grows slightly and rises as you scroll out of the hero.
+    // Copy lifts away at full brightness; the dashboard flattens, grows slightly and rises as you scroll out of the hero.
     gsap
       .timeline({ scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: 0.9 } })
-      .to(".hero__copy", { y: -150, opacity: 0.08, ease: "none" }, 0)
+      .to(".hero__copy", { y: -150, ease: "none" }, 0)
       .to(dash, { rotationY: 0, rotationX: 0, ease: "none" }, 0)
       .to(".hero__stage", { y: -70, scale: 1.05, ease: "none" }, 0)
       .to(floatA, { y: -60, opacity: 0, ease: "none" }, 0);
