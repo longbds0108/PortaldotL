@@ -517,19 +517,33 @@ main,
   margin-bottom: -0.04em;
   white-space: nowrap;
 }
+/* Same moving sheen as the app's page titles (.title-sheen in web/app/globals.css) */
 .hero__title .line > span {
   display: inline-block;
-  background: linear-gradient(180deg, #fff 30%, #c9c4cf);
+  background: linear-gradient(105deg, #fff 0%, #efedf4 30%, #c3d6ff 46%, #83aaff 50%, #c3d6ff 54%, #efedf4 70%, #fff 100%);
+  background-size: 230% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: title-sheen 8s linear infinite;
+}
+@keyframes title-sheen {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 230% 50%;
+  }
 }
 .hero__title em {
   letter-spacing: -0.02em;
-  background: linear-gradient(100deg, var(--cream-hi) 10%, #fff 45%, var(--brand-soft) 110%);
+  /* the accent word sweeps in step with its line, on a blue base */
+  background: linear-gradient(105deg, #a9c3ff 0%, #c3d6ff 30%, #fff 46%, var(--cream-hi) 50%, #fff 54%, #c3d6ff 70%, #a9c3ff 100%);
+  background-size: 230% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation: title-sheen 8s linear infinite;
 }
 
 .hero__lead {
