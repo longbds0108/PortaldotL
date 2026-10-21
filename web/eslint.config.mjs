@@ -5,7 +5,7 @@ import { FlatCompat } from "@eslint/eslintrc";
 const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta.url)) });
 
 const config = [
-  { ignores: ["scripts/**", ".next/**", "node_modules/**", "lib/abi.ts", "lib/nft-abi.ts", "next-env.d.ts", "playwright-report/**"] },
+  { ignores: ["scripts/**", ".next/**", "node_modules/**", "lib/abi.ts", "lib/nft-abi.ts", "next-env.d.ts", "playwright-report/**", "public/home/assets/js/vendor/**"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter_Tight } from "next/font/google";
+import { preconnect } from "react-dom";
+import { PORTALDOT_RPC_URL } from "@/lib/env";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -21,6 +23,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#111015" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Every page reads the chain on load; open the RPC connection (DNS + TLS) while the JS is still downloading.
+  preconnect(new URL(PORTALDOT_RPC_URL).origin, { crossOrigin: "anonymous" });
   return (
     <html lang="en" className={interTight.variable} suppressHydrationWarning>
       <body className="min-h-dvh font-sans">

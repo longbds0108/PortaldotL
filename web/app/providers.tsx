@@ -8,6 +8,7 @@ import { MotionConfig } from "motion/react";
 import { WagmiProvider } from "wagmi";
 import { useAppliedTheme } from "@/lib/preferences";
 import { wagmiConfig } from "@/lib/wagmi";
+import { ScrollIdle } from "@/components/scroll-idle";
 import { Toaster } from "@/components/toaster";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: ReactNode }) {
         >
           <MotionConfig reducedMotion="user">{children}</MotionConfig>
           <Toaster />
+          <ScrollIdle />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

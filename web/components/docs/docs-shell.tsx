@@ -36,13 +36,13 @@ export function DocsShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-[#050b14] text-white">
       {/* ───────── top bar ───────── */}
-      <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-[#050b14]/90 backdrop-blur-[14px]">
+      <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-[#050b14]/[0.98]">
         <div className="mx-auto flex h-[74px] max-w-[1440px] items-center gap-4 px-4 sm:px-8 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-          <Link href="/" aria-label="Plinths home" className="flex items-center">
+          <a href="/" aria-label="Plinths home" className="flex items-center">
             <BrandLogo priority className="h-7 sm:h-8" />
-          </Link>
+          </a>
           <nav className="hidden items-center gap-1 rounded-full border border-white/[0.09] bg-white/[0.03] p-1 lg:flex" aria-label="Site">
-            <TopLink href="/#lifecycle">Lifecycle</TopLink>
+            <TopLink href="/#features">Product</TopLink>
             <TopLink href="/#how">How it works</TopLink>
             <TopLink href="/docs" active>
               Docs
@@ -69,7 +69,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* ───────── breadcrumb strip ───────── */}
-      <div className="sticky top-[74px] z-30 border-b border-white/[0.07] bg-[#050b14]/90 backdrop-blur-[14px]">
+      <div className="sticky top-[74px] z-30 border-b border-white/[0.07] bg-[#050b14]/[0.98]">
         <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-8">
           <p className="flex min-w-0 items-center gap-2 text-[14px]">
             <Link href="/docs" className="shrink-0 font-semibold text-white">
@@ -116,15 +116,19 @@ export function DocsShell({ children }: { children: ReactNode }) {
 }
 
 function TopLink({ href, active, children }: { href: string; active?: boolean; children: ReactNode }) {
+  const className = cn(
+    "rounded-full px-4 py-2 text-[15px] text-[#c4c8db] transition-colors hover:text-white",
+    active && "bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)]",
+  );
+  // Homepage anchors ("/#…") point at the static page, so they need a full navigation.
+  if (href.startsWith("/#"))
+    return (
+      <a href={href} className={className}>
+        {children}
+      </a>
+    );
   return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "rounded-full px-4 py-2 text-[15px] text-[#c4c8db] transition-colors hover:text-white",
-        active && "bg-white/[0.08] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)]",
-      )}
-    >
+    <Link href={href} aria-current={active ? "page" : undefined} className={className}>
       {children}
     </Link>
   );

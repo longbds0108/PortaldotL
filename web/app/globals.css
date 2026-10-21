@@ -43,7 +43,7 @@
   --surface-glow: rgba(232, 227, 213, 0.095);
   --surface-shadow: rgba(0, 0, 0, 0.19);
   --well: rgba(12, 10, 16, 0.38);
-  --header: rgba(23, 20, 27, 0.9);
+  --header: rgba(23, 20, 27, 0.985);
   --header-solid: rgba(23, 20, 27, 0.97);
   --body-glow-1: rgba(232, 227, 213, 0.11);
   --body-glow-2: rgba(63, 145, 255, 0.055);
@@ -99,7 +99,7 @@
   --surface-glow: rgba(11, 83, 191, 0.045);
   --surface-shadow: rgba(40, 32, 52, 0.07);
   --well: rgba(23, 21, 27, 0.035);
-  --header: rgba(255, 255, 255, 0.86);
+  --header: rgba(255, 255, 255, 0.98);
   --header-solid: rgba(255, 255, 255, 0.97);
   --body-glow-1: rgba(232, 227, 213, 0.75);
   --body-glow-2: rgba(63, 145, 255, 0.07);
@@ -166,12 +166,20 @@
   }
   body {
     @apply text-foreground antialiased;
+    background: var(--background);
+    font-feature-settings: "tnum" 1;
+  }
+  /* The glow stays put while the page scrolls. A fixed layer is composited once; `background-attachment: fixed`
+     on body made Chrome repaint the whole viewport on every scroll frame. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background:
       radial-gradient(ellipse 55% 380px at 66% -125px, var(--body-glow-1), transparent 72%),
-      radial-gradient(ellipse 45% 420px at 90% 40%, var(--body-glow-2), transparent 75%),
-      var(--background);
-    background-attachment: fixed;
-    font-feature-settings: "tnum" 1;
+      radial-gradient(ellipse 45% 420px at 90% 40%, var(--body-glow-2), transparent 75%);
   }
   ::selection {
     background: rgba(11, 83, 191, 0.55);
@@ -312,4 +320,12 @@
     animation: none;
     background-position: 50% 50%;
   }
+}
+
+/* The sheens animate background-position, which repaints every frame; hold them while the page scrolls
+   (components/scroll-idle.tsx) so the scroll gets the whole frame budget. */
+html[data-scrolling] .title-sheen,
+html[data-scrolling] .surface::after,
+html[data-scrolling] .gradient-border::after {
+  animation-play-state: paused;
 }

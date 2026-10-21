@@ -97,9 +97,10 @@ function useIsActive() {
 function Brand() {
   const theme = useAppliedTheme();
   return (
-    <Link href="/" className="flex min-h-10 items-center" aria-label="Plinths home">
+    // A plain link: "/" is the static homepage (public/home), which the client router can neither prefetch nor render.
+    <a href="/" className="flex min-h-10 items-center" aria-label="Plinths home">
       <BrandLogo priority onLight={theme === "light"} className="h-7 sm:h-8" />
-    </Link>
+    </a>
   );
 }
 
@@ -110,7 +111,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-2 z-40 mx-2.5 mt-2 sm:top-3.5 sm:mx-6 sm:mt-3.5">
-      <div className="flex h-14 items-center gap-3 rounded-[15px] border border-overlay/[0.055] bg-[var(--header)] px-3 shadow-[0_16px_45px_var(--surface-shadow)] backdrop-blur-[16px] sm:h-[62px] sm:px-5">
+      <div className="flex h-14 items-center gap-3 rounded-[15px] border border-overlay/[0.055] bg-[var(--header)] px-3 shadow-[0_16px_45px_var(--surface-shadow)] sm:h-[62px] sm:px-5">
         <Brand />
         <div className="ml-auto flex items-center gap-2">
           {/* Desktop: theme switch sits in the header; on small screens it lives in the menu. */}
