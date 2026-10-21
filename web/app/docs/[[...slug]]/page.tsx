@@ -32,7 +32,7 @@ export default async function DocPage({ params }: Props) {
         <i className="size-1.5 rounded-full bg-[#8fb4ff]" />
         {String(doc.index + 1).padStart(2, "0")}
       </p>
-      <h1 className="mt-4 text-[clamp(1.9rem,4vw,2.25rem)] font-semibold leading-tight tracking-[-0.025em] text-white">{content.title}</h1>
+      <h1 className="title-sheen mt-4 text-[clamp(1.9rem,4vw,2.25rem)] font-semibold leading-tight tracking-[-0.025em]">{content.title}</h1>
       {content.body}
 
       <nav aria-label="Pagination" className="mt-16 grid grid-cols-2 border-t border-white/[0.08]">

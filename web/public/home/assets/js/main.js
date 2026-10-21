@@ -190,6 +190,15 @@
   // Groups whose bars, rings and counters fill in once they are on screen
   const litGroups = $$(".trust__grid, .desk__grid, .numbers__row");
 
+  /* ───────── Headline sheens run only while their headline is on screen ───────── */
+
+  const sheenObserver = new IntersectionObserver((entries) =>
+    entries.forEach((e) => e.target.classList.toggle("is-sheen", e.isIntersecting)),
+  );
+  $$(".hero__title, .features__head h2, .product__head h2, .how__head h2, .sec-head h2, .cta__title").forEach((h) =>
+    sheenObserver.observe(h),
+  );
+
   /* ───────── Without motion: show final states and stop here ───────── */
 
   if (!motion) {

@@ -525,7 +525,7 @@ main,
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: title-sheen 8s linear infinite;
+  animation: title-sheen 8s linear infinite paused;
 }
 @keyframes title-sheen {
   from {
@@ -543,7 +543,7 @@ main,
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: title-sheen 8s linear infinite;
+  animation: title-sheen 8s linear infinite paused;
 }
 
 .hero__lead {
@@ -982,11 +982,47 @@ main,
   line-height: 1;
   letter-spacing: -0.048em;
 }
+/* Big headlines carry the hero's moving sheen. It is paused until the headline is on screen (.is-sheen, set in
+   main.js), so off-screen headlines cost nothing while you scroll. */
+.features__head h2,
+.product__head h2,
+.how__head h2,
+.sec-head h2,
+.cta__title {
+  background: linear-gradient(105deg, #fff 0%, #efedf4 30%, #c3d6ff 46%, #83aaff 50%, #c3d6ff 54%, #efedf4 70%, #fff 100%);
+  background-size: 230% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: title-sheen 8s linear infinite paused;
+}
 .features__head h2 em,
 .product__head h2 em,
 .how__head h2 em,
+.sec-head h2 em {
+  background: linear-gradient(105deg, #a9c3ff 0%, #c3d6ff 30%, #fff 46%, var(--cream-hi) 50%, #fff 54%, #c3d6ff 70%, #a9c3ff 100%);
+  background-size: 230% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: title-sheen 8s linear infinite paused;
+}
+/* On the blue CTA card the sweep stays cream and white so the words keep their contrast */
+.cta__title {
+  background-image: linear-gradient(105deg, #fff 0%, #f3efe5 30%, #fff 46%, #cfe2ff 50%, #fff 54%, #f3efe5 70%, #fff 100%);
+}
 .cta__title em {
-  color: var(--cream-hi);
+  background: linear-gradient(105deg, var(--cream-hi) 0%, #e8e3d5 30%, #fff 46%, #fff 54%, #e8e3d5 70%, var(--cream-hi) 100%);
+  background-size: 230% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: title-sheen 8s linear infinite paused;
+}
+h2.is-sheen,
+:is(h1, h2).is-sheen em,
+.hero__title.is-sheen .line > span {
+  animation-play-state: running;
 }
 
 .features__grid {
@@ -1891,9 +1927,6 @@ main,
   font-weight: 600;
   line-height: 1.02;
   letter-spacing: -0.045em;
-}
-.sec-head h2 em {
-  color: var(--cream-hi);
 }
 .sec-head__aside {
   max-width: 26rem;
