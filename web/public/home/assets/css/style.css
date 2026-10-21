@@ -1,8 +1,8 @@
 /*
  * Plinths homepage.
  * Brand tokens come from the Plinths app (web/app/globals.css): ink surfaces, cream primary (#e8e3d5) that turns
- * brand blue (#0b53bf) on hover, Inter Tight. The cinematic layer adds a near-black stage, blue light and
- * Instrument Serif italics for accents, JetBrains Mono for interface labels.
+ * brand blue (#0b53bf) on hover, Inter Tight (the only typeface). The cinematic layer adds a near-black stage and
+ * blue light; accents are set apart by colour, not by a second font.
  */
 
 :root {
@@ -30,8 +30,6 @@
   --gutter: clamp(16px, 4vw, 56px);
   --maxw: 1280px;
   --sans: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   /* Brand surface for the full-colour moments (intro, brand panel, CTA card); built only from the blues above. */
   --brand-surface:
@@ -96,15 +94,11 @@ ul {
 }
 
 em {
-  font-family: var(--serif);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-style: normal;
 }
 
 .mono {
-  font-family: var(--mono);
-  font-feature-settings: "zero" 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .dim {
@@ -416,27 +410,6 @@ main,
   justify-content: flex-end;
   gap: 12px;
 }
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 999px;
-  border: 1px solid var(--line-strong);
-  background: rgba(255, 255, 255, 0.02);
-  color: var(--text-soft);
-  font-size: 12.5px;
-  white-space: nowrap;
-}
-.status__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 10px var(--success);
-  animation: pulse 2.4s ease-in-out infinite;
-}
 
 .nav__toggle {
   display: none;
@@ -543,7 +516,6 @@ main,
   color: transparent;
 }
 .hero__title em {
-  font-size: 1.08em;
   letter-spacing: -0.02em;
   background: linear-gradient(100deg, var(--cream-hi) 10%, #fff 45%, var(--brand-soft) 110%);
   -webkit-background-clip: text;
@@ -563,11 +535,6 @@ main,
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 38px;
-}
-.hero__note {
-  margin-top: 22px;
-  color: var(--dim);
-  font-size: 12.5px;
 }
 
 .hero__stage {
@@ -925,6 +892,20 @@ main,
     transform 0.4s var(--ease),
     box-shadow 0.4s var(--ease);
 }
+.tile img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+/* Logos that are already a full-colour square fill the tile */
+.tile--fill {
+  overflow: hidden;
+}
+.tile--fill img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .stack__row li:hover .tile {
   transform: translateY(-4px);
   box-shadow:
@@ -983,7 +964,6 @@ main,
 .how__head h2 em,
 .cta__title em {
   color: var(--cream-hi);
-  font-size: 1.06em;
 }
 
 .features__grid {
@@ -1339,7 +1319,6 @@ main,
   left: 50%;
   transform: translateX(-50%);
   color: var(--cyan);
-  font-family: var(--mono);
   font-style: normal;
   font-size: 11px;
 }
@@ -1892,7 +1871,6 @@ main,
 }
 .sec-head h2 em {
   color: var(--cream-hi);
-  font-size: 1.06em;
 }
 .sec-head__aside {
   max-width: 26rem;
@@ -1986,7 +1964,6 @@ main,
 }
 .seal__text em {
   color: var(--cream-hi);
-  font-size: 1.06em;
 }
 .seal__text .w {
   display: inline-block;
@@ -2249,7 +2226,7 @@ main,
   order: -1;
   margin-top: 4px;
   color: var(--dim);
-  font: 11px var(--mono);
+  font: 11px var(--sans);
   text-align: center;
 }
 /* Each column fills bottom-up: cell k is lit by how far --v passes k/4 (only once the grid is in view). */
@@ -2330,7 +2307,7 @@ main,
   border-radius: 50%;
   border: 2px solid var(--surface-solid);
   background: linear-gradient(150deg, var(--brand-mid), var(--brand));
-  font: 500 12px var(--mono);
+  font: 500 12px var(--sans);
   font-style: normal;
 }
 .faces i.is-wait {
@@ -2672,9 +2649,6 @@ main,
 /* ───────── Responsive ───────── */
 
 @media (max-width: 1180px) {
-  .status {
-    display: none;
-  }
   .float-card--rep {
     left: -16px;
   }

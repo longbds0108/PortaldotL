@@ -15,8 +15,6 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
-  const RPC_URL = "https://test-evm-rpc-v3.portaldot.dev";
-
   /* ───────── Navigation ───────── */
 
   const nav = $("#nav");
@@ -36,32 +34,6 @@
   mnav.addEventListener("click", (e) => e.target.closest("a") && setMenu(false));
   document.addEventListener("keydown", (e) => e.key === "Escape" && !mnav.hidden && (setMenu(false), toggle.focus()));
   window.addEventListener("resize", () => window.innerWidth > 860 && !mnav.hidden && setMenu(false));
-
-  /* ───────── Live chain status (falls back silently to the static label) ───────── */
-
-  const chainStatus = $("#chain-status");
-  async function readBlock() {
-    if (document.hidden) return;
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 6000);
-    try {
-      const res = await fetch(RPC_URL, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] }),
-        signal: ctrl.signal,
-      });
-      const json = await res.json();
-      const n = parseInt(json.result, 16);
-      if (Number.isFinite(n)) chainStatus.textContent = `PortaldotV3 · blk ${n.toLocaleString("en-US")}`;
-    } catch {
-      /* keep "PortaldotV3 testnet" */
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-  readBlock();
-  setInterval(readBlock, 15000);
 
   /* ───────── Commit preview: the real commitment, computed live ───────── */
 
