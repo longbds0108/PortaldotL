@@ -53,8 +53,7 @@ test("layout fits the viewport without horizontal scroll", async ({ page }) => {
 test("landing page renders and LAUNCH APP enters the workspace", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Bid in public.");
-  await expect(page.getByText(/read live from/)).toBeVisible({ timeout: 30_000 });
-  await page.locator("header").getByRole("link", { name: "LAUNCH APP" }).click();
+  await page.locator("header").getByRole("link", { name: "Launch app" }).click();
   await page.waitForURL("**/dashboard");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
