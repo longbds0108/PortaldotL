@@ -2806,11 +2806,20 @@ h2.is-sheen,
     order: -1;
     top: 72px;
     z-index: 3;
-    height: 440px;
+    height: auto;
   }
+  /* Stack the previews in one grid cell so the stage is as tall as the tallest one, instead of a fixed height that
+     clips them at phone widths. */
   .stage {
+    display: grid;
+    height: auto;
     background: linear-gradient(180deg, #16141b, #0c0b10);
     isolation: isolate;
+  }
+  .pv {
+    position: relative;
+    inset: auto;
+    grid-area: 2 / 1;
   }
   .feature {
     min-height: 62vh;
@@ -2898,12 +2907,32 @@ h2.is-sheen,
     display: none;
   }
 
-  .features__stage {
-    height: 420px;
-  }
   .pv {
-    gap: 14px;
-    padding: 20px 16px;
+    gap: 12px;
+    padding: 16px;
+  }
+  .pv__head b {
+    font-size: 1.05rem;
+  }
+  .field {
+    gap: 6px;
+  }
+  .field__input {
+    height: 46px;
+    padding: 0 16px;
+  }
+  .field__input input {
+    font-size: 1.3rem;
+  }
+  .kv > div {
+    padding: 5px 0;
+  }
+  .hashout {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .hashout code {
+    font-size: 11px;
   }
   .nft {
     grid-template-columns: 110px 1fr;
