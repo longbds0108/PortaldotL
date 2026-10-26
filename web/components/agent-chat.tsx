@@ -1,10 +1,11 @@
 "use client";
 
 import { Bot, Loader2, Send, UserRound } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, Fragment, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { parseMarkdown, type Inline } from "@/lib/chat-markdown";
 import { useAppliedTheme } from "@/lib/preferences";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -54,7 +55,11 @@ export function AgentChat() {
           ) : messages.map((message, index) => (
             <div key={index} className={`flex gap-2.5 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               {message.role === "assistant" && <Bot className="mt-1 size-4 shrink-0 text-brand" />}
-              <p className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-overlay/[0.06]"}`}>{message.content}</p>
+              {message.role === "user" ? (
+                <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-primary px-3.5 py-2.5 text-sm leading-relaxed text-primary-foreground">{message.content}</p>
+              ) : (
+                <div className="max-w-[85%] space-y-2 rounded-2xl bg-overlay/[0.06] px-3.5 py-2.5 text-sm leading-relaxed"><Markdown text={message.content} /></div>
+              )}
               {message.role === "user" && <UserRound className="mt-1 size-4 shrink-0 text-muted-foreground" />}
             </div>
           ))}
@@ -87,4 +92,29 @@ export function AgentChat() {
       </CardContent>
     </Card>
   );
+}
+
+/** Agent replies are Markdown; render the common subset as elements, never as HTML. */
+function Markdown({ text }: { text: string }) {
+  return parseMarkdown(text).map((block, i) => {
+    if (block.kind === "h") return <p key={i} className="font-semibold"><Inlines items={block.inlines} /></p>;
+    if (block.kind === "pre") return <pre key={i} className="overflow-x-auto rounded-xl bg-overlay/[0.06] p-3 font-mono text-[0.76rem]">{block.text}</pre>;
+    if (block.kind === "p") return <p key={i}>{block.lines.map((line, j) => <Fragment key={j}>{j > 0 && <br />}<Inlines items={line} /></Fragment>)}</p>;
+    const List = block.kind;
+    return (
+      <List key={i} className={`space-y-1 pl-5 ${List === "ul" ? "list-disc" : "list-decimal"}`}>
+        {block.items.map((item, j) => <li key={j}><Inlines items={item} /></li>)}
+      </List>
+    );
+  });
+}
+
+function Inlines({ items }: { items: Inline[] }) {
+  return items.map((item, i) => {
+    if (item.kind === "strong") return <strong key={i} className="font-semibold">{item.text}</strong>;
+    if (item.kind === "em") return <em key={i}>{item.text}</em>;
+    if (item.kind === "code") return <code key={i} className="rounded bg-overlay/[0.08] px-1 font-mono text-[0.82rem]">{item.text}</code>;
+    if (item.kind === "link") return <a key={i} href={item.href} target="_blank" rel="noopener noreferrer" className="text-link hover:underline">{item.text}</a>;
+    return <Fragment key={i}>{item.text}</Fragment>;
+  });
 }
