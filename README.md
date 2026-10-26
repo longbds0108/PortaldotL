@@ -16,12 +16,57 @@ Budgets, bid amounts, and bonds use the EVM's 18-decimal unit for tPOTv3 (the na
 
 **Deployed on PortaldotV3 Testnet:** `BlindBidMarket` at `0x6e79287f62B47307B5b7349072c51AdAF8833d54` (block `91531`, treasury `0xF9642B695D4DDf58599c953a791F94c2e96b6a57`).
 
+## Contract tests (Foundry)
+
+The Foundry project lives in `contracts/`, not the repo root: config in [`contracts/foundry.toml`](contracts/foundry.toml), import paths in [`contracts/remappings.txt`](contracts/remappings.txt), and `forge-std` and OpenZeppelin committed under `contracts/lib/`. A plain clone is enough; no `forge install`, `npm install`, `.env` or network RPC is needed to run the tests.
+
+**1. Install Foundry** (macOS/Linux; on Windows use WSL):
+
+```bash
+curl -L https://foundry.paradigm.xyz | bash
+source ~/.zshenv   # or ~/.bashrc; or open a new terminal so ~/.foundry/bin is on PATH
+foundryup
+forge --version    # tested with forge 1.8.4
+```
+
+The first build downloads solc 0.8.24 automatically (internet needed once).
+
+**2. Run the tests:**
+
+```bash
+cd contracts
+forge test                  # all suites; expected: "57 tests passed, 0 failed, 0 skipped (57 total tests)"
+# or, from the repo root:  forge test --root contracts
+```
+
+| Suite | File | Tests |
+|---|---|---|
+| `BlindBidMarket` (tender, commit–reveal, bond, award) | `test/BlindBidMarket.t.sol` | 26 (4 fuzz) |
+| `SealedNFTAuction` | `test/SealedNFTAuction.t.sol` | 19 (2 fuzz) |
+| `DisputeRegistry` | `test/DisputeRegistry.t.sol` | 10 (1 fuzz) |
+| `NFTCommitmentLib` (TS ↔ Solidity hash vectors) | `test/NFTCommitmentLib.t.sol` | 2 (1 fuzz) |
+| **Total** | | **57** (49 unit + 8 fuzz) |
+
+**3. Useful variants:**
+
+```bash
+forge test -vvv                                  # traces for failing tests
+forge test --match-contract BlindBidMarketTest   # one suite
+forge test --match-test testFuzz                 # fuzz tests only (512 runs each by default)
+FOUNDRY_PROFILE=ci forge test                    # 10,000 fuzz runs each (about 2 s)
+forge coverage --ir-minimum --report summary     # line/branch coverage (via_ir needs --ir-minimum)
+forge build --sizes                              # bytecode size (PortaldotV3 charges deposit per byte)
+forge test --list                                # list every test function
+```
+
+`test_storageLayoutMatchesApp` checks that the storage slots the web app reads (`web/lib/market-storage.ts`) match the contract. The commitment tests read `test/fixtures/*.json`, which the web tests also use, so the TS and Solidity hashes are checked against the same vectors.
+
 ## Contracts (`contracts/`)
 
 ```bash
 cd contracts
 cp .env.example .env       # set PRIVATE_KEY and mapped account funding
-forge build && forge test -vvv  # local compilation and contract tests
+forge build && forge test  # local compilation and contract tests (see "Contract tests (Foundry)")
 npm install
 set -a; source .env; set +a
 npm run compile

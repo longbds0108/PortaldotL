@@ -1,3 +1,6 @@
+# Foundry project for the BlindBid contracts. Run from contracts/, or from the repo root with
+# `forge test --root contracts`. Dependencies are vendored in lib/ (no `forge install` needed);
+# import paths come from remappings.txt. See README "Contract tests (Foundry)".
 [profile.default]
 src = "src"
 out = "out"
@@ -21,6 +24,13 @@ exclude_lints = ["block-timestamp"]
 
 [fuzz]
 runs = 512
+
+# Slower, deeper run for review/CI: FOUNDRY_PROFILE=ci forge test
+[profile.ci]
+verbosity = 2
+
+[profile.ci.fuzz]
+runs = 10000
 
 [fmt]
 line_length = 110
