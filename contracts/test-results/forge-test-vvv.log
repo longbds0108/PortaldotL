@@ -1,0 +1,82 @@
+# $ cd contracts && forge test -vvv
+# run:    2026-10-26T17:18:45Z
+# commit: 02fa385
+# tool:   forge Version: 1.8.4
+# host:   Darwin arm64
+
+Compiling 33 files with Solc 0.8.24
+Solc 0.8.24 finished in 30.06s
+Compiler run successful!
+
+Ran 2 tests for test/NFTCommitmentLib.t.sol:NFTCommitmentLibTest
+[PASS] testFuzz_bindsEveryField(uint256,address,uint256,bytes32) (runs: 512, μ: 5006, ~: 5006)
+[PASS] test_matchesSharedVectors() (gas: 70567)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 10.54ms (11.47ms CPU time)
+
+Ran 10 tests for test/DisputeRegistry.t.sol:DisputeRegistryTest
+[PASS] testFuzz_onlyArbiterChangesStatus(address,uint8) (runs: 512, μ: 107638, ~: 107663)
+[PASS] test_constructor_rejectsZeroArbiter() (gas: 111356)
+[PASS] test_open_rejectsBadInput() (gas: 82507)
+[PASS] test_open_storesAndEmits() (gas: 92827)
+[PASS] test_respond_anyoneUntilClosed() (gas: 239292)
+[PASS] test_respond_rejects() (gas: 128738)
+[PASS] test_status_closeDirectlyFromOpen() (gas: 122034)
+[PASS] test_status_onlyArbiter() (gas: 132201)
+[PASS] test_status_transitions() (gas: 266611)
+[PASS] test_storageLayoutMatchesApp() (gas: 182249)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 113.15ms (114.88ms CPU time)
+
+Ran 26 tests for test/BlindBidMarket.t.sol:BlindBidMarketTest
+[PASS] testFuzz_bondAccounting(uint8,uint8,bool,address) (runs: 512, μ: 727911, ~: 651301)
+[PASS] testFuzz_reveal_insideWindowSucceeds(uint64) (runs: 512, μ: 286755, ~: 286755)
+[PASS] testFuzz_reveal_outsideWindowReverts(uint256,bool) (runs: 512, μ: 249798, ~: 248911)
+[PASS] testFuzz_reveal_wrongOpeningReverts(uint128,bytes32,bytes32,uint128,bytes32,bytes32) (runs: 512, μ: 319834, ~: 320270)
+[PASS] test_award_onlyInEvaluation() (gas: 315166)
+[PASS] test_bond_revealedBidderWithdraws_unrevealedForfeitsToTreasury() (gas: 817605)
+[PASS] test_bond_withdrawIsReentrancySafe() (gas: 779015)
+[PASS] test_bond_zeroBondNothingToWithdraw() (gas: 310634)
+[PASS] test_cancel_onlyBuyerOnlyOpenWithoutBids() (gas: 458594)
+[PASS] test_commitmentMatchesSharedVectors() (gas: 115746)
+[PASS] test_constructor_rejectsZeroTreasury() (gas: 171155)
+[PASS] test_createTender_rejectsBadInput() (gas: 121719)
+[PASS] test_createTender_storesFieldsAndEmits() (gas: 168289)
+[PASS] test_fullLifecycle_award() (gas: 792308)
+[PASS] test_minRevealWindowIs24h() (gas: 159544)
+[PASS] test_noBidsAtAll_failed() (gas: 140681)
+[PASS] test_noRevealedBids_failed() (gas: 269159)
+[PASS] test_resubmit_replacesCommitmentWithoutSecondBond() (gas: 399111)
+[PASS] test_reveal_cannotReuseAnotherBiddersCommitment() (gas: 395746)
+[PASS] test_reveal_happyPath() (gas: 376044)
+[PASS] test_reveal_rejectsZeroAmountAndNoBid() (gas: 291028)
+[PASS] test_storageLayoutMatchesApp() (gas: 420924)
+[PASS] test_submitBid_closedAtDeadline() (gas: 165471)
+[PASS] test_submitBid_hidesAmountUntilReveal() (gas: 268174)
+[PASS] test_submitBid_rejects() (gas: 411727)
+[PASS] test_unknownTenderReverts() (gas: 62685)
+Suite result: ok. 26 passed; 0 failed; 0 skipped; finished in 113.33ms (353.05ms CPU time)
+
+Ran 19 tests for test/SealedNFTAuction.t.sol:SealedNFTAuctionTest
+[PASS] testFuzz_accountingBalancesToZero(uint8,uint64[3],uint64[3]) (runs: 512, μ: 815180, ~: 810441)
+[PASS] testFuzz_reveal_wrongOpeningReverts(uint112,bytes32,uint112,bytes32) (runs: 512, μ: 357279, ~: 357333)
+[PASS] test_cancel_onlySellerOnlyOpenWithoutBids() (gas: 688676)
+[PASS] test_constructor_rejectsZeroTreasury() (gas: 141503)
+[PASS] test_fullLifecycle_sale() (gas: 1189187)
+[PASS] test_hook_directCallErrors() (gas: 60164)
+[PASS] test_list_escrowsNftAndEmits() (gas: 275706)
+[PASS] test_list_rejectsBadData() (gas: 286396)
+[PASS] test_noSale_returnsNftToSeller() (gas: 465530)
+[PASS] test_placeBid_againReplacesAndTopsUp() (gas: 533487)
+[PASS] test_placeBid_hidesAmount() (gas: 344263)
+[PASS] test_placeBid_rejects() (gas: 374041)
+[PASS] test_reveal_belowReserveNotCounted() (gas: 399740)
+[PASS] test_reveal_cannotReuseAnotherBiddersCommitment() (gas: 441949)
+[PASS] test_reveal_highestCountedWins_tieKeepsEarlier() (gas: 662243)
+[PASS] test_reveal_rejects() (gas: 543907)
+[PASS] test_storageLayoutMatchesApp() (gas: 719698)
+[PASS] test_unknownAuctionReverts() (gas: 81664)
+[PASS] test_withdraw_reentrancySafe() (gas: 848168)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 113.15ms (205.89ms CPU time)
+
+Ran 4 test suites in 114.29ms (350.17ms CPU time): 57 tests passed, 0 failed, 0 skipped (57 total tests)
+
+# forge exit code: 0

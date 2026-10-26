@@ -47,6 +47,13 @@ forge test                  # all suites; expected: "57 tests passed, 0 failed, 
 | `NFTCommitmentLib` (TS ↔ Solidity hash vectors) | `test/NFTCommitmentLib.t.sol` | 2 (1 fuzz) |
 | **Total** | | **57** (49 unit + 8 fuzz) |
 
+**Recorded run.** The full output of `forge test -vvv` from a clean build (`forge clean` first) is committed at [`contracts/test-results/forge-test-vvv.log`](contracts/test-results/forge-test-vvv.log): commit `02fa385`, forge 1.8.4, macOS arm64, 2026-10-26. Every test is listed as `[PASS]`, fuzz tests ran 512 times each, and forge exited with code 0:
+
+```text
+Ran 4 test suites in 114.29ms (350.17ms CPU time): 57 tests passed, 0 failed, 0 skipped (57 total tests)
+# forge exit code: 0
+```
+
 **3. Useful variants:**
 
 ```bash
