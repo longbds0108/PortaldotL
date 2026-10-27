@@ -33,6 +33,19 @@
     }),
   );
 
+  // In-page links scroll smoothly from here rather than with CSS: html { scroll-behavior: smooth } makes
+  // ScrollTrigger mis-measure every trigger set up while the page is scrolled down (a reload mid-page, scrolling
+  // during the intro), which left the hero stuck in its scrolled-away state.
+  $$('a[href^="#"]:not(.skip)').forEach((a) =>
+    a.addEventListener("click", (e) => {
+      const target = a.hash.length > 1 && document.getElementById(a.hash.slice(1));
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+      history.pushState(null, "", a.hash);
+    }),
+  );
+
   const toggle = $(".nav__toggle");
   const mnav = $("#mnav");
   const setMenu = (open) => {

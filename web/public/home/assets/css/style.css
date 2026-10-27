@@ -79,7 +79,7 @@
 
 html {
   overflow-x: clip;
-  scroll-behavior: smooth;
+  /* no scroll-behavior: smooth here: it breaks ScrollTrigger's measurements; main.js smooths in-page links */
   -webkit-text-size-adjust: 100%;
 }
 
@@ -3152,9 +3152,6 @@ h2.is-sheen,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   *,
   *::before,
   *::after {
