@@ -161,9 +161,7 @@
     return window.innerHeight * 0.5;
   }
 
-  let featTick = false;
   function updateFeature() {
-    featTick = false;
     const line = readingLine();
     let best = 0, bestD = Infinity;
     features.forEach((f, i) => {
@@ -173,7 +171,14 @@
     });
     setFeature(best);
   }
-  window.addEventListener("scroll", () => !featTick && (featTick = true) && requestAnimationFrame(updateFeature), { passive: true });
+  // Measured only while the section is near the screen, and in the scroll event itself: from a later
+  // requestAnimationFrame the reads came right after GSAP's writes and forced a layout on every frame of the page.
+  let featuresNear = false;
+  const featuresEl = $(".features");
+  if (featuresEl && window.IntersectionObserver) {
+    new IntersectionObserver(([e]) => (featuresNear = e.isIntersecting), { rootMargin: "50% 0px" }).observe(featuresEl);
+  } else featuresNear = true;
+  window.addEventListener("scroll", () => featuresNear && updateFeature(), { passive: true });
   window.addEventListener("resize", updateFeature);
   updateFeature();
 

@@ -9,6 +9,11 @@
  * Two canvases: a sharp one at device resolution, and a tiny bloom canvas (1/8 size, upscaled + CSS blur) that
  * receives a copy of the sharp frame plus a few wide, faint "aurora" strokes. Upscaling does most of the blur
  * for free.
+ *
+ * Phones take a lighter path (measured on an emulated phone at 4x CPU throttle: scrolling went from 21 fps with
+ * three quarters of frames dropped to near 60): the ribbon is drawn at 30 fps, at 1x resolution, with fewer samples
+ * along the spine; section positions are measured when the layout changes, never per frame; and the toolbar
+ * showing or hiding while you scroll no longer re-allocates the canvases.
  */
 (function () {
   "use strict";
@@ -20,7 +25,8 @@
   const bctx = bloom.getContext("2d");
 
   const reduceMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const SAMPLES = 80;
+  const MAX_SAMPLES = 80;
+  let SAMPLES = MAX_SAMPLES; // fewer on phones, see resize()
   const BLOOM_SCALE = 8;
 
   /*
@@ -61,6 +67,8 @@
   let W = 0, H = 0, DPR = 1, mobile = false;
   let strands = [];
   let sections = [];
+  let tops = [], heights = []; // section positions in page coordinates, measured on layout changes
+  let scrollTop = window.scrollY; // kept by a passive listener: reading scrollY in the frame loop can force a layout
   let time = 0;
   let last = performance.now();
   let intro = reduceMQ.matches ? 1 : 0; // 0 -> 1: light shoots out of the pinch on load
@@ -72,10 +80,10 @@
   const target = cloneScene(SCENES.hero);
 
   // Work buffers
-  const sx = new Float32Array(SAMPLES + 1), sy = new Float32Array(SAMPLES + 1);
-  const nx = new Float32Array(SAMPLES + 1), ny = new Float32Array(SAMPLES + 1);
-  const spread = new Float32Array(SAMPLES + 1);
-  const xs = new Float32Array(SAMPLES + 1), ys = new Float32Array(SAMPLES + 1);
+  const sx = new Float32Array(MAX_SAMPLES + 1), sy = new Float32Array(MAX_SAMPLES + 1);
+  const nx = new Float32Array(MAX_SAMPLES + 1), ny = new Float32Array(MAX_SAMPLES + 1);
+  const spread = new Float32Array(MAX_SAMPLES + 1);
+  const xs = new Float32Array(MAX_SAMPLES + 1), ys = new Float32Array(MAX_SAMPLES + 1);
 
   function cloneScene(s) {
     return { pts: s.pts.map((p) => p.slice()), pinch: s.pinch, w0: s.w0, w1: s.w1, glow: s.glow, aur: s.aur, lum: s.lum };
@@ -120,18 +128,34 @@
   }
 
   function resize() {
-    W = window.innerWidth;
-    H = window.innerHeight;
+    const w = window.innerWidth, h = window.innerHeight;
+    // A phone's toolbar collapsing or expanding mid-scroll changes only the height, by a little: keep the canvases
+    // (re-allocating them every time was a visible hitch) and let CSS stretch them by those few pixels.
+    if (mobile && w === W && Math.abs(h - H) < H * 0.25) {
+      measureSections();
+      dirty = true;
+      return;
+    }
+    W = w;
+    H = h;
     const wasMobile = mobile;
     mobile = W < 760;
-    DPR = Math.min(window.devicePixelRatio || 1, mobile ? 1.25 : 1.6);
+    DPR = Math.min(window.devicePixelRatio || 1, mobile ? 1 : 1.6);
+    SAMPLES = mobile ? 48 : MAX_SAMPLES;
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
     bloom.width = Math.max(1, Math.round(W / BLOOM_SCALE));
     bloom.height = Math.max(1, Math.round(H / BLOOM_SCALE));
     if (wasMobile !== mobile || !strands.length) buildStrands();
-    sections = Array.from(document.querySelectorAll("[data-scene]"));
+    measureSections();
     dirty = true;
+  }
+
+  function measureSections() {
+    sections = Array.from(document.querySelectorAll("[data-scene]"));
+    const y = (scrollTop = window.scrollY);
+    tops = sections.map((s) => s.getBoundingClientRect().top + y);
+    heights = sections.map((s) => s.offsetHeight);
   }
 
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -144,11 +168,11 @@
   /** Target scene from scroll position: hold a section's scene, morph into the next over its second half. */
   function updateTarget() {
     if (!sections.length) return;
-    const line = H * 0.5;
+    // Cached positions + scrollY: no layout read in the frame loop.
+    const line = scrollTop + H * 0.5;
     let k = 0;
-    for (let i = 0; i < sections.length; i++) if (sections[i].getBoundingClientRect().top <= line) k = i;
-    const r = sections[k].getBoundingClientRect();
-    const p = clamp((line - r.top) / Math.max(1, r.height), 0, 1);
+    for (let i = 0; i < sections.length; i++) if (tops[i] <= line) k = i;
+    const p = clamp((line - tops[k]) / Math.max(1, heights[k]), 0, 1);
     const a = sceneFor(sections[k].dataset.scene);
     const nextEl = sections[k + 1];
     const b = nextEl ? sceneFor(nextEl.dataset.scene) : a;
@@ -307,6 +331,9 @@
   }
 
   function frame(now) {
+    raf = requestAnimationFrame(frame);
+    // Phones: 30 fps is plenty for a slow ambient light and halves the main-thread and GPU work.
+    if (mobile && now - last < 1000 / 30 - 4) return;
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     time += dt;
@@ -314,7 +341,6 @@
     updateTarget();
     ease(dt, false);
     draw();
-    raf = requestAnimationFrame(frame);
   }
 
   // Reduced motion: still, redrawn only when scroll or size changes.
@@ -344,9 +370,13 @@
     resize();
     if (reduceMQ.matches) start();
   });
+  // Section heights change after load (web font, the pinned brand panel turning on, images): re-measure then.
+  if (window.ResizeObserver) new ResizeObserver(() => measureSections()).observe(document.body);
+  window.addEventListener("load", measureSections);
   window.addEventListener(
     "scroll",
     () => {
+      scrollTop = window.scrollY;
       if (reduceMQ.matches && !raf) {
         dirty = true;
         raf = requestAnimationFrame(still);
