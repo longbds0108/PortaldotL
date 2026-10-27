@@ -1,0 +1,48 @@
+# Builds the contracts and runs the Foundry tests on a clean Ubuntu runner, so anyone can check the result
+# without installing anything. Dependencies are vendored in contracts/lib; no RPC or secrets are needed.
+name: Contracts
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  forge-test:
+    name: forge test (Ubuntu)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      # 10,000 fuzz runs per fuzz test instead of the local 512 (see contracts/foundry.toml).
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          # Same version as the README instructions and contracts/test-results/forge-test-vvv.log.
+          version: v1.8.4
+
+      - name: Versions
+        run: forge --version
+
+      - name: Build and contract sizes
+        run: forge build --sizes
+
+      - name: Test
+        run: |
+          set -o pipefail
+          forge test -vvv 2>&1 | tee forge-test.log
+
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-test-log
+          path: contracts/forge-test.log
+          if-no-files-found: ignore

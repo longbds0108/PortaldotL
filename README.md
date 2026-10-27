@@ -18,6 +18,10 @@ Budgets, bid amounts, and bonds use the EVM's 18-decimal unit for tPOTv3 (the na
 
 ## Contract tests (Foundry)
 
+[![Contracts](https://github.com/longbds0108/PortaldotL/actions/workflows/contracts.yml/badge.svg)](https://github.com/longbds0108/PortaldotL/actions/workflows/contracts.yml)
+
+**CI:** every push runs [`.github/workflows/contracts.yml`](.github/workflows/contracts.yml) on a clean Ubuntu runner with forge 1.8.4: `forge build --sizes`, then `forge test -vvv` with the `ci` profile (10,000 fuzz runs each). Each run's full log is in the Actions tab, also downloadable as the `forge-test-log` artifact.
+
 The Foundry project lives in `contracts/`, not the repo root: config in [`contracts/foundry.toml`](contracts/foundry.toml), import paths in [`contracts/remappings.txt`](contracts/remappings.txt), and `forge-std` and OpenZeppelin committed under `contracts/lib/`. A plain clone is enough; no `forge install`, `npm install`, `.env` or network RPC is needed to run the tests.
 
 **1. Install Foundry** (macOS/Linux; on Windows use WSL):
@@ -67,6 +71,30 @@ forge test --list                                # list every test function
 ```
 
 `test_storageLayoutMatchesApp` checks that the storage slots the web app reads (`web/lib/market-storage.ts`) match the contract. The commitment tests read `test/fixtures/*.json`, which the web tests also use, so the TS and Solidity hashes are checked against the same vectors.
+
+## Deployed bytecode matches this source
+
+The four contracts on PortaldotV3 Testnet were compiled from this repo, byte for byte. To check it yourself (needs internet for the public RPC, no wallet or `.env`):
+
+```bash
+cd contracts
+forge build
+node scripts/verify-deployment.mjs   # Node 18+; exits 1 on any mismatch
+```
+
+For each contract, [`scripts/verify-deployment.mjs`](contracts/scripts/verify-deployment.mjs) fetches the deployment transaction and the live code from `https://test-evm-rpc-v3.portaldot.dev` and checks that:
+
+1. the deployment transaction's input equals the locally compiled creation bytecode plus the ABI-encoded constructor arguments;
+2. the runtime code on chain (`eth_getCode`) equals the local runtime bytecode. Immutables are written into the code by the constructor, so their on-chain value (the treasury, or the arbiter for DisputeRegistry) is filled into the local code and printed.
+
+No metadata hash is compiled in, so the match is exact. The recorded run is [`contracts/test-results/verify-deployment.log`](contracts/test-results/verify-deployment.log): all four MATCH, exit code 0.
+
+| Contract | Address | Deployment tx | Block |
+|---|---|---|---|
+| BlindBidMarket | `0x6e79287f62B47307B5b7349072c51AdAF8833d54` | `0xd2417fb17449e36e563886733176d7a38277c790ecfa778cdd6b49ebedf3e5ff` | 91531 |
+| SealedNFTAuction | `0xc05A1f041a42FFa96FC24a3aeBc576b1157aA7F6` | `0x281d6c5415001d351223d3bcbf156b283c2df2855b1afdc1e917d02d58aa43c9` | 102866 |
+| PlinthsTestNFT | `0xb64BE4189Dc4F0f105369D02CA91C485199d6fcd` | `0xa0410e638c77c1b23665596ca697424a155e9f97ba461ee6bc5f06679dee8249` | 102867 |
+| DisputeRegistry | `0x1F8A235387763A67E4f293E1bDFC65E149437120` | `0xc457cb73d70bcd2a0295139edcddf2de45ae20278f1f1852b8ebd1dc0017b042` | 105360 |
 
 ## Contracts (`contracts/`)
 

@@ -1,0 +1,33 @@
+# $ cd contracts && forge build && node scripts/verify-deployment.mjs
+# run:    2026-10-27T02:22:35Z
+# commit: 0d09d69 · forge Version: 1.8.4 · node v24.18.0
+
+RPC https://test-evm-rpc-v3.portaldot.dev · chain 420420777 · block 211562
+
+MATCH  BlindBidMarket @ 0x6e79287f62B47307B5b7349072c51AdAF8833d54
+  deployment tx 0xd2417fb17449e36e563886733176d7a38277c790ecfa778cdd6b49ebedf3e5ff (block 91531, from 0xf9642b695d4ddf58599c953a791f94c2e96b6a57) created this address: true
+  tx input == local creation bytecode (3252 B) + constructor args (32 B): true
+  on-chain runtime (3086 B) == local runtime with immutables filled in: true
+  immutables: 0x000000000000000000000000f9642b695d4ddf58599c953a791f94c2e96b6a57 (treasury: true)
+
+MATCH  SealedNFTAuction @ 0xc05A1f041a42FFa96FC24a3aeBc576b1157aA7F6
+  deployment tx 0x281d6c5415001d351223d3bcbf156b283c2df2855b1afdc1e917d02d58aa43c9 (block 102866, from 0xf9642b695d4ddf58599c953a791f94c2e96b6a57) created this address: true
+  tx input == local creation bytecode (3245 B) + constructor args (32 B): true
+  on-chain runtime (3090 B) == local runtime with immutables filled in: true
+  immutables: 0x000000000000000000000000f9642b695d4ddf58599c953a791f94c2e96b6a57 (treasury: true)
+
+MATCH  PlinthsTestNFT @ 0xb64BE4189Dc4F0f105369D02CA91C485199d6fcd
+  deployment tx 0xa0410e638c77c1b23665596ca697424a155e9f97ba461ee6bc5f06679dee8249 (block 102867, from 0xf9642b695d4ddf58599c953a791f94c2e96b6a57) created this address: true
+  tx input == local creation bytecode (2040 B) + constructor args (0 B): true
+  on-chain runtime (1875 B) == local runtime with immutables filled in: true
+  immutables: none
+
+MATCH  DisputeRegistry @ 0x1F8A235387763A67E4f293E1bDFC65E149437120
+  deployment tx 0xc457cb73d70bcd2a0295139edcddf2de45ae20278f1f1852b8ebd1dc0017b042 (block 105360, from 0xf9642b695d4ddf58599c953a791f94c2e96b6a57) created this address: true
+  tx input == local creation bytecode (1430 B) + constructor args (32 B): true
+  on-chain runtime (1269 B) == local runtime with immutables filled in: true
+  immutables: 0x000000000000000000000000f9642b695d4ddf58599c953a791f94c2e96b6a57 (treasury: true)
+
+All 4 deployed contracts match this repo's build exactly.
+
+# exit code: 0
