@@ -6,7 +6,8 @@ import { getLang } from "@/lib/i18n-server";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const interTight = Inter_Tight({ subsets: ["latin"], variable: "--font-inter-tight", display: "swap" });
+// "vietnamese" + "latin-ext" for the VI interface: without them letters like ầ, ơ, Đ fall back to a system font mid-word.
+const interTight = Inter_Tight({ subsets: ["latin", "latin-ext", "vietnamese"], variable: "--font-inter-tight", display: "swap" });
 
 const SITE_TITLE = "Plinths — Sealed-Bid Marketplace on PortaldotV3";
 const SITE_DESCRIPTION = "A public tender marketplace where suppliers compete with sealed bids and every award can be verified.";
