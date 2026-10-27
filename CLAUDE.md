@@ -230,6 +230,7 @@ Private key deploy chỉ đặt trong `contracts/.env`, không bao giờ trong `
 - Không hiển thị bất kỳ thông tin giá nào trong UI khi state ≠ Evaluation/Awarded, kể cả cho buyer.
 - Số tiền: luôn dùng `bigint` + `parseUnits/formatUnits`, ghi rõ 18 decimals ở tên biến (`amount18`, `bondBaseUnits`).
 - Mỗi byte code/state đều tốn ký quỹ: thay đổi contract phải đo kích thước (`forge build --sizes`) và chi phí deploy (`cast estimate --create`) trước khi deploy; đổi thứ tự state/struct phải cập nhật `web/lib/market-storage.ts` (test `test_storageLayoutMatchesApp` sẽ báo).
+- Giao diện song ngữ EN | VI (cookie `plinths_lang`, `web/lib/i18n.ts`): mọi chữ hiển thị viết theo cặp `t("English", "Tiếng Việt")` (`useT()` trong client, `getT()` trong server component, `tr()` cho toast/lỗi ngoài React). Docs có bản `components/docs/content.vi.tsx`, trang chủ có `public/home/vi.html` — sửa nội dung thì sửa cả hai bản. Số tiền giữ định dạng `7,500.00 tPOTv3` ở cả hai ngôn ngữ.
 - Dữ liệu mẫu (3 tender demo: Enterprise Website Development, Commercial Building Renovation, Digital Marketing Campaign) chỉ dùng cho seed script testnet, không hardcode trong UI.
 - Ưu tiên hướng dẫn PortaldotV3 được liên kết trong README và tài liệu Hardhat/Foundry khi cần xác minh triển khai.
 

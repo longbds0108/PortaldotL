@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getT } from "@/lib/i18n-server";
 
 /**
  * Issues a short-lived Pinata presigned upload URL so the browser uploads straight to Pinata.
@@ -12,6 +13,7 @@ export const maxDuration = 30;
 const MAX_UPLOAD_BYTES = 32 * 1024 * 1024;
 
 export async function POST(req: Request) {
+  const t = await getT();
   const jwt = process.env.PINATA_JWT;
   // No Pinata configured: tell the client to use the local development store instead.
   if (!jwt) return NextResponse.json({ mode: "local" }, { status: 409 });
@@ -23,10 +25,10 @@ export async function POST(req: Request) {
     if (typeof body.name === "string") name = body.name.replace(/[^\w.\-]/g, "_").slice(0, 80) || name;
     if (typeof body.size === "number") size = body.size;
   } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return NextResponse.json({ error: t("Invalid request", "Yêu cầu không hợp lệ") }, { status: 400 });
   }
-  if (!Number.isFinite(size) || size <= 0) return NextResponse.json({ error: "Invalid size" }, { status: 400 });
-  if (size > MAX_UPLOAD_BYTES) return NextResponse.json({ error: "File too large (max 32 MB)" }, { status: 413 });
+  if (!Number.isFinite(size) || size <= 0) return NextResponse.json({ error: t("Invalid size", "Kích thước không hợp lệ") }, { status: 400 });
+  if (size > MAX_UPLOAD_BYTES) return NextResponse.json({ error: t("File too large (max 32 MB)", "File quá lớn (tối đa 32 MB)") }, { status: 413 });
 
   const res = await fetch("https://uploads.pinata.cloud/v3/files/sign", {
     method: "POST",
@@ -40,8 +42,8 @@ export async function POST(req: Request) {
       allow_mime_types: ["application/json"],
     }),
   });
-  if (!res.ok) return NextResponse.json({ error: `Could not authorise upload (${res.status})` }, { status: 502 });
+  if (!res.ok) return NextResponse.json({ error: t(`Could not authorise upload (${res.status})`, `Không cấp quyền tải lên được (${res.status})`) }, { status: 502 });
   const json = (await res.json()) as { data?: string };
-  if (!json.data) return NextResponse.json({ error: "Could not authorise upload" }, { status: 502 });
+  if (!json.data) return NextResponse.json({ error: t("Could not authorise upload", "Không cấp quyền tải lên được") }, { status: 502 });
   return NextResponse.json({ mode: "pinata", url: json.data });
 }

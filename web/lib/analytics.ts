@@ -2,6 +2,7 @@ import type { Address, Hash } from "viem";
 import { TenderState } from "./contracts";
 import { actorsOf, type ChainEvent, type MarketSnapshot } from "./market-data";
 import { tenderState } from "./market-storage";
+import type { Text } from "./i18n";
 import { AuctionState } from "./nft-auction";
 import { auctionState } from "./nft-storage";
 
@@ -11,11 +12,11 @@ import { auctionState } from "./nft-storage";
  */
 
 export type Range = 7 | 30 | 90 | 0; // days; 0 = all time
-export const RANGES: { value: Range; label: string }[] = [
-  { value: 7, label: "7 days" },
-  { value: 30, label: "30 days" },
-  { value: 90, label: "90 days" },
-  { value: 0, label: "All time" },
+export const RANGES: { value: Range; label: Text }[] = [
+  { value: 7, label: ["7 days", "7 ngày"] },
+  { value: 30, label: ["30 days", "30 ngày"] },
+  { value: 90, label: ["90 days", "90 ngày"] },
+  { value: 0, label: ["All time", "Toàn bộ"] },
 ];
 
 const DAY = 86_400;
@@ -171,6 +172,7 @@ export function computeAnalytics(snap: MarketSnapshot, range: Range, nowSec: num
   };
 }
 
+/** English action names for the CSV export (a data file, not UI text). */
 const TX_LABELS: Record<string, string> = {
   "tender:TenderCreated": "Create tender",
   "tender:BidSubmitted": "Seal tender bid",
@@ -190,6 +192,23 @@ const TX_LABELS: Record<string, string> = {
 export function txLabel(e: ChainEvent): string {
   return TX_LABELS[`${e.source}:${e.name}`] ?? e.name;
 }
+
+/** Vietnamese names for the same actions, keyed by the English label (the analytics page shows these). */
+export const TX_LABEL_VI: Record<string, string> = {
+  "Create tender": "Tạo gói thầu",
+  "Seal tender bid": "Niêm phong hồ sơ thầu",
+  "Reveal tender bid": "Công bố hồ sơ thầu",
+  "Award tender": "Trao thầu",
+  "Cancel tender": "Hủy gói thầu",
+  "Withdraw bond": "Rút tiền bảo đảm",
+  "Sweep forfeited bonds": "Chuyển tiền bảo đảm bị phạt",
+  "List NFT": "Đăng bán NFT",
+  "Seal NFT bid": "Niêm phong giá NFT",
+  "Reveal NFT bid": "Công bố giá NFT",
+  "Settle auction": "Kết thúc đấu giá",
+  "Cancel auction": "Hủy đấu giá",
+  "Withdraw deposit / proceeds": "Rút tiền cọc / tiền bán",
+};
 
 // ───────────────────────── export ─────────────────────────
 

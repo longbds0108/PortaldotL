@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { ConfigGate } from "@/components/gates";
+import { useT } from "@/components/lang-provider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTender, useTenderMetadata, type TenderRow } from "@/lib/hooks";
@@ -28,6 +29,7 @@ function Inner({ children }: { children: (ctx: { row: TenderRow; meta?: TenderMe
   const pathname = usePathname();
   const { row, notFound, isLoading, refetch } = useTender(id);
   const meta = useTenderMetadata(row?.tender.metadataURI);
+  const t = useT();
 
   if (!blindBidAddress && id !== undefined) {
     const state = pathname.endsWith("/evaluate")
@@ -70,7 +72,7 @@ function Inner({ children }: { children: (ctx: { row: TenderRow; meta?: TenderMe
   if (id === undefined || notFound) {
     return (
       <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">Tender not found.</CardContent>
+        <CardContent className="py-12 text-center text-muted-foreground">{t("Tender not found.", "Không tìm thấy gói thầu.")}</CardContent>
       </Card>
     );
   }

@@ -14,7 +14,8 @@ import {
 } from "viem";
 import { useAccount, usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { NFT_AUCTION_DEPLOY_BLOCK } from "./env";
-import { RECEIPT_TIMEOUT_MS, describeError, txToaster, useChainNow, type TxStatus } from "./hooks";
+import { RECEIPT_TIMEOUT_MS, TX_FALLBACK_LABEL, describeError, txToaster, useChainNow, type TxStatus } from "./hooks";
+import { tr, type Text } from "./i18n";
 import {
   ERC721_ENUMERABLE_INTERFACE_ID,
   ERC721_INTERFACE_ID,
@@ -286,17 +287,17 @@ export function describeNftError(e: unknown): string {
   if (e instanceof BaseError) {
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
     const name = revert instanceof ContractFunctionRevertedError ? revert.data?.errorName : undefined;
-    if (name && NFT_ERROR_TEXT[name]) return NFT_ERROR_TEXT[name];
+    if (name && NFT_ERROR_TEXT[name]) return tr(NFT_ERROR_TEXT[name]);
   }
   return describeError(e);
 }
 
-const NFT_TX_LABEL: Record<string, string> = {
-  safeTransferFrom: "List NFT",
-  placeBid: "Sealed bid",
-  revealBid: "Reveal bid",
-  settle: "Settle auction", // also the seller's cancel while Open with no bids
-  withdraw: "Withdraw",
+const NFT_TX_LABEL: Record<string, Text> = {
+  safeTransferFrom: ["List NFT", "Đăng bán NFT"],
+  placeBid: ["Sealed bid", "Gửi giá niêm phong"],
+  revealBid: ["Reveal bid", "Công bố giá"],
+  settle: ["Settle auction", "Kết thúc đấu giá"], // also the seller's cancel while Open with no bids
+  withdraw: ["Withdraw", "Rút tiền"],
 };
 
 type WriteRequest = { address: Address; abi: Abi; functionName: string; args: readonly unknown[]; value?: bigint };
@@ -314,9 +315,9 @@ export function useNftTx() {
     async (req: WriteRequest): Promise<TransactionReceipt | undefined> => {
       setError(undefined);
       setHash(undefined);
-      const t = txToaster(NFT_TX_LABEL[req.functionName] ?? "Transaction");
+      const t = txToaster(NFT_TX_LABEL[req.functionName] ?? TX_FALLBACK_LABEL);
       try {
-        if (!client || !address) throw new Error("Connect your wallet first.");
+        if (!client || !address) throw new Error(tr("Connect your wallet first.", "Hãy kết nối ví trước."));
         setStatus("simulating");
         const { request } = await client.simulateContract({ ...req, account: address } as never);
         setStatus("signing");
@@ -326,7 +327,7 @@ export function useNftTx() {
         setStatus("confirming");
         t.confirming();
         const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1, timeout: RECEIPT_TIMEOUT_MS });
-        if (receipt.status !== "success") throw new Error("Transaction reverted.");
+        if (receipt.status !== "success") throw new Error(tr("Transaction reverted.", "Giao dịch bị hoàn tác (revert)."));
         setStatus("success");
         t.success();
         return receipt;

@@ -3,6 +3,7 @@
 import { Lock, Users } from "lucide-react";
 import Link from "next/link";
 import { Countdown } from "@/components/countdown";
+import { useT } from "@/components/lang-provider";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatNativeAmount, shortAddress } from "@/lib/format";
@@ -14,6 +15,7 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
   const { id, auction, state } = row;
   const { token } = useNftToken(auction.collection, auction.tokenId);
   const meta = useNftMetadata(token.tokenURI);
+  const t = useT();
 
   return (
     <Link href={`/nft/${id}`} className="group block focus-visible:outline-none">
@@ -35,11 +37,13 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
         <CardContent className="flex-1">
           <div className="grid grid-cols-[1fr_auto] gap-3 border-y border-overlay/[0.07] py-4">
             {state === AuctionState.Settled ? (
-              <Stat label="Sold for">{formatNativeAmount(auction.highestBid)}</Stat>
+              <Stat label={t("Sold for", "Đã bán với giá")}>{formatNativeAmount(auction.highestBid)}</Stat>
             ) : (
-              <Stat label="Reserve price">{auction.reservePrice > 0n ? formatNativeAmount(auction.reservePrice) : "No reserve"}</Stat>
+              <Stat label={t("Reserve price", "Giá sàn")}>
+                {auction.reservePrice > 0n ? formatNativeAmount(auction.reservePrice) : t("No reserve", "Không có giá sàn")}
+              </Stat>
             )}
-            <Stat label="Sealed bids" className="text-right">
+            <Stat label={t("Sealed bids", "Giá niêm phong")} className="text-right">
               <span className="inline-flex items-center justify-end gap-1">
                 <Users className="size-3.5" /> {auction.bidCount}
               </span>
@@ -47,11 +51,13 @@ export function AuctionCard({ row }: { row: AuctionRow }) {
           </div>
         </CardContent>
         <CardFooter className="flex-col items-start gap-2">
-          {state === AuctionState.Open && <Countdown deadline={auction.bidDeadline} label="Bidding ends in" />}
-          {state === AuctionState.Reveal && <Countdown deadline={auction.revealDeadline} label="Reveal ends in" />}
+          {state === AuctionState.Open && <Countdown deadline={auction.bidDeadline} label={t("Bidding ends in", "Hết hạn đặt giá sau")} />}
+          {state === AuctionState.Reveal && <Countdown deadline={auction.revealDeadline} label={t("Reveal ends in", "Hết hạn công bố sau")} />}
           <p className="flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
             <Lock className="size-3" />
-            {state === AuctionState.Open ? "Bid amounts stay sealed until bidding ends" : `Auction #${id}`}
+            {state === AuctionState.Open
+              ? t("Bid amounts stay sealed until bidding ends", "Giá được niêm phong đến khi hết hạn đặt giá")
+              : t(`Auction #${id}`, `Phiên đấu giá #${id}`)}
           </p>
         </CardFooter>
       </Card>

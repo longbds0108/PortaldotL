@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getT } from "@/lib/i18n-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -25,23 +26,24 @@ For details of a specific tender (budget, bond, deadlines), tell the user to che
 const rate = new Map<string, { count: number; resetAt: number }>();
 
 export async function POST(request: Request) {
+  const t = await getT();
   if (!process.env.DEEPSEEK_API_KEY) {
-    return Response.json({ error: "DeepSeek chat is not configured. Add DEEPSEEK_API_KEY to web/.env.local and restart the server." }, { status: 503 });
+    return Response.json({ error: t("DeepSeek chat is not configured. Add DEEPSEEK_API_KEY to web/.env.local and restart the server.", "Chưa cấu hình chat DeepSeek. Hãy thêm DEEPSEEK_API_KEY vào web/.env.local rồi khởi động lại máy chủ.") }, { status: 503 });
   }
 
   const length = Number(request.headers.get("content-length") || 0);
-  if (length > 100_000) return Response.json({ error: "Chat request is too large." }, { status: 413 });
+  if (length > 100_000) return Response.json({ error: t("Chat request is too large.", "Yêu cầu chat quá lớn.") }, { status: 413 });
   const parsed = inputSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Invalid chat request." }, { status: 400 });
+  if (!parsed.success) return Response.json({ error: t("Invalid chat request.", "Yêu cầu chat không hợp lệ.") }, { status: 400 });
   if (parsed.data.messages.reduce((n, message) => n + message.content.length, 0) > 30_000) {
-    return Response.json({ error: "Chat history is too long. Start a new conversation." }, { status: 413 });
+    return Response.json({ error: t("Chat history is too long. Start a new conversation.", "Lịch sử chat quá dài. Hãy bắt đầu cuộc trò chuyện mới.") }, { status: 413 });
   }
 
   const caller = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const now = Date.now();
   const current = rate.get(caller);
   if (current && current.resetAt > now && current.count >= 30) {
-    return Response.json({ error: "Chat limit reached. Try again in an hour." }, { status: 429 });
+    return Response.json({ error: t("Chat limit reached. Try again in an hour.", "Đã đạt giới hạn chat. Hãy thử lại sau một giờ.") }, { status: 429 });
   }
   if (!current || current.resetAt <= now) rate.set(caller, { count: 1, resetAt: now + 60 * 60_000 });
   else current.count++;
@@ -53,7 +55,8 @@ export async function POST(request: Request) {
       model: "deepseek-flash",
       thinking: { type: "disabled" },
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        // The header's EN | VI switch sets the default reply language; the user's own language still wins.
+        { role: "system", content: SYSTEM_PROMPT + t("", "\nThe Plinths interface is set to Vietnamese: reply in Vietnamese unless the user writes in another language.") },
         ...parsed.data.messages,
       ],
       max_tokens: 3000,
@@ -62,10 +65,10 @@ export async function POST(request: Request) {
     signal: AbortSignal.timeout(55_000),
   }).catch(() => null);
 
-  if (!response) return Response.json({ error: "DeepSeek timed out or could not connect. Try again." }, { status: 502 });
-  if (!response.ok) return Response.json({ error: `DeepSeek returned HTTP ${response.status}.` }, { status: 502 });
+  if (!response) return Response.json({ error: t("DeepSeek timed out or could not connect. Try again.", "DeepSeek quá thời gian hoặc không kết nối được. Hãy thử lại.") }, { status: 502 });
+  if (!response.ok) return Response.json({ error: t(`DeepSeek returned HTTP ${response.status}.`, `DeepSeek trả về HTTP ${response.status}.`) }, { status: 502 });
   const completion = await response.json().catch(() => null) as { choices?: { message?: { content?: string | null } }[] } | null;
   const reply = completion?.choices?.[0]?.message?.content?.trim();
-  if (!reply) return Response.json({ error: "DeepSeek returned an empty response. Try again." }, { status: 502 });
+  if (!reply) return Response.json({ error: t("DeepSeek returned an empty response. Try again.", "DeepSeek trả về phản hồi rỗng. Hãy thử lại.") }, { status: 502 });
   return Response.json({ reply, model: "deepseek-flash" });
 }

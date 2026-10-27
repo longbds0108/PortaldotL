@@ -4,6 +4,7 @@ import { CheckCircle2, FileUp, KeyRound, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Hash } from "viem";
 import { useAccount } from "wagmi";
+import { useT } from "@/components/lang-provider";
 import { TxStatus } from "@/components/tx-status";
 import { Button } from "@/components/ui/button";
 import { blindBidAddress, type Bid } from "@/lib/contracts";
@@ -23,6 +24,7 @@ export function RevealPanel({ tenderId, bid, onRevealed }: { tenderId: bigint; b
   const fileRef = useRef<HTMLInputElement>(null);
   const [entry, setEntry] = useState<VaultEntry>();
   const [importError, setImportError] = useState<string>();
+  const t = useT();
 
   useEffect(() => {
     if (!address || !blindBidAddress) return;
@@ -45,11 +47,17 @@ export function RevealPanel({ tenderId, bid, onRevealed }: { tenderId: bigint; b
           BigInt(e.tenderId) === tenderId &&
           e.bidder.toLowerCase() === address?.toLowerCase(),
       );
-      if (!mine) throw new Error("This backup does not contain a bid for this tender from the connected wallet.");
+      if (!mine)
+        throw new Error(
+          t(
+            "This backup does not contain a bid for this tender from the connected wallet.",
+            "File sao lưu này không có hồ sơ của ví đang kết nối cho gói thầu này.",
+          ),
+        );
       saveEntries([mine]);
       setEntry(mine);
     } catch (e) {
-      setImportError(e instanceof Error ? e.message : "Could not read backup file");
+      setImportError(e instanceof Error ? e.message : t("Could not read backup file", "Không đọc được file sao lưu"));
     }
   }
 
@@ -64,24 +72,28 @@ export function RevealPanel({ tenderId, bid, onRevealed }: { tenderId: bigint; b
     <div className="space-y-3">
       {!entry ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <KeyRound className="size-4" /> No saved secrets for this bid in this browser. Import your backup file.
+          <KeyRound className="size-4" />{" "}
+          {t("No saved secrets for this bid in this browser. Import your backup file.", "Trình duyệt này chưa lưu bí mật của hồ sơ. Hãy nhập file sao lưu.")}
         </p>
       ) : matches ? (
         <p className="flex items-center gap-2 text-sm text-success">
-          <CheckCircle2 className="size-4" /> Backup found and matches your sealed commitment.
+          <CheckCircle2 className="size-4" /> {t("Backup found and matches your sealed commitment.", "Đã tìm thấy bản sao lưu, khớp với commitment niêm phong.")}
         </p>
       ) : (
         <p className="flex items-center gap-2 text-sm text-destructive">
-          <XCircle className="size-4" /> Saved secrets do not match your on-chain commitment (did you update the bid
-          later?). Import the latest backup.
+          <XCircle className="size-4" />{" "}
+          {t(
+            "Saved secrets do not match your on-chain commitment (did you update the bid later?). Import the latest backup.",
+            "Bí mật đã lưu không khớp commitment on-chain (bạn có cập nhật hồ sơ sau đó không?). Hãy nhập bản sao lưu mới nhất.",
+          )}
         </p>
       )}
       <div className="flex flex-wrap gap-2">
         <Button onClick={reveal} disabled={!matches || tx.busy || tx.status === "success"}>
-          Reveal bid
+          {t("Reveal bid", "Công bố giá")}
         </Button>
         <Button variant="outline" onClick={() => fileRef.current?.click()}>
-          <FileUp /> Import backup
+          <FileUp /> {t("Import backup", "Nhập file sao lưu")}
         </Button>
         <input
           ref={fileRef}

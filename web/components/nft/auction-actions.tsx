@@ -4,6 +4,7 @@ import { AlertTriangle, CheckCircle2, Download, Gavel, Loader2, Lock, Trophy, Un
 import { useRef, useState, type ReactNode } from "react";
 import { zeroAddress, zeroHash, type Hex } from "viem";
 import { useAccount } from "wagmi";
+import { useT } from "@/components/lang-provider";
 import { TxStatus } from "@/components/tx-status";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,14 @@ import { chain } from "@/lib/wagmi";
  * The seller cancels with settle() while the auction is Open and has no bids (the contract folds both together).
  */
 
-const PREVIEW_HINT = "Transactions open once the auction contract is deployed.";
+function PreviewHint() {
+  const t = useT();
+  return (
+    <p className="text-xs text-muted-foreground">
+      {t("Transactions open once the auction contract is deployed.", "Giao dịch sẽ mở khi contract đấu giá được triển khai.")}
+    </p>
+  );
+}
 
 export function AuctionActions({ row, onChange }: { row: AuctionRow; onChange: () => void }) {
   const { address } = useAccount();
@@ -34,6 +42,7 @@ export function AuctionActions({ row, onChange }: { row: AuctionRow; onChange: (
   const isSeller = !!address && address.toLowerCase() === row.auction.seller.toLowerCase();
   const bid = myBid.data as AuctionBid | undefined;
   const hasBid = !!bid && bid.commitment !== zeroHash;
+  const t = useT();
   const refresh = () => {
     void myBid.refetch();
     void withdrawable.refetch();
@@ -46,7 +55,17 @@ export function AuctionActions({ row, onChange }: { row: AuctionRow; onChange: (
       main = isSeller ? <SellerOpenPanel row={row} onDone={refresh} /> : <BidPanel row={row} existing={hasBid ? bid : undefined} onDone={refresh} />;
       break;
     case AuctionState.Reveal:
-      main = hasBid || !nftAuctionEnabled ? <RevealPanel row={row} bid={bid} onDone={refresh} /> : <Notice icon={<Lock />} title="Bidding has closed">Bidders are revealing their prices. Revealed bids appear in the list as they come in.</Notice>;
+      main =
+        hasBid || !nftAuctionEnabled ? (
+          <RevealPanel row={row} bid={bid} onDone={refresh} />
+        ) : (
+          <Notice icon={<Lock />} title={t("Bidding has closed", "Đã hết hạn đặt giá")}>
+            {t(
+              "Bidders are revealing their prices. Revealed bids appear in the list as they come in.",
+              "Người đặt giá đang công bố giá. Giá đã công bố sẽ lần lượt hiện trong danh sách.",
+            )}
+          </Notice>
+        );
       break;
     case AuctionState.Settlement:
     case AuctionState.NoSale:
@@ -80,6 +99,7 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
   const [ack, setAck] = useState(false);
   const [error, setError] = useState<string>();
   const [done, setDone] = useState(false);
+  const t = useT();
 
   const amount18 = isValidAmountInput(amountInput) ? parseTokenAmount(amountInput) : undefined;
   const deposit18 = isValidAmountInput(depositInput) ? parseTokenAmount(depositInput) : undefined;
@@ -106,10 +126,17 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
 
   function seal() {
     setError(undefined);
-    if (!amount18) return setError("Enter your price in tPOTv3 (max 18 decimals).");
-    if (deposit18 === undefined || deposit18 === 0n) return setError("Enter the deposit to lock.");
-    if (deposit18 < current) return setError(`Your deposit cannot go below the ${formatNativeAmount(current)} already locked.`);
-    if (overDeposit) return setError("Your price is above your deposit, so it would not count. Raise the deposit.");
+    if (!amount18) return setError(t("Enter your price in tPOTv3 (max 18 decimals).", "Nhập giá bằng tPOTv3 (tối đa 18 chữ số thập phân)."));
+    if (deposit18 === undefined || deposit18 === 0n) return setError(t("Enter the deposit to lock.", "Nhập khoản cọc cần khóa."));
+    if (deposit18 < current)
+      return setError(
+        t(
+          `Your deposit cannot go below the ${formatNativeAmount(current)} already locked.`,
+          `Tiền cọc không thể thấp hơn ${formatNativeAmount(current)} đã khóa.`,
+        ),
+      );
+    if (overDeposit)
+      return setError(t("Your price is above your deposit, so it would not count. Raise the deposit.", "Giá của bạn vượt tiền cọc nên sẽ không được tính. Hãy tăng tiền cọc."));
     if (!address || !nftAuctionAddress) return;
     const salt = randomBytes32();
     const entry: NftVaultEntry = {
@@ -145,8 +172,11 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
 
   if (done) {
     return (
-      <Notice icon={<CheckCircle2 className="text-success" />} title={existing ? "Sealed bid updated" : "Sealed bid placed"}>
-        Keep your backup file. When bidding ends, come back here to reveal your price.
+      <Notice
+        icon={<CheckCircle2 className="text-success" />}
+        title={existing ? t("Sealed bid updated", "Đã cập nhật giá niêm phong") : t("Sealed bid placed", "Đã đặt giá niêm phong")}
+      >
+        {t("Keep your backup file. When bidding ends, come back here to reveal your price.", "Hãy giữ file sao lưu. Khi hết hạn đặt giá, quay lại đây để công bố giá.")}
         <TxStatus status={tx.status} hash={tx.hash} />
       </Notice>
     );
@@ -156,20 +186,48 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Gavel className="size-4" /> {existing ? "Update your sealed bid" : "Place a sealed bid"}
+          <Gavel className="size-4" /> {existing ? t("Update your sealed bid", "Cập nhật giá niêm phong") : t("Place a sealed bid", "Đặt giá niêm phong")}
         </CardTitle>
         <CardDescription>
           {existing
-            ? `You have ${formatNativeAmount(existing.deposit)} locked. A new price replaces the old one; you can add to the deposit but not withdraw from it.`
-            : "Your price is hashed in this browser. Only the hash and your deposit go on-chain."}
+            ? t(
+                `You have ${formatNativeAmount(existing.deposit)} locked. A new price replaces the old one; you can add to the deposit but not withdraw from it.`,
+                `Bạn đang khóa ${formatNativeAmount(existing.deposit)}. Giá mới sẽ thay giá cũ; bạn có thể nạp thêm tiền cọc nhưng không rút bớt được.`,
+              )
+            : t(
+                "Your price is hashed in this browser. Only the hash and your deposit go on-chain.",
+                "Giá của bạn được băm ngay trong trình duyệt. Chỉ mã băm và tiền cọc được đưa lên chain.",
+              )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <AmountField id="price" label="Your price" value={amountInput} onChange={(v) => { setAmountInput(v); reset(); }} placeholder={auction.reservePrice > 0n ? `At least ${formatNativeAmount(auction.reservePrice)}` : "Your price"} />
-        {belowReserve && <p className="text-xs text-warning">Below the reserve — this bid would not count.</p>}
+        <AmountField
+          id="price"
+          label={t("Your price", "Giá của bạn")}
+          value={amountInput}
+          onChange={(v) => {
+            setAmountInput(v);
+            reset();
+          }}
+          placeholder={
+            auction.reservePrice > 0n
+              ? t(`At least ${formatNativeAmount(auction.reservePrice)}`, `Tối thiểu ${formatNativeAmount(auction.reservePrice)}`)
+              : t("Your price", "Giá của bạn")
+          }
+        />
+        {belowReserve && <p className="text-xs text-warning">{t("Below the reserve — this bid would not count.", "Dưới giá sàn — giá này sẽ không được tính.")}</p>}
 
         <div className="space-y-2">
-          <AmountField id="deposit" label="Deposit to lock" value={depositInput} onChange={(v) => { setDepositInput(v); reset(); }} placeholder="More than your price" />
+          <AmountField
+            id="deposit"
+            label={t("Deposit to lock", "Tiền cọc cần khóa")}
+            value={depositInput}
+            onChange={(v) => {
+              setDepositInput(v);
+              reset();
+            }}
+            placeholder={t("More than your price", "Lớn hơn giá của bạn")}
+          />
           <div className="flex flex-wrap gap-1.5">
             {[
               ["+25%", 1.25],
@@ -188,34 +246,45 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            The deposit is public; your price is not. Lock more than your price so others cannot read it from the deposit.
-            Losing bidders get it all back; the winner gets back the difference.
+            {t(
+              "The deposit is public; your price is not. Lock more than your price so others cannot read it from the deposit. Losing bidders get it all back; the winner gets back the difference.",
+              "Tiền cọc công khai; giá của bạn thì không. Hãy khóa nhiều hơn giá để người khác không suy ra giá từ tiền cọc. Người thua được hoàn toàn bộ; người thắng được hoàn phần chênh lệch.",
+            )}
           </p>
-          {exactDeposit && <p className="text-xs text-warning">Deposit equals your price, so anyone can read your bid from it.</p>}
+          {exactDeposit && (
+            <p className="text-xs text-warning">
+              {t("Deposit equals your price, so anyone can read your bid from it.", "Tiền cọc bằng đúng giá nên ai cũng đọc được giá của bạn.")}
+            </p>
+          )}
         </div>
 
         <FieldError>{error}</FieldError>
         {!prepared ? (
           <Button className="w-full" onClick={seal} disabled={!nftAuctionEnabled || !amount18 || !deposit18}>
-            <Lock /> Seal bid
+            <Lock /> {t("Seal bid", "Niêm phong giá")}
           </Button>
         ) : (
           <div className="space-y-3 rounded-[14px] border border-overlay/[0.08] p-3">
             <Button className="w-full" variant={backedUp ? "outline" : "default"} onClick={backup}>
-              <Download /> {backedUp ? "Download backup again" : "Download backup file (required)"}
+              <Download /> {backedUp ? t("Download backup again", "Tải lại file sao lưu") : t("Download backup file (required)", "Tải file sao lưu (bắt buộc)")}
             </Button>
             <label className="flex items-start gap-2 text-xs text-muted-foreground">
               <input type="checkbox" className="mt-0.5" checked={ack} disabled={!backedUp} onChange={(e) => setAck(e.target.checked)} />
-              I stored the backup. Without it I cannot reveal, my bid is excluded and part of my deposit is forfeited.
+              {t(
+                "I stored the backup. Without it I cannot reveal, my bid is excluded and part of my deposit is forfeited.",
+                "Tôi đã cất file sao lưu. Thiếu nó tôi không thể công bố, giá bị loại và mất một phần tiền cọc.",
+              )}
             </label>
             <Button className="w-full" size="lg" disabled={!backedUp || !ack || tx.busy} onClick={submit}>
               {tx.busy && <Loader2 className="animate-spin" />}
-              {existing ? `Update bid${topUp > 0n ? ` + ${formatNativeAmount(topUp)}` : ""}` : `Bid · lock ${deposit18 !== undefined ? formatNativeAmount(deposit18) : ""}`}
+              {existing
+                ? `${t("Update bid", "Cập nhật giá")}${topUp > 0n ? ` + ${formatNativeAmount(topUp)}` : ""}`
+                : `${t("Bid · lock", "Đặt giá · khóa")} ${deposit18 !== undefined ? formatNativeAmount(deposit18) : ""}`}
             </Button>
             <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
           </div>
         )}
-        {!nftAuctionEnabled && <p className="text-xs text-muted-foreground">{PREVIEW_HINT}</p>}
+        {!nftAuctionEnabled && <PreviewHint />}
       </CardContent>
     </Card>
   );
@@ -224,20 +293,24 @@ function BidPanel({ row, existing, onDone }: { row: AuctionRow; existing?: Aucti
 function SellerOpenPanel({ row, onDone }: { row: AuctionRow; onDone: () => void }) {
   const tx = useNftTx();
   const canCancel = row.auction.bidCount === 0;
+  const t = useT();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Your auction</CardTitle>
+        <CardTitle>{t("Your auction", "Phiên đấu giá của bạn")}</CardTitle>
         <CardDescription>
           {canCancel
-            ? "No bids yet. You can still cancel and get the NFT back."
-            : `${row.auction.bidCount} sealed bid${row.auction.bidCount === 1 ? "" : "s"}. The auction can no longer be cancelled.`}
+            ? t("No bids yet. You can still cancel and get the NFT back.", "Chưa có ai đặt giá. Bạn vẫn có thể hủy và nhận lại NFT.")
+            : t(
+                `${row.auction.bidCount} sealed bid${row.auction.bidCount === 1 ? "" : "s"}. The auction can no longer be cancelled.`,
+                `${row.auction.bidCount} giá niêm phong. Không thể hủy phiên đấu giá nữa.`,
+              )}
         </CardDescription>
       </CardHeader>
       {canCancel && (
         <CardContent className="space-y-3">
           <Button variant="outline" disabled={tx.busy} onClick={async () => (await tx.send("settle", [row.id])) && onDone()}>
-            {tx.busy ? <Loader2 className="animate-spin" /> : <Undo2 />} Cancel and return NFT
+            {tx.busy ? <Loader2 className="animate-spin" /> : <Undo2 />} {t("Cancel and return NFT", "Hủy và nhận lại NFT")}
           </Button>
           <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
         </CardContent>
@@ -255,6 +328,7 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
   const fileRef = useRef<HTMLInputElement>(null);
   const [imported, setImported] = useState<NftVaultEntry>();
   const [error, setError] = useState<string>();
+  const t = useT();
 
   const stored = address && nftAuctionAddress ? getNftEntry({ chainId: chain.id, contract: nftAuctionAddress, auctionId: id, bidder: address }) : undefined;
   const entry = imported ?? stored;
@@ -265,12 +339,18 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
   if (bid?.revealed) {
     const counted = bid.amount >= auction.reservePrice && bid.amount <= bid.deposit;
     return (
-      <Notice icon={<CheckCircle2 className="text-success" />} title={`Revealed: ${formatNativeAmount(bid.amount)}`}>
+      <Notice icon={<CheckCircle2 className="text-success" />} title={`${t("Revealed:", "Đã công bố:")} ${formatNativeAmount(bid.amount)}`}>
         {counted
           ? auction.highestBidder.toLowerCase() === address?.toLowerCase()
-            ? "Your bid is currently the highest."
-            : "Your bid counts. The highest counted price wins when the reveal window closes."
-          : "Your bid does not count (below the reserve or above your deposit). You will get your full deposit back."}
+            ? t("Your bid is currently the highest.", "Giá của bạn hiện đang cao nhất.")
+            : t(
+                "Your bid counts. The highest counted price wins when the reveal window closes.",
+                "Giá của bạn được tính. Giá hợp lệ cao nhất thắng khi cửa sổ công bố đóng.",
+              )
+          : t(
+              "Your bid does not count (below the reserve or above your deposit). You will get your full deposit back.",
+              "Giá của bạn không được tính (dưới giá sàn hoặc vượt tiền cọc). Bạn sẽ được hoàn toàn bộ tiền cọc.",
+            )}
       </Notice>
     );
   }
@@ -280,11 +360,16 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
     try {
       const all = parseNftBackup(await file.text());
       const match = all.find((e) => e.auctionId === id.toString() && (!address || e.bidder.toLowerCase() === address.toLowerCase()));
-      if (!match) throw new Error(`This backup has no bid for auction #${id}${address ? ` from ${shortAddress(address)}` : ""}.`);
+      if (!match)
+        throw new Error(
+          address
+            ? t(`This backup has no bid for auction #${id} from ${shortAddress(address)}.`, `File sao lưu này không có giá của ${shortAddress(address)} cho phiên đấu giá #${id}.`)
+            : t(`This backup has no bid for auction #${id}.`, `File sao lưu này không có giá cho phiên đấu giá #${id}.`),
+        );
       saveNftEntries([match]);
       setImported(match);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not read the backup file.");
+      setError(e instanceof Error ? e.message : t("Could not read the backup file.", "Không đọc được file sao lưu."));
     }
   }
 
@@ -297,38 +382,58 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Lock className="size-4" /> Reveal your bid
+          <Lock className="size-4" /> {t("Reveal your bid", "Công bố giá của bạn")}
         </CardTitle>
         <CardDescription>
-          Bidding has closed. Reveal before the deadline: unrevealed bids are excluded and lose part of their deposit.
+          {t(
+            "Bidding has closed. Reveal before the deadline: unrevealed bids are excluded and lose part of their deposit.",
+            "Đã hết hạn đặt giá. Hãy công bố trước hạn: giá không công bố sẽ bị loại và mất một phần tiền cọc.",
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {entry && secrets ? (
           <div className="grid gap-2 rounded-[14px] border border-overlay/[0.08] p-3 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Your price</span><b className="font-medium">{formatNativeAmount(secrets.amount18)}</b></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Deposit</span><span>{formatNativeAmount(bid?.deposit ?? BigInt(entry.deposit18))}</span></div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("Your price", "Giá của bạn")}</span>
+              <b className="font-medium">{formatNativeAmount(secrets.amount18)}</b>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t("Deposit", "Tiền cọc")}</span>
+              <span>{formatNativeAmount(bid?.deposit ?? BigInt(entry.deposit18))}</span>
+            </div>
             <p className={cn("flex items-center gap-1.5 text-xs", matches ? "text-success-fg" : "text-destructive")}>
               {matches ? <CheckCircle2 className="size-3.5" /> : <AlertTriangle className="size-3.5" />}
-              {matches ? "Matches your sealed commitment" : "Does not match the commitment on-chain — check you imported the latest backup"}
+              {matches
+                ? t("Matches your sealed commitment", "Khớp commitment đã niêm phong")
+                : t(
+                    "Does not match the commitment on-chain — check you imported the latest backup",
+                    "Không khớp commitment on-chain — hãy kiểm tra bạn đã nhập bản sao lưu mới nhất",
+                  )}
             </p>
-            {matches && !counts && <p className="text-xs text-warning">This bid will not count, but revealing still returns your full deposit.</p>}
+            {matches && !counts && (
+              <p className="text-xs text-warning">
+                {t("This bid will not count, but revealing still returns your full deposit.", "Giá này sẽ không được tính, nhưng công bố vẫn giúp bạn nhận lại toàn bộ tiền cọc.")}
+              </p>
+            )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No saved secrets for this bid in this browser. Import your backup file.</p>
+          <p className="text-sm text-muted-foreground">
+            {t("No saved secrets for this bid in this browser. Import your backup file.", "Trình duyệt này chưa lưu bí mật của giá này. Hãy nhập file sao lưu.")}
+          </p>
         )}
         <div>
           <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-            <Upload /> Import backup file
+            <Upload /> {t("Import backup file", "Nhập file sao lưu")}
           </Button>
           <input ref={fileRef} type="file" accept="application/json,.json" className="sr-only" onChange={(e) => e.target.files?.[0] && void importFile(e.target.files[0])} />
         </div>
         <FieldError>{error}</FieldError>
         <Button className="w-full" size="lg" disabled={!nftAuctionEnabled || !matches || tx.busy} onClick={reveal}>
-          {tx.busy && <Loader2 className="animate-spin" />} Reveal bid
+          {tx.busy && <Loader2 className="animate-spin" />} {t("Reveal bid", "Công bố giá")}
         </Button>
         <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
-        {!nftAuctionEnabled && <p className="text-xs text-muted-foreground">{PREVIEW_HINT}</p>}
+        {!nftAuctionEnabled && <PreviewHint />}
       </CardContent>
     </Card>
   );
@@ -339,24 +444,29 @@ function RevealPanel({ row, bid, onDone }: { row: AuctionRow; bid?: AuctionBid; 
 function SettlePanel({ row, onDone }: { row: AuctionRow; onDone: () => void }) {
   const tx = useNftTx();
   const sale = row.auction.highestBidder !== zeroAddress;
+  const t = useT();
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Trophy className="size-4" /> {sale ? "Ready to settle" : "No valid bid"}
+          <Trophy className="size-4" /> {sale ? t("Ready to settle", "Sẵn sàng kết thúc") : t("No valid bid", "Không có giá hợp lệ")}
         </CardTitle>
         <CardDescription>
           {sale
-            ? `${shortAddress(row.auction.highestBidder)} won with ${formatNativeAmount(row.auction.highestBid)}. Anyone can settle: the NFT goes to the winner and the price to the seller.`
-            : "No revealed bid met the reserve. Settling returns the NFT to the seller."}
+            ? t(
+                `${shortAddress(row.auction.highestBidder)} won with ${formatNativeAmount(row.auction.highestBid)}. Anyone can settle: the NFT goes to the winner and the price to the seller.`,
+                `${shortAddress(row.auction.highestBidder)} thắng với ${formatNativeAmount(row.auction.highestBid)}. Ai cũng có thể kết thúc: NFT về người thắng, tiền về người bán.`,
+              )
+            : t("No revealed bid met the reserve. Settling returns the NFT to the seller.", "Không giá công bố nào đạt giá sàn. Kết thúc sẽ trả NFT về người bán.")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <Button className="w-full" disabled={!nftAuctionEnabled || tx.busy} onClick={async () => (await tx.send("settle", [row.id])) && onDone()}>
-          {tx.busy && <Loader2 className="animate-spin" />} {sale ? "Settle: deliver NFT" : "Settle: return NFT"}
+          {tx.busy && <Loader2 className="animate-spin" />}{" "}
+          {sale ? t("Settle: deliver NFT", "Kết thúc: giao NFT") : t("Settle: return NFT", "Kết thúc: trả NFT")}
         </Button>
         <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
-        {!nftAuctionEnabled && <p className="text-xs text-muted-foreground">{PREVIEW_HINT}</p>}
+        {!nftAuctionEnabled && <PreviewHint />}
       </CardContent>
     </Card>
   );
@@ -364,15 +474,27 @@ function SettlePanel({ row, onDone }: { row: AuctionRow; onDone: () => void }) {
 
 function OutcomePanel({ row }: { row: AuctionRow }) {
   const { auction, state } = row;
+  const t = useT();
   if (state === AuctionState.Cancelled) {
-    return <Notice icon={<Undo2 />} title="Cancelled">The seller cancelled before any bid; the NFT went back to them.</Notice>;
+    return (
+      <Notice icon={<Undo2 />} title={t("Cancelled", "Đã hủy")}>
+        {t("The seller cancelled before any bid; the NFT went back to them.", "Người bán đã hủy trước khi có giá nào; NFT đã về lại người bán.")}
+      </Notice>
+    );
   }
   if (auction.highestBidder === zeroAddress) {
-    return <Notice icon={<Undo2 />} title="No sale">No revealed bid met the reserve. The NFT was returned to the seller.</Notice>;
+    return (
+      <Notice icon={<Undo2 />} title={t("No sale", "Không bán được")}>
+        {t("No revealed bid met the reserve. The NFT was returned to the seller.", "Không giá công bố nào đạt giá sàn. NFT đã được trả về người bán.")}
+      </Notice>
+    );
   }
   return (
-    <Notice icon={<Trophy className="text-success" />} title={`Sold for ${formatNativeAmount(auction.highestBid)}`}>
-      Won by {shortAddress(auction.highestBidder)}. Every revealed amount below can be re-checked against its sealed commitment.
+    <Notice icon={<Trophy className="text-success" />} title={t(`Sold for ${formatNativeAmount(auction.highestBid)}`, `Đã bán với giá ${formatNativeAmount(auction.highestBid)}`)}>
+      {t(
+        `Won by ${shortAddress(auction.highestBidder)}. Every revealed amount below can be re-checked against its sealed commitment.`,
+        `Người thắng: ${shortAddress(auction.highestBidder)}. Mọi giá đã công bố bên dưới đều có thể đối chiếu lại với commitment niêm phong.`,
+      )}
     </Notice>
   );
 }
@@ -381,24 +503,25 @@ function WithdrawPanel({ row, amount, isSeller, bid, onDone }: { row: AuctionRow
   const tx = useNftTx();
   const { address } = useAccount();
   const winner = !!address && address.toLowerCase() === row.auction.highestBidder.toLowerCase();
+  const t = useT();
   const reason = isSeller
-    ? "Proceeds from the sale."
+    ? t("Proceeds from the sale.", "Tiền thu từ việc bán.")
     : winner
-      ? "The part of your deposit above your winning price."
+      ? t("The part of your deposit above your winning price.", "Phần tiền cọc vượt quá giá thắng của bạn.")
       : bid && !bid.revealed
-        ? "Your deposit minus the penalty for not revealing."
-        : "Your full deposit.";
+        ? t("Your deposit minus the penalty for not revealing.", "Tiền cọc sau khi trừ khoản phạt do không công bố.")
+        : t("Your full deposit.", "Toàn bộ tiền cọc của bạn.");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Wallet className="size-4" /> {formatNativeAmount(amount)} to withdraw
+          <Wallet className="size-4" /> {t(`${formatNativeAmount(amount)} to withdraw`, `${formatNativeAmount(amount)} có thể rút`)}
         </CardTitle>
         <CardDescription>{reason}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <Button className="w-full" disabled={tx.busy} onClick={async () => (await tx.send("withdraw", [row.id])) && onDone()}>
-          {tx.busy && <Loader2 className="animate-spin" />} Withdraw
+          {tx.busy && <Loader2 className="animate-spin" />} {t("Withdraw", "Rút")}
         </Button>
         <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
       </CardContent>

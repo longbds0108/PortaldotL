@@ -1,3 +1,5 @@
+import { tr } from "./i18n";
+
 export async function extractProposalText(name: string, type: string, bytes: Uint8Array): Promise<string> {
   const extension = name.split(".").pop()?.toLowerCase() ?? "";
   if (extension === "pdf" || type === "application/pdf") {
@@ -21,5 +23,10 @@ export async function extractProposalText(name: string, type: string, bytes: Uin
   if (["txt", "md", "csv", "json"].includes(extension) || type.startsWith("text/")) {
     return new TextDecoder().decode(bytes).trim();
   }
-  throw new Error(`Unsupported proposal format: ${extension || type || "unknown"}. Use PDF, DOCX, TXT, Markdown, CSV, or JSON.`);
+  throw new Error(
+    tr(
+      `Unsupported proposal format: ${extension || type || "unknown"}. Use PDF, DOCX, TXT, Markdown, CSV, or JSON.`,
+      `Định dạng hồ sơ không hỗ trợ: ${extension || type || "không rõ"}. Hãy dùng PDF, DOCX, TXT, Markdown, CSV hoặc JSON.`,
+    ),
+  );
 }

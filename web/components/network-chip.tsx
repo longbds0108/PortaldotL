@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
 import { addPortaldotToWallet } from "@/components/add-network-button";
+import { useT } from "@/components/lang-provider";
 import { IS_LOCAL_CHAIN, NETWORK_NAME } from "@/lib/network";
 import { cn } from "@/lib/utils";
 import { chain } from "@/lib/wagmi";
@@ -19,21 +20,22 @@ export function NetworkChip() {
   const { switchChain, isPending } = useSwitchChain();
   const { openConnectModal } = useConnectModal();
   const [failed, setFailed] = useState(false);
+  const t = useT();
   useEffect(() => {
     if (!failed) return;
-    const t = setTimeout(() => setFailed(false), 2500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setFailed(false), 2500);
+    return () => clearTimeout(timer);
   }, [failed]);
 
   const onPortaldotV3 = isConnected && chainId === chain.id;
   const status = !isConnected ? "idle" : onPortaldotV3 ? "ok" : "wrong";
   const title = failed
-    ? "The wallet did not switch network"
+    ? t("The wallet did not switch network", "Ví chưa chuyển mạng")
     : status === "ok"
-      ? `Wallet is on ${NETWORK_NAME}`
+      ? t(`Wallet is on ${NETWORK_NAME}`, `Ví đang ở ${NETWORK_NAME}`)
       : status === "wrong"
-        ? `Add / switch wallet to ${NETWORK_NAME}`
-        : "Connect a wallet";
+        ? t(`Add / switch wallet to ${NETWORK_NAME}`, `Thêm / chuyển ví sang ${NETWORK_NAME}`)
+        : t("Connect a wallet", "Kết nối ví");
 
   return (
     <button

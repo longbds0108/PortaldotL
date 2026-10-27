@@ -1,5 +1,8 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { useT } from "@/components/lang-provider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -11,9 +14,10 @@ import { cn } from "@/lib/utils";
  */
 
 export function InDesignBadge() {
+  const t = useT();
   return (
     <Badge variant="secondary" dot className="px-3 py-1.5 text-[0.74rem]">
-      In design
+      {t("In design", "Đang thiết kế")}
     </Badge>
   );
 }
@@ -25,13 +29,14 @@ export function DesignNote({ children }: { children: ReactNode }) {
 
 /** Metric tile with no value yet. */
 export function MetricTile({ icon: Icon, label, hint }: { icon: LucideIcon; label: string; hint?: string }) {
+  const t = useT();
   return (
     <div className="well flex flex-col gap-3 rounded-[15px] p-4">
       <span className="flex items-center gap-2 text-[0.72rem] text-muted-foreground">
         <Icon className="size-3.5 text-link" aria-hidden="true" />
         {label}
       </span>
-      <span className="text-[1.6rem] font-medium leading-none text-foreground-soft tabular-nums" aria-label={`${label}: not available yet`}>
+      <span className="text-[1.6rem] font-medium leading-none text-foreground-soft tabular-nums" aria-label={t(`${label}: not available yet`, `${label}: chưa có dữ liệu`)}>
         —
       </span>
       {hint && <span className="text-[0.7rem] leading-relaxed text-muted-foreground">{hint}</span>}

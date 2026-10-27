@@ -1,0 +1,737 @@
+<!doctype html>
+<!-- Vietnamese edition of index.html, same markup. Edit both files together. -->
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Plinths: đấu thầu niêm phong trên PortaldotV3</title>
+    <meta
+      name="description"
+      content="Plinths là sàn đấu thầu niêm phong công khai trên PortaldotV3. Bên mời thầu đăng công việc, nhà thầu niêm phong giá, và contract quyết định khi nào mọi thứ được mở."
+    />
+    <meta name="theme-color" content="#08070b" />
+    <meta property="og:title" content="Plinths: đấu thầu công khai, giá thầu bí mật" />
+    <meta property="og:description" content="Đấu thầu và đấu giá NFT niêm phong trên PortaldotV3. Giá được niêm phong đến hạn chót." />
+    <link rel="icon" type="image/png" href="/home/assets/img/favicon.png" />
+    <!-- Everything is served from this origin: no third-party connections before the first paint. -->
+    <link rel="preload" href="/home/assets/fonts/inter-tight-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/home/assets/css/style.css" />
+    <noscript>
+      <!-- Without JS nothing adds .is-in, so show the data visuals in their final state. -->
+      <style>
+        .rules__bar::after, .stat__blocks i, .stat__line i { transform: none; opacity: 1; }
+        .rules__bar::before { transform: translate(-50%, -50%); }
+        .ring__val { stroke-dashoffset: calc(100 - var(--p) * 100); }
+        .wave path { stroke-dashoffset: 0; }
+        .heat__col i:nth-of-type(1) { opacity: clamp(0.07, calc(var(--v) * 4), 1); }
+        .heat__col i:nth-of-type(2) { opacity: clamp(0.07, calc(var(--v) * 4 - 1), 1); }
+        .heat__col i:nth-of-type(3) { opacity: clamp(0.07, calc(var(--v) * 4 - 2), 1); }
+        .heat__col i:nth-of-type(4) { opacity: clamp(0.07, calc(var(--v) * 4 - 3), 1); }
+      </style>
+    </noscript>
+    <script>
+      // Intro states are hidden only when JS runs; if the scripts never arrive, everything shows after 2.5s.
+      document.documentElement.classList.add("js");
+      setTimeout(function () {
+        document.documentElement.classList.add("ready");
+      }, 2500);
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Bỏ qua đến nội dung</a>
+
+    <!-- Atmosphere: dot grid + vignette, then the light ribbon (bloom under sharp) -->
+    <div class="atmos" aria-hidden="true"></div>
+    <canvas id="ribbon-bloom" class="ribbon ribbon--bloom" aria-hidden="true"></canvas>
+    <canvas id="ribbon" class="ribbon" aria-hidden="true"></canvas>
+
+    <!-- ───────── Navigation ───────── -->
+    <header class="nav" id="nav">
+      <a class="brand" href="#top" aria-label="Plinths, về đầu trang">
+        <img src="/home/assets/img/plinths-mark.png" alt="" width="30" height="30" />
+        <span>plinths</span>
+      </a>
+      <nav class="nav__links" aria-label="Điều hướng chính">
+        <a href="#features">Sản phẩm</a>
+        <a href="#how">Cách hoạt động</a>
+        <a href="/marketplace">Sàn thầu</a>
+        <a href="/docs">Tài liệu</a>
+      </nav>
+      <div class="nav__right">
+        <!-- EN | VI: sets the plinths_lang cookie (shared with the app); next.config.ts serves vi.html for "vi". -->
+        <div class="lang" role="radiogroup" aria-label="Ngôn ngữ">
+          <button type="button" role="radio" aria-checked="false" data-lang="en" lang="en" title="English">EN</button>
+          <button type="button" role="radio" aria-checked="true" data-lang="vi" lang="vi" title="Tiếng Việt">VI</button>
+        </div>
+        <a class="btn btn--primary btn--sm magnetic" href="/dashboard" data-boost>Mở ứng dụng</a>
+        <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="mnav" aria-label="Mở menu">
+          <span></span><span></span>
+        </button>
+      </div>
+    </header>
+    <div class="mnav" id="mnav" hidden>
+      <nav aria-label="Di động">
+        <a href="#features">Sản phẩm</a>
+        <a href="#how">Cách hoạt động</a>
+        <a href="/marketplace">Sàn thầu</a>
+        <a href="/docs">Tài liệu</a>
+        <a class="btn btn--primary" href="/dashboard">Mở ứng dụng</a>
+      </nav>
+    </div>
+
+    <main id="main">
+      <!-- ───────── Hero ───────── -->
+      <section class="hero" id="top" data-scene="hero">
+        <div class="hero__copy">
+          <p class="badge mono" data-intro><i></i>đấu thầu niêm phong / đang chạy trên PortaldotV3</p>
+          <h1 class="hero__title">
+            <span class="line"><span data-intro-line>Đấu thầu công khai</span></span>
+            <span class="line"><span data-intro-line>Giá thầu <em>bí mật</em></span></span>
+          </h1>
+          <p class="hero__lead" data-intro>
+            Plinths cho bên mời thầu một nơi để đăng công việc và so sánh giá chào. Nhà thầu niêm phong giá, và không ai, kể cả
+            bên mời thầu, mở được trước hạn chót
+          </p>
+          <div class="hero__ctas" data-intro>
+            <a class="btn btn--primary magnetic" href="/dashboard" data-boost>Mở ứng dụng</a>
+            <a class="btn btn--ghost magnetic" href="/marketplace"
+              ><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 2l7 4-7 4z" /></svg>Xem gói thầu đang mở</a
+            >
+          </div>
+        </div>
+
+        <div class="hero__stage">
+          <div class="hero__tilt">
+            <div class="panel dash" id="hero-dash" data-intro-dash>
+              <div class="dash__bar">
+                <span class="dash__title">Gói thầu #0 · Web3 Payment Dashboard</span>
+                <span class="dash__sep"></span>
+                <span class="mono dash__meta">Công nghệ · 5.00–10.00 tPOTv3</span>
+                <span class="chip chip--live mono"><i></i>giai đoạn công bố</span>
+              </div>
+              <div class="dash__body">
+                <div class="dash__tools" aria-hidden="true">
+                  <span class="is-on"><svg viewBox="0 0 16 16"><path d="M4 2l8 6-4 1-1.5 4z" /></svg></span>
+                  <span><svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" /></svg></span>
+                  <span><svg viewBox="0 0 16 16"><path d="M4 12V7a3 3 0 013-3h5m-3-2l3 2-3 2" /></svg></span>
+                </div>
+                <span class="dash__zoom mono" aria-hidden="true">100%</span>
+
+                <div class="graph" role="img" aria-label="Quy trình gói thầu: hồ sơ được niêm phong, giá công bố được đối chiếu với mã băm, nhà thầu im lặng mất tiền bảo đảm về treasury, rồi bên mời thầu trao thầu.">
+                  <svg class="graph__edges" viewBox="0 0 600 300" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="edge" x1="0" x2="1">
+                        <stop offset="0" stop-color="#83aaff" stop-opacity=".9" />
+                        <stop offset="1" stop-color="#3f91ff" stop-opacity=".45" />
+                      </linearGradient>
+                    </defs>
+                    <path id="e1" class="edge" d="M190 150 C 230 150, 225 78, 268 78" />
+                    <path id="e2" class="edge edge--dim" d="M190 150 C 230 150, 225 222, 268 222" />
+                    <path id="e3" class="edge" d="M418 78 C 452 78, 448 150, 470 150" />
+                    <path id="e4" class="edge edge--dim" d="M418 222 C 452 222, 452 200, 470 186" />
+                    <circle r="3" class="packet"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#e1" /></animateMotion></circle>
+                    <circle r="3" class="packet"><animateMotion dur="2.6s" begin="1.3s" repeatCount="indefinite"><mpath href="#e3" /></animateMotion></circle>
+                  </svg>
+                  <span class="graph__label mono" style="left: 31.5%; top: 18%">đã công bố</span>
+                  <span class="graph__label mono" style="left: 32.5%; top: 76%">im lặng</span>
+
+                  <div class="node node--src" style="left: 2%; top: 37%" data-node>
+                    <b>Hồ sơ niêm phong</b><span class="mono">6 commitment</span>
+                  </div>
+                  <div class="node" style="left: 44.6%; top: 12%" data-node>
+                    <b>Mã băm khớp</b><span class="mono">contract kiểm tra</span>
+                  </div>
+                  <div class="node" style="left: 44.6%; top: 60%" data-node>
+                    <b>Tiền bảo đảm về treasury</b><span class="mono">không về bên mời thầu</span>
+                  </div>
+                  <div class="node node--end" style="left: 78.4%; top: 37%" data-node>
+                    <b>Đánh giá</b><span class="mono">bên mời thầu chọn hồ sơ đã công bố</span>
+                  </div>
+                  <span class="graph__chip mono" style="left: 78.4%; top: 70%"><i></i>còn 26 phút công bố</span>
+                </div>
+
+                <div class="dash__log">
+                  <p class="mono dash__logtitle">sự kiện contract</p>
+                  <ul class="mono">
+                    <li><i class="ok"></i><span>blk 97,874</span><span>BidRevealed</span><span class="dim">0x3b8e…735e</span><span class="ok-t">hash ✓</span></li>
+                    <li><i class="ok"></i><span>blk 97,860</span><span>BidRevealed</span><span class="dim">0xff58…a1d2</span><span class="ok-t">hash ✓</span></li>
+                    <li><i></i><span>blk 97,702</span><span>BidSubmitted</span><span class="dim">0x9a41…c03f</span><span class="dim">niêm phong</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="float-card float-card--a mono" data-intro-float>
+              <span class="dim">commitment</span>
+              <b>0x5c1e…9b07</b>
+            </div>
+          </div>
+        </div>
+
+        <a class="scroll-cue mono" href="#stack" aria-label="Cuộn đến nội dung"><span></span>cuộn</a>
+      </section>
+
+      <!-- ───────── Stack strip ───────── -->
+      <section class="stack" id="stack" data-scene="stack" aria-labelledby="stack-title">
+        <p class="stack__lead mono" id="stack-title" data-reveal>xây trên hạ tầng mở / mọi bước kiểm chứng được trong trình duyệt</p>
+        <ul class="stack__row" data-reveal-group>
+          <li><span class="tile tile--fill"><img src="/home/assets/img/stack/portaldot.jpg" alt="" width="28" height="28" loading="lazy" /></span><b>PortaldotV3</b><span class="mono">thanh toán</span></li>
+          <li><span class="tile"><img src="/home/assets/img/stack/solidity.svg" alt="" width="28" height="28" loading="lazy" /></span><b>Solidity</b><span class="mono">contract</span></li>
+          <li><span class="tile"><img src="/home/assets/img/stack/openzeppelin.svg" alt="" width="28" height="28" loading="lazy" /></span><b>OpenZeppelin</b><span class="mono">bảo vệ</span></li>
+          <li><span class="tile"><img src="/home/assets/img/stack/ipfs.svg" alt="" width="28" height="28" loading="lazy" /></span><b>IPFS</b><span class="mono">tài liệu</span></li>
+          <li><span class="tile"><img src="/home/assets/img/stack/webcrypto.svg" alt="" width="28" height="28" loading="lazy" /></span><b>WebCrypto</b><span class="mono">AES-256-GCM</span></li>
+          <li><span class="tile"><img src="/home/assets/img/stack/viem.png" alt="" width="28" height="28" loading="lazy" /></span><b>viem</b><span class="mono">đọc chain</span></li>
+          <li><span class="tile tile--fill"><img src="/home/assets/img/stack/rainbowkit.svg" alt="" width="28" height="28" loading="lazy" /></span><b>RainbowKit</b><span class="mono">ví</span></li>
+        </ul>
+      </section>
+
+      <!-- ───────── Statement ───────── -->
+      <section class="statement" data-scene="statement" aria-label="Vì sao chọn Plinths">
+        <p class="eyebrow mono" data-reveal><i></i>vấn đề của các cổng đấu thầu</p>
+        <p class="statement__text" data-words>
+          Phần lớn gói thầu bị lộ giá trước hạn chót. Trên Plinths, giá được niêm phong cho đến khi chính nhà thầu mở
+        </p>
+      </section>
+
+      <!-- ───────── Features showcase ───────── -->
+      <section class="features" id="features" data-scene="features" aria-labelledby="features-title">
+        <header class="features__head">
+          <p class="eyebrow mono" data-reveal><i></i>một contract, mọi giai đoạn</p>
+          <h2 id="features-title" data-reveal>Niêm phong bằng toán học, <em>mở</em> bởi chính người niêm phong</h2>
+        </header>
+
+        <div class="features__grid">
+          <ol class="features__list">
+            <li class="feature is-active" data-feature="0">
+              <span class="feature__num mono">01 / niêm phong</span>
+              <h3>Niêm phong giá bằng một mã băm</h3>
+              <p>
+                Giá, salt ngẫu nhiên và khóa hồ sơ được băm cùng địa chỉ ví ngay trong trình duyệt. Chỉ commitment 32 byte được
+                đưa lên chain. Đổi một chữ số là không mở được nữa
+              </p>
+              <span class="feature__tags mono">keccak256 · abi.encode</span>
+            </li>
+            <li class="feature" data-feature="1">
+              <span class="feature__num mono">02 / mã hóa</span>
+              <h3>Hồ sơ được khóa trước khi tải lên</h3>
+              <p>
+                Hồ sơ PDF, DOCX hay văn bản được mã hóa AES-256-GCM trong trình duyệt trước khi lên IPFS. Khóa chỉ được công bố
+                khi bạn reveal, nên trước đó không ai đọc được file
+              </p>
+              <span class="feature__tags mono">WebCrypto · IPFS</span>
+            </li>
+            <li class="feature" data-feature="2">
+              <span class="feature__num mono">03 / thời hạn</span>
+              <h3>Thời hạn nằm trong code</h3>
+              <p>
+                Đang mở, Công bố và Đánh giá chạy theo thời gian block trong contract, với cửa sổ công bố ít nhất 24 giờ. Hồ sơ
+                trễ và công bố sớm đều bị revert, và bên mời thầu không thể dời thời hạn
+              </p>
+              <span class="feature__tags mono">block time · revert</span>
+            </li>
+            <li class="feature" data-feature="3">
+              <span class="feature__num mono">04 / trợ lý</span>
+              <h3>Trợ lý chỉ đọc, không bao giờ chọn</h3>
+              <p>
+                Sau hạn công bố, Trợ lý Plinths so sánh các hồ sơ đã công bố cho bên mời thầu và đánh dấu câu lệnh đáng ngờ.
+                Trợ lý không bao giờ chọn người thắng; báo cáo và mã băm được công bố cùng quyết định trao thầu
+              </p>
+              <span class="feature__tags mono">sau công bố · bên mời thầu quyết định</span>
+            </li>
+            <li class="feature" data-feature="4">
+              <span class="feature__num mono">05 / đấu giá nft</span>
+              <h3>Cùng cách niêm phong, cho NFT</h3>
+              <p>
+                Đấu giá niêm phong cho mọi ERC-721, thanh toán bằng tPOTv3. Tiền cọc công khai, giá niêm phong. Giá công bố cao
+                nhất thắng và settle() giao NFT
+              </p>
+              <span class="feature__tags mono">ERC-721 · commit–reveal</span>
+            </li>
+          </ol>
+
+          <div class="features__stage">
+            <div class="panel stage" aria-live="polite">
+              <div class="stage__bar mono">
+                <span class="stage__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span id="stage-path">plinths / tenders / 0 / bid</span>
+                <span class="stage__progress" aria-hidden="true"><i id="stage-progress"></i></span>
+              </div>
+
+              <!-- 01 Commit (interactive) -->
+              <div class="pv is-active" data-preview="0">
+                <div class="pv__head">
+                  <b>Niêm phong giá</b><span class="chip mono"><i></i>giai đoạn commit</span>
+                </div>
+                <label class="field">
+                  <span class="mono">giá của bạn</span>
+                  <span class="field__input">
+                    <input id="commit-amount" type="text" inputmode="decimal" value="8.00" autocomplete="off" aria-describedby="commit-help" />
+                    <span class="mono">tPOTv3</span>
+                  </span>
+                </label>
+                <dl class="kv mono">
+                  <div><dt>tenderId</dt><dd>0</dd></div>
+                  <div><dt>bidder</dt><dd>0x7a1c…b9c0</dd></div>
+                  <div>
+                    <dt>salt</dt>
+                    <dd><span id="commit-salt">0x…</span><button type="button" class="mini" id="commit-resalt" aria-label="Salt ngẫu nhiên mới">↻</button></dd>
+                  </div>
+                  <div><dt>keccak(docKey)</dt><dd id="commit-dockey">0x…</dd></div>
+                </dl>
+                <div class="hashout">
+                  <span class="mono dim">commitment, giá trị duy nhất gửi lên chain</span>
+                  <code id="commit-hash" class="mono">0x…</code>
+                </div>
+                <p class="pv__foot mono" id="commit-help">gõ một mức giá: mã băm được tính trực tiếp, đúng như contract kiểm tra</p>
+              </div>
+
+              <!-- 02 Encrypt -->
+              <div class="pv" data-preview="1">
+                <div class="pv__head"><b>Mã hóa hồ sơ</b><span class="chip mono"><i></i>trong trình duyệt</span></div>
+                <div class="file">
+                  <span class="file__icon mono">PDF</span>
+                  <div><b>proposal-payments-audit.pdf</b><span class="mono dim">2.4 MB · bản rõ ở lại đây</span></div>
+                </div>
+                <div class="enc">
+                  <div class="enc__row mono"><span>AES-256-GCM</span><span id="enc-pct">0%</span></div>
+                  <div class="enc__bar"><i id="enc-bar"></i></div>
+                  <code class="mono enc__cipher" id="enc-cipher">—</code>
+                </div>
+                <dl class="kv mono">
+                  <div><dt>đã tải lên</dt><dd id="enc-cid">đang chờ…</dd></div>
+                  <div><dt>khóa</dt><dd>giữ trong file sao lưu</dd></div>
+                  <div><dt>công bố</dt><dd>chỉ khi reveal</dd></div>
+                </dl>
+                <button type="button" class="btn btn--ghost btn--sm" id="enc-replay">Mã hóa lại</button>
+              </div>
+
+              <!-- 03 Deadlines -->
+              <div class="pv" data-preview="2">
+                <div class="pv__head"><b>Đồng hồ giai đoạn</b><span class="chip mono"><i></i>thời gian block</span></div>
+                <div class="phases">
+                  <div class="phases__track">
+                    <span class="ph ph--commit"><b>Đang mở</b><i class="mono">niêm phong</i></span>
+                    <span class="ph ph--reveal"><b>Công bố</b><i class="mono">nhà thầu mở giá</i></span>
+                    <span class="ph ph--award"><b>Đánh giá</b><i class="mono">bên mời thầu quyết định</i></span>
+                    <span class="phases__now" id="phase-now"><em class="mono">bây giờ</em></span>
+                  </div>
+                </div>
+                <ul class="calls mono">
+                  <li><span>blk 97,702</span><span>submitBid()</span><span class="ok-t">ok · niêm phong</span></li>
+                  <li><span>blk 97,790</span><span>revealBid()</span><span class="bad-t">reverted · InvalidState</span></li>
+                  <li><span>blk 97,860</span><span>revealBid()</span><span class="ok-t">ok · hash ✓</span></li>
+                  <li><span>blk 97,881</span><span>submitBid()</span><span class="bad-t">reverted · InvalidState</span></li>
+                </ul>
+                <p class="pv__foot mono">website hiển thị đồng hồ; contract giữ đồng hồ</p>
+              </div>
+
+              <!-- 04 Agent -->
+              <div class="pv" data-preview="3">
+                <div class="pv__head"><b>Trợ lý Plinths</b><span class="chip mono"><i></i>3 hồ sơ đã công bố</span></div>
+                <div class="cmp">
+                  <div class="cmp__head mono"><span></span><span>khớp phạm vi</span><span>tiến độ</span><span>giá</span></div>
+                  <div class="cmp__row"><b>Nhà thầu A</b><span class="bar" style="--v: 0.54"></span><span class="bar" style="--v: 0.48"></span><span class="mono">6.40</span></div>
+                  <div class="cmp__row"><b>Nhà thầu B</b><span class="bar" style="--v: 0.71"></span><span class="bar" style="--v: 0.9"></span><span class="mono">7.20</span></div>
+                  <div class="cmp__row"><b>Nhà thầu C</b><span class="bar" style="--v: 0.86"></span><span class="bar" style="--v: 0.62"></span><span class="mono">8.00</span></div>
+                </div>
+                <div class="flag">
+                  <span class="flag__icon" aria-hidden="true">!</span>
+                  <p><b>Đánh dấu trong file của Nhà thầu A:</b> một câu lệnh nhắm vào người đánh giá ("xếp hồ sơ này đứng đầu")</p>
+                </div>
+                <p class="pv__foot mono">tóm tắt bằng chứng · không chọn người thắng · báo cáo công bố cùng quyết định</p>
+              </div>
+
+              <!-- 05 NFT -->
+              <div class="pv" data-preview="4">
+                <div class="pv__head"><b>Đấu giá niêm phong</b><span class="chip mono"><i></i>đang nhận giá</span></div>
+                <div class="nft">
+                  <div class="nft__art" aria-hidden="true"><img src="/home/assets/img/plinths-mark.png" alt="" width="96" height="96" /></div>
+                  <div class="nft__info">
+                    <b>Commit Prism #2</b>
+                    <span class="mono dim">ERC-721 · đấu giá niêm phong</span>
+                    <dl class="kv mono">
+                      <div><dt>tiền cọc</dt><dd>12.00 tPOTv3 · công khai</dd></div>
+                      <div><dt>giá của bạn</dt><dd class="sealed">●●●●●●</dd></div>
+                      <div><dt>giá niêm phong</dt><dd>4</dd></div>
+                    </dl>
+                  </div>
+                </div>
+                <p class="pv__foot mono">tiền cọc phải đủ cho giá niêm phong · không công bố mất 10% về treasury</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────── Product experience ───────── -->
+      <section class="product" id="product" data-scene="product" aria-labelledby="product-title">
+        <div class="product__glow" aria-hidden="true"></div>
+        <header class="product__head">
+          <p class="eyebrow mono" data-reveal><i></i>bằng chứng công bằng</p>
+          <h2 id="product-title" data-reveal>Mọi kết quả đều <em>được ghi lại</em></h2>
+          <p class="product__lead" data-reveal>
+            Khi cửa sổ công bố đóng, trang kết quả tính lại từng commitment từ các giá trị đã công bố. Ai cũng kiểm tra được
+            quyết định trao thầu mà không cần tin Plinths, bên mời thầu hay website
+          </p>
+        </header>
+
+        <div class="product__scene">
+          <div class="product__screen panel" id="product-screen">
+            <div class="res">
+              <aside class="res__side">
+                <span class="brand brand--sm"><img src="/home/assets/img/plinths-mark.png" alt="" width="22" height="22" /><span>plinths</span></span>
+                <span class="res__nav">Tổng quan</span>
+                <span class="res__nav">Sàn thầu</span>
+                <span class="res__nav is-on">Gói thầu của tôi</span>
+                <span class="res__nav">Hồ sơ thầu của tôi</span>
+                <p class="mono dim res__group">bằng chứng công bằng</p>
+                <span class="res__nav">Trung tâm khiếu nại</span>
+                <span class="res__nav">Phân tích</span>
+                <span class="res__nav">Uy tín</span>
+              </aside>
+
+              <div class="res__main">
+                <div class="res__top">
+                  <div>
+                    <p class="mono dim">gói thầu #0 · kết quả</p>
+                    <b class="res__title">Web3 Payment Dashboard</b>
+                  </div>
+                  <span class="chip chip--ok mono"><i></i>đã trao · 5/6 đã công bố</span>
+                </div>
+
+                <div class="res__grid">
+                  <div class="res__card res__chart">
+                    <div class="res__cardhead"><b>Giá đã công bố</b><span class="mono dim">tPOTv3 · ngân sách 5.00–10.00</span></div>
+                    <div class="iso" role="img" aria-label="Giá đã công bố: A 6.40, B 7.20, C 8.00, D 8.00, E 9.50; F không công bố. Hồ sơ C trúng thầu.">
+                      <div class="iso__bar" style="--h: 0.67"><span class="iso__val mono">6.40</span><i></i><span class="iso__lab mono">A</span></div>
+                      <div class="iso__bar" style="--h: 0.76"><span class="iso__val mono">7.20</span><i></i><span class="iso__lab mono">B</span></div>
+                      <div class="iso__bar is-win" style="--h: 0.84"><span class="iso__val mono">8.00</span><i></i><span class="iso__lab mono">C</span></div>
+                      <div class="iso__bar" style="--h: 0.84"><span class="iso__val mono">8.00</span><i></i><span class="iso__lab mono">D</span></div>
+                      <div class="iso__bar" style="--h: 1"><span class="iso__val mono">9.50</span><i></i><span class="iso__lab mono">E</span></div>
+                    </div>
+                  </div>
+
+                  <div class="res__card res__table">
+                    <div class="res__cardhead"><b>Commitment</b><span class="mono dim">Kiểm chứng tính lại từng mã băm</span></div>
+                    <ul class="mono">
+                      <li><span>A</span><span class="dim">0x2f9c…41ab</span><span class="ok-t">✓</span></li>
+                      <li><span>B</span><span class="dim">0x88d0…e3c2</span><span class="ok-t">✓</span></li>
+                      <li class="is-win"><span>C</span><span class="dim">0x5c1e…9b07</span><span class="ok-t">✓ trúng thầu</span></li>
+                      <li><span>D</span><span class="dim">0xa713…0f5d</span><span class="ok-t">✓</span></li>
+                      <li><span>E</span><span class="dim">0x04be…77c9</span><span class="ok-t">✓</span></li>
+                      <li><span>F</span><span class="dim">0xd2a8…1e60</span><span class="bad-t">không công bố</span></li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="res__award">
+                  <span class="mono dim">lý do trao thầu</span>
+                  <span class="mono">ipfs://bafkrei…r3ason</span>
+                  <span class="mono dim">báo cáo trợ lý</span>
+                  <span class="mono">hash 0x9e04…c71f</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="float-card float-card--rep panel" data-speed="0.35">
+            <span class="mono dim">uy tín</span>
+            <b class="float-card__big">92</b>
+            <span class="mono dim">Rất đáng tin · quy tắc công khai</span>
+          </div>
+          <div class="float-card float-card--disp panel" data-speed="0.6">
+            <span class="mono dim">khiếu nại #0 · verification engine</span>
+            <b>Công bố không khớp giá niêm phong</b>
+            <span class="chip chip--ok mono"><i></i>bị bác · kiểm tra on-chain</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────── Brand panel: grows to full bleed while you scroll ───────── -->
+      <section class="seal" data-scene="seal" aria-labelledby="seal-title">
+        <div class="seal__sticky">
+          <div class="seal__panel" id="seal-panel">
+            <p class="seal__kicker mono">điều chúng tôi thực sự mang lại</p>
+            <h2 class="seal__text" id="seal-title" data-seal-words>
+              Gói thầu công bằng nhất là gói thầu mà <em>không ai</em> được nhìn trước
+            </h2>
+            <span class="seal__tile" aria-hidden="true"><img src="/home/assets/img/plinths-mark.png" alt="" width="34" height="34" /></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────── Trust model ───────── -->
+      <section class="trust" id="trust" data-scene="trust" aria-labelledby="trust-title">
+        <header class="sec-head">
+          <div>
+            <p class="eyebrow mono" data-reveal><i></i>mô hình tin cậy</p>
+            <h2 id="trust-title" data-reveal>Không cần <em>tin,</em> mọi thứ đều kiểm tra được</h2>
+          </div>
+          <p class="sec-head__aside" data-reveal>
+            Thời hạn, tiền bảo đảm và mức phạt nằm trong contract, không nằm trên máy chủ của chúng tôi. Những phần ít ai trình
+            diễn lại chính là phần quyết định ai thắng
+          </p>
+        </header>
+
+        <div class="trust__grid" data-reveal-group>
+          <article class="card panel" data-glow>
+            <h3>Một contract, mọi bên</h3>
+            <p>Bên mời thầu, nhà thầu và treasury đều làm việc với cùng một contract. Không ai, kể cả Plinths, giữ khóa mở hồ sơ sớm</p>
+            <div class="hub" role="img" aria-label="Contract Plinths ở trung tâm, kết nối với bên mời thầu, các nhà thầu, treasury và IPFS.">
+              <svg class="hub__lines" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true">
+                <path id="h1" d="M200 90 C 150 90, 130 40, 70 40" />
+                <path id="h2" d="M200 90 C 150 90, 130 140, 70 140" />
+                <path id="h3" d="M200 90 C 250 90, 270 40, 330 40" />
+                <path id="h4" d="M200 90 C 250 90, 270 140, 330 140" />
+                <circle r="2.5" class="packet"><animateMotion dur="2.4s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#h1" /></animateMotion></circle>
+                <circle r="2.5" class="packet"><animateMotion dur="2.4s" begin=".6s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#h2" /></animateMotion></circle>
+                <circle r="2.5" class="packet"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite"><mpath href="#h3" /></animateMotion></circle>
+                <circle r="2.5" class="packet"><animateMotion dur="2.4s" begin="1.8s" repeatCount="indefinite"><mpath href="#h4" /></animateMotion></circle>
+              </svg>
+              <span class="hub__sat mono" style="left: 17.5%; top: 22%"><b>BY</b>bên mời thầu</span>
+              <span class="hub__sat mono" style="left: 17.5%; top: 78%"><b>BD</b>nhà thầu</span>
+              <span class="hub__sat mono" style="left: 82.5%; top: 22%"><b>TR</b>treasury</span>
+              <span class="hub__sat mono" style="left: 82.5%; top: 78%"><b>IP</b>ipfs</span>
+              <span class="hub__core"><img src="/home/assets/img/plinths-mark.png" alt="" width="34" height="34" /></span>
+            </div>
+            <p class="card__foot mono">gửi · công bố · trao thầu · rút</p>
+          </article>
+
+          <article class="card panel" data-glow>
+            <h3>Quy tắc đọc được trước khi dự thầu</h3>
+            <p>Mọi mức phạt là hằng số trong contract. Im lặng thì nhà thầu chịu thiệt, và tiền bảo đảm không bao giờ về tay bên mời thầu</p>
+            <ul class="rules mono" aria-label="Quy tắc contract">
+              <li><span>phạt khi không công bố<small>đấu giá nft</small></span><i class="rules__bar" style="--v: 0.1"></i><b>10%</b></li>
+              <li><span>tiền bảo đảm bị phạt về treasury<small>gói thầu</small></span><i class="rules__bar" style="--v: 1"></i><b>100%</b></li>
+              <li><span>tiền bảo đảm bị phạt về bên mời thầu<small>gói thầu</small></span><i class="rules__bar" style="--v: 0"></i><b>0%</b></li>
+            </ul>
+            <p class="card__foot mono"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 5V3.6a2.5 2.5 0 015 0V5M2.5 5h7v5h-7z" /></svg>chi trả theo kiểu tự rút; không có gì tự động đẩy về</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ───────── Buyer's desk bento ───────── -->
+      <section class="desk" id="desk" data-scene="desk" aria-labelledby="desk-title">
+        <header class="sec-head">
+          <div>
+            <p class="eyebrow mono" data-reveal><i></i>góc nhìn bên mời thầu</p>
+            <h2 id="desk-title" data-reveal>Một <em>hạn chót,</em> nhìn từ Plinths</h2>
+          </div>
+          <p class="sec-head__aside" data-reveal>
+            Màn hình bên mời thầu luôn mở: cái gì đã niêm phong, cái gì đã công bố, và ai còn chưa trả lời. Gói thầu ví dụ,
+            cơ chế thật
+          </p>
+        </header>
+
+        <div class="desk__grid" data-reveal-group>
+          <article class="tile-card tile-card--wide panel" data-glow>
+            <div class="tile-card__head mono">
+              <span class="dim">commitment tuần này, theo ngày</span>
+              <span class="chip chip--live mono"><i></i>còn 26 phút công bố</span>
+            </div>
+            <div class="heat" role="img" aria-label="Số hồ sơ niêm phong mỗi ngày trong thời gian commit, cao nhất vào thứ Năm.">
+              <div class="heat__col" style="--v: 0.2"><i></i><i></i><i></i><i></i><span>t2</span></div>
+              <div class="heat__col" style="--v: 0.45"><i></i><i></i><i></i><i></i><span>t3</span></div>
+              <div class="heat__col" style="--v: 0.3"><i></i><i></i><i></i><i></i><span>t4</span></div>
+              <div class="heat__col is-peak" style="--v: 1"><i></i><i></i><i></i><i></i><span>t5</span></div>
+              <div class="heat__col" style="--v: 0.65"><i></i><i></i><i></i><i></i><span>t6</span></div>
+              <div class="heat__col is-closed" style="--v: 0"><i></i><i></i><i></i><i></i><span>t7</span></div>
+              <div class="heat__col is-closed" style="--v: 0"><i></i><i></i><i></i><i></i><span>cn</span></div>
+            </div>
+          </article>
+
+          <article class="tile-card panel" data-glow>
+            <span class="tile-card__label mono dim">công bố đã kiểm chứng</span>
+            <div class="ring" style="--p: 0.83" role="img" aria-label="5 trên 6 lượt công bố đã kiểm chứng, 83 phần trăm">
+              <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" /><circle class="ring__val" cx="50" cy="50" r="42" pathLength="100" /></svg>
+              <b><span data-count="83">83</span>%</b>
+            </div>
+            <p class="tile-card__note">hồ sơ niêm phong đã mở và khớp mã băm</p>
+          </article>
+
+          <article class="tile-card panel" data-glow>
+            <span class="tile-card__label mono dim">đang chờ nhà thầu</span>
+            <div class="faces" aria-hidden="true"><i>A</i><i>B</i><i>C</i><i>D</i><i>E</i><i class="is-wait">F</i></div>
+            <p class="tile-card__big"><span data-count="1">1</span> <small>chưa công bố</small></p>
+            <p class="tile-card__note">Im lặng đến hạn chót nghĩa là tiền bảo đảm về treasury</p>
+          </article>
+
+          <article class="tile-card panel" data-glow>
+            <span class="tile-card__label mono dim">niêm phong và công bố</span>
+            <svg class="wave" viewBox="0 0 240 70" preserveAspectRatio="none" aria-hidden="true">
+              <path class="wave__a" pathLength="100" d="M0 52 C 30 52, 40 20, 70 22 S 120 50, 150 34 S 210 10, 240 14" />
+              <path class="wave__b" pathLength="100" d="M0 60 C 40 60, 60 46, 90 44 S 150 30, 180 22 S 220 18, 240 18" />
+            </svg>
+            <p class="wave__legend mono"><span><i></i>niêm phong</span><span><i></i>công bố</span></p>
+          </article>
+
+          <article class="tile-card panel" data-glow>
+            <span class="tile-card__label mono dim">tài liệu nằm ở đâu</span>
+            <ul class="cids mono">
+              <li><span>tender.json</span><span class="dim">bafkrei…q4ma</span></li>
+              <li><span>proposal-A.enc</span><span class="dim">bafkrei…7tzu</span></li>
+              <li><span>proposal-C.enc</span><span class="dim">bafkrei…kabga</span></li>
+            </ul>
+            <p class="tile-card__note">Thông tin gói thầu công khai, hồ sơ được mã hóa cho đến khi từng nhà thầu công bố</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ───────── Numbers ───────── -->
+      <section class="numbers" data-scene="numbers" aria-labelledby="numbers-title">
+        <header class="sec-head">
+          <div>
+            <p class="eyebrow mono" data-reveal><i></i>những con số</p>
+            <h2 id="numbers-title" data-reveal>Những con số <em>không</em> đòi hỏi niềm tin</h2>
+          </div>
+          <p class="sec-head__aside" data-reveal>Hằng số của giao thức, không phải số liệu quảng cáo. Mỗi con số đều nằm trong contract hoặc code trình duyệt</p>
+        </header>
+        <div class="numbers__row" data-reveal-group>
+          <div class="stat">
+            <span class="mono dim">dữ liệu giá on-chain</span>
+            <b><span data-count="32">32</span></b>
+            <span class="mono dim">byte mỗi hồ sơ, là mã băm, không bao giờ là giá</span>
+            <div class="stat__blocks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="stat">
+            <span class="mono dim">mã hóa hồ sơ</span>
+            <b><span data-count="256">256</span></b>
+            <span class="mono dim">bit AES-GCM, chạy trong trình duyệt</span>
+            <div class="stat__line" aria-hidden="true"><i></i></div>
+          </div>
+          <div class="stat">
+            <span class="mono dim">nhìn trộm sớm</span>
+            <b><span data-count="0">0</span></b>
+            <span class="mono dim">người có thể mở hồ sơ trước hạn chót</span>
+            <div class="stat__line stat__line--empty" aria-hidden="true"><i></i></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────── How it works ───────── -->
+      <section class="how" id="how" data-scene="how" aria-labelledby="how-title">
+        <header class="how__head">
+          <p class="eyebrow mono" data-reveal><i></i>cách hoạt động</p>
+          <h2 id="how-title" data-reveal>Từ gói thầu đến bằng chứng trong <em>bốn bước</em></h2>
+        </header>
+        <div class="how__row">
+          <svg class="how__trail" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="trail" x1="0" x2="1">
+                <stop offset="0" stop-color="#0b53bf" />
+                <stop offset=".5" stop-color="#83aaff" />
+                <stop offset="1" stop-color="#5fcdff" />
+              </linearGradient>
+            </defs>
+            <path class="how__trail-base" d="M0 70 C 200 20, 330 110, 600 60 S 1000 10, 1200 60" />
+            <path class="how__trail-line" id="how-trail" d="M0 70 C 200 20, 330 110, 600 60 S 1000 10, 1200 60" />
+          </svg>
+          <ol class="how__steps">
+            <li class="step panel" data-step>
+              <span class="step__num mono">01</span>
+              <h3>Đăng</h3>
+              <p>Bên mời thầu đăng phạm vi, khoảng ngân sách, thời hạn và tiền bảo đảm tùy chọn</p>
+            </li>
+            <li class="step panel" data-step>
+              <span class="step__num mono">02</span>
+              <h3>Niêm phong</h3>
+              <p>Nhà thầu commit mã băm của giá, mã hóa hồ sơ và lưu file sao lưu</p>
+            </li>
+            <li class="step panel" data-step>
+              <span class="step__num mono">03</span>
+              <h3>Công bố</h3>
+              <p>Sau hạn nộp hồ sơ, nhà thầu công bố và contract kiểm tra từng mã băm</p>
+            </li>
+            <li class="step panel" data-step>
+              <span class="step__num mono">04</span>
+              <h3>Chứng minh</h3>
+              <p>Bên mời thầu trao thầu cho một hồ sơ đã công bố kèm lý do công khai, và ai cũng kiểm chứng được kết quả</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ───────── Final CTA ───────── -->
+      <section class="cta" data-scene="cta" aria-labelledby="cta-title">
+        <div class="cta__grid">
+          <div class="cta__side panel" data-glow>
+            <a class="brand" href="#top"><img src="/home/assets/img/plinths-mark.png" alt="" width="30" height="30" /><span>plinths</span></a>
+            <span class="cta__mark" aria-hidden="true"><img src="/home/assets/img/plinths-mark.png" alt="" width="160" height="160" /></span>
+            <p>Đấu thầu và đấu giá NFT niêm phong cho những công việc cần được định giá kín</p>
+            <div class="cta__links mono">
+              <span class="dim">đọc thêm</span>
+              <a href="/docs">tài liệu</a>
+              <a href="https://node-console.portaldot.dev/" target="_blank" rel="noreferrer">node ↗</a>
+            </div>
+          </div>
+          <div class="cta__card">
+            <p class="cta__kicker mono">bắt đầu thôi</p>
+            <h2 id="cta-title" class="cta__title">Niêm phong đến <em>lúc quyết định</em></h2>
+            <p class="cta__lead">Đăng gói thầu hoặc gửi giá niêm phong trên PortaldotV3. Kết nối ví để bắt đầu</p>
+            <div class="cta__actions">
+              <a class="btn btn--ink btn--lg magnetic" href="/dashboard" data-boost>Mở ứng dụng</a>
+              <a class="btn btn--onbrand btn--lg magnetic" href="/docs">Đọc tài liệu</a>
+            </div>
+          </div>
+        </div>
+        <ul class="cta__status mono">
+          <li><i></i>xây trên PortaldotV3</li>
+          <li><i></i>giá niêm phong đến hạn chót</li>
+          <li><i></i>mọi lượt công bố được kiểm chứng trong trình duyệt</li>
+        </ul>
+      </section>
+    </main>
+
+    <!-- ───────── Footer ───────── -->
+    <footer class="footer" data-scene="footer">
+      <div class="footer__main">
+        <div class="footer__brand">
+          <a class="brand" href="#top"><img src="/home/assets/img/plinths-mark.png" alt="" width="30" height="30" /><span>plinths</span></a>
+          <p>
+            Sàn đấu thầu niêm phong công khai trên PortaldotV3. Bên mời thầu đăng cơ hội, nhà thầu cạnh tranh công bằng, và
+            giá được niêm phong đến hạn nộp hồ sơ. Cùng cơ chế đó chạy các phiên đấu giá NFT
+          </p>
+          <div class="footer__social">
+            <a href="https://x.com/Longlhu2Huu" target="_blank" rel="noreferrer" aria-label="Plinths trên X">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+            </a>
+            <a href="https://t.me/lebry123" target="_blank" rel="noreferrer" aria-label="Plinths trên Telegram">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" /></svg>
+            </a>
+          </div>
+        </div>
+        <nav class="footer__col" aria-label="Sản phẩm">
+          <h4 class="mono">sản phẩm</h4>
+          <a href="/marketplace">Sàn thầu</a>
+          <a href="/tenders/new">Tạo gói thầu</a>
+          <a href="/my/tenders">Gói thầu của tôi</a>
+          <a href="/my/bids">Hồ sơ thầu của tôi</a>
+          <a href="/nft">Đấu giá NFT</a>
+          <a href="/dashboard">Tổng quan</a>
+        </nav>
+        <nav class="footer__col" aria-label="Bằng chứng">
+          <h4 class="mono">bằng chứng</h4>
+          <a href="/disputes">Trung tâm khiếu nại</a>
+          <a href="/reputation">Uy tín</a>
+          <a href="/analytics">Phân tích</a>
+          <a href="/agent">Trợ lý Plinths</a>
+        </nav>
+        <nav class="footer__col" aria-label="Tài nguyên">
+          <h4 class="mono">tài nguyên</h4>
+          <a href="/docs">Tài liệu</a>
+          <a href="#how">Cách hoạt động</a>
+          <a href="https://node-console.portaldot.dev/" target="_blank" rel="noreferrer">Portaldot Node Console ↗</a>
+        </nav>
+      </div>
+      <p class="footer__word" aria-hidden="true">plinths</p>
+      <div class="footer__bottom mono">
+        <span>© 2026 Plinths</span>
+      </div>
+    </footer>
+
+    <script src="/home/assets/js/vendor/gsap.min.js" defer></script>
+    <script src="/home/assets/js/vendor/ScrollTrigger.min.js" defer></script>
+    <script src="/home/assets/js/keccak.js" defer></script>
+    <script src="/home/assets/js/ribbon.js" defer></script>
+    <script src="/home/assets/js/main.js" defer></script>
+  </body>
+</html>

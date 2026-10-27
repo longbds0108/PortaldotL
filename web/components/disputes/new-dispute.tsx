@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { WalletGate } from "@/components/gates";
+import { useT } from "@/components/lang-provider";
 import { PageHeader } from "@/components/page-header";
 import { TxStatus } from "@/components/tx-status";
 import { Alert } from "@/components/ui/alert";
@@ -33,14 +34,22 @@ export function NewDispute() {
   const [ack, setAck] = useState(false);
   const [error, setError] = useState<string>();
   const [uploading, setUploading] = useState(false);
+  const t = useT();
 
   const targetId = /^\d{1,18}$/.test(idInput.trim()) ? BigInt(idInput.trim()) : undefined;
   const ctx = useTargetContext(targetId !== undefined ? kind : undefined, targetId);
-  const label = targetId !== undefined ? targetLabel(kind, targetId) : kind === TargetKind.Tender ? "the tender" : "the auction";
+  const label =
+    targetId !== undefined ? targetLabel(kind, targetId, t) : kind === TargetKind.Tender ? t("the tender", "gói thầu") : t("the auction", "phiên đấu giá");
   const targetOk = !!ctx.data?.exists;
   const checks = useEngineChecks(targetId !== undefined ? kind : undefined, ctx.data);
   const chosen = reason !== undefined ? reasonOf(reason) : undefined;
-  const problem = !targetOk ? "Choose an existing tender or auction." : reason === undefined ? "Pick a reason." : title.trim().length < 5 ? "Give the dispute a short title (5+ characters)." : draftProblem(draft);
+  const problem = !targetOk
+    ? t("Choose an existing tender or auction.", "Hãy chọn một gói thầu hoặc phiên đấu giá có thật.")
+    : reason === undefined
+      ? t("Pick a reason.", "Hãy chọn lý do.")
+      : title.trim().length < 5
+        ? t("Give the dispute a short title (5+ characters).", "Hãy đặt tiêu đề ngắn cho khiếu nại (từ 5 ký tự).")
+        : draftProblem(draft, t);
 
   async function submit() {
     setError(undefined);
@@ -57,7 +66,7 @@ export function NewDispute() {
       }
     } catch (e) {
       setUploading(false);
-      setError(e instanceof Error ? e.message : "Could not upload the evidence.");
+      setError(e instanceof Error ? e.message : t("Could not upload the evidence.", "Không tải lên được bằng chứng."));
     }
   }
 
@@ -65,24 +74,27 @@ export function NewDispute() {
     <>
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
         <Link href="/disputes">
-          <ArrowLeft /> Dispute Center
+          <ArrowLeft /> {t("Dispute Center", "Trung tâm khiếu nại")}
         </Link>
       </Button>
       <PageHeader
-        eyebrow={`New dispute · ${NETWORK_NAME}`}
-        title="Open a dispute"
-        description="Describe the problem, cite the transactions involved and attach anything that helps. Everything you submit is published on IPFS and linked on-chain."
+        eyebrow={`${t("New dispute", "Khiếu nại mới")} · ${NETWORK_NAME}`}
+        title={t("Open a dispute", "Mở khiếu nại")}
+        description={t(
+          "Describe the problem, cite the transactions involved and attach anything that helps. Everything you submit is published on IPFS and linked on-chain.",
+          "Mô tả vấn đề, dẫn các giao dịch liên quan và đính kèm bất cứ thứ gì hữu ích. Mọi nội dung bạn gửi đều được đăng lên IPFS và liên kết on-chain.",
+        )}
       />
 
-      <WalletGate message="Connect your wallet to open a dispute.">
+      <WalletGate message={t("Connect your wallet to open a dispute.", "Hãy kết nối ví để mở khiếu nại.")}>
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
-            <Step n={1} title="What is it about?" done={targetOk}>
+            <Step n={1} title={t("What is it about?", "Khiếu nại về việc gì?")} done={targetOk}>
               <div className="space-y-4">
-                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Type">
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t("Type", "Loại")}>
                   {[
-                    { k: TargetKind.Tender, label: "Tender", icon: ScrollText },
-                    { k: TargetKind.NftAuction, label: "NFT auction", icon: Gem },
+                    { k: TargetKind.Tender, label: t("Tender", "Gói thầu"), icon: ScrollText },
+                    { k: TargetKind.NftAuction, label: t("NFT auction", "Đấu giá NFT"), icon: Gem },
                   ].map(({ k, label: l, icon: Icon }) => (
                     <button
                       key={l}
@@ -100,13 +112,13 @@ export function NewDispute() {
                   ))}
                 </div>
                 <div className="max-w-xs space-y-2">
-                  <Label htmlFor="target-id">{kind === TargetKind.Tender ? "Tender ID" : "Auction ID"}</Label>
-                  <Input id="target-id" inputMode="numeric" placeholder="e.g. 0" value={idInput} onChange={(e) => setIdInput(e.target.value)} />
+                  <Label htmlFor="target-id">{kind === TargetKind.Tender ? t("Tender ID", "Mã gói thầu") : t("Auction ID", "Mã phiên đấu giá")}</Label>
+                  <Input id="target-id" inputMode="numeric" placeholder={t("e.g. 0", "vd. 0")} value={idInput} onChange={(e) => setIdInput(e.target.value)} />
                 </div>
                 {targetId !== undefined &&
                   (ctx.isLoading ? (
                     <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="size-4 animate-spin" /> Reading {label} from {NETWORK_NAME}…
+                      <Loader2 className="size-4 animate-spin" /> {t(`Reading ${label} from ${NETWORK_NAME}…`, `Đang đọc ${label} từ ${NETWORK_NAME}…`)}
                     </p>
                   ) : ctx.data?.exists ? (
                     <div className="well flex items-start gap-3 rounded-[12px] p-3 text-sm">
@@ -116,24 +128,31 @@ export function NewDispute() {
                           <TargetName kind={kind} targetId={targetId} ctx={ctx.data} />
                         </p>
                         <p className="text-[0.74rem] text-muted-foreground">
-                          {kind === TargetKind.Tender ? "Buyer" : "Seller"} {shortAddress(ctx.data.organizer)} · {ctx.data.bidders.length} bidder
-                          {ctx.data.bidders.length === 1 ? "" : "s"} · {ctx.data.events.length} on-chain events ·{" "}
+                          {kind === TargetKind.Tender ? t("Buyer", "Bên mời thầu") : t("Seller", "Người bán")} {shortAddress(ctx.data.organizer)} ·{" "}
+                          {t(
+                            `${ctx.data.bidders.length} bidder${ctx.data.bidders.length === 1 ? "" : "s"} · ${ctx.data.events.length} on-chain events`,
+                            `${ctx.data.bidders.length} người tham gia · ${ctx.data.events.length} sự kiện on-chain`,
+                          )}{" "}
+                          ·{" "}
                           <Link className="text-link hover:underline" href={kind === TargetKind.Tender ? `/tenders/${targetId}` : `/nft/${targetId}`}>
-                            open
+                            {t("open", "mở")}
                           </Link>
                         </p>
                       </div>
                     </div>
                   ) : (
                     <p className="flex items-center gap-2 text-sm text-destructive">
-                      <XCircle className="size-4" /> No {kind === TargetKind.Tender ? "tender" : "NFT auction"} with this ID.
+                      <XCircle className="size-4" />{" "}
+                      {kind === TargetKind.Tender
+                        ? t("No tender with this ID.", "Không có gói thầu với mã này.")
+                        : t("No NFT auction with this ID.", "Không có phiên đấu giá NFT với mã này.")}
                     </p>
                   ))}
               </div>
             </Step>
 
-            <Step n={2} title="Reason" done={reason !== undefined}>
-              <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Reason">
+            <Step n={2} title={t("Reason", "Lý do")} done={reason !== undefined}>
+              <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={t("Reason", "Lý do")}>
                 {REASONS.map((r) => (
                   <button
                     key={r.code}
@@ -146,29 +165,29 @@ export function NewDispute() {
                       reason === r.code && "border-[rgba(131,170,255,.7)] bg-[color-mix(in_srgb,var(--tint)_10%,transparent)]",
                     )}
                   >
-                    <span className="block text-[0.82rem] font-medium text-foreground">{r.label}</span>
-                    <span className="mt-0.5 block text-[0.72rem] leading-relaxed text-muted-foreground">{r.hint}</span>
+                    <span className="block text-[0.82rem] font-medium text-foreground">{t(r.label)}</span>
+                    <span className="mt-0.5 block text-[0.72rem] leading-relaxed text-muted-foreground">{t(r.hint)}</span>
                     <TrackBadge track={r.track} className="mt-2" />
                   </button>
                 ))}
               </div>
               {chosen && (
                 <p className="mt-4 rounded-[12px] border border-overlay/[0.08] px-3 py-2.5 text-[0.76rem] leading-relaxed text-muted-foreground">
-                  <b className="font-medium text-foreground-soft">Who decides: </b>
-                  {TRACK_TEXT[chosen.track]}
+                  <b className="font-medium text-foreground-soft">{t("Who decides: ", "Ai quyết định: ")}</b>
+                  {t(TRACK_TEXT[chosen.track])}
                 </p>
               )}
             </Step>
 
             {chosen && "check" in chosen && targetOk && (
-              <EngineCard checks={checks} focus={chosen.check} title="What the Verification Engine already shows" />
+              <EngineCard checks={checks} focus={chosen.check} title={t("What the Verification Engine already shows", "Những gì Verification Engine đã cho thấy")} />
             )}
 
-            <Step n={3} title="Statement & evidence" done={false}>
+            <Step n={3} title={t("Statement & evidence", "Trình bày & bằng chứng")} done={false}>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="d-title">Title</Label>
-                  <Input id="d-title" maxLength={140} placeholder="One line that sums up the problem" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Label htmlFor="d-title">{t("Title", "Tiêu đề")}</Label>
+                  <Input id="d-title" maxLength={140} placeholder={t("One line that sums up the problem", "Một dòng tóm tắt vấn đề")} value={title} onChange={(e) => setTitle(e.target.value)} />
                 </div>
                 <EvidenceFields draft={draft} onChange={setDraft} events={ctx.data?.events} targetLabel={label} idPrefix="open" />
               </div>
@@ -178,19 +197,29 @@ export function NewDispute() {
           <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <Card>
               <CardContent className="space-y-4 pt-5">
-                <p className="eyebrow">Submit</p>
+                <p className="eyebrow">{t("Submit", "Gửi")}</p>
                 <ul className="space-y-2 text-[0.78rem] text-muted-foreground">
-                  <Rule icon={<Lock />}>Your statement and attachments are public on IPFS. Do not include private data or secrets.</Rule>
-                  <Rule icon={<Scale />}>Other parties can respond. A dispute is a public record: it does not reverse on-chain results, and Plinths is not a legal authority.</Rule>
+                  <Rule icon={<Lock />}>
+                    {t(
+                      "Your statement and attachments are public on IPFS. Do not include private data or secrets.",
+                      "Nội dung trình bày và tệp đính kèm được công khai trên IPFS. Đừng đưa dữ liệu riêng tư hay bí mật vào.",
+                    )}
+                  </Rule>
+                  <Rule icon={<Scale />}>
+                    {t(
+                      "Other parties can respond. A dispute is a public record: it does not reverse on-chain results, and Plinths is not a legal authority.",
+                      "Các bên khác có thể phản hồi. Khiếu nại là hồ sơ công khai: không đảo ngược kết quả on-chain, và Plinths không phải cơ quan pháp lý.",
+                    )}
+                  </Rule>
                 </ul>
                 <label className="flex items-start gap-2 text-xs text-muted-foreground">
                   <input type="checkbox" className="mt-0.5" checked={ack} onChange={(e) => setAck(e.target.checked)} />
-                  I understand everything I submit becomes public and permanent.
+                  {t("I understand everything I submit becomes public and permanent.", "Tôi hiểu mọi nội dung tôi gửi sẽ công khai và vĩnh viễn.")}
                 </label>
                 <FieldError>{error}</FieldError>
                 <Button className="w-full" size="lg" disabled={!!problem || !ack || uploading || tx.busy} onClick={submit}>
                   {(uploading || tx.busy) && <Loader2 className="animate-spin" />}
-                  {uploading ? "Uploading evidence…" : "Open dispute"}
+                  {uploading ? t("Uploading evidence…", "Đang tải bằng chứng lên…") : t("Open dispute", "Mở khiếu nại")}
                 </Button>
                 {problem && <p className="text-[0.72rem] text-muted-foreground">{problem}</p>}
                 {draft.text.trim() && (
@@ -199,7 +228,7 @@ export function NewDispute() {
                     className="text-[0.72rem] text-link hover:underline"
                     onClick={() => saveEvidenceCopy(draftToEvidence(draft, "opening", title.trim()), "plinths-dispute-draft.json")}
                   >
-                    Save a copy of my statement
+                    {t("Save a copy of my statement", "Lưu một bản nội dung của tôi")}
                   </button>
                 )}
                 <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
@@ -207,7 +236,11 @@ export function NewDispute() {
             </Card>
             <Alert variant="info">
               <ScrollText />
-              <span>Cited transactions are checked against the {kind === TargetKind.Tender ? "tender" : "auction"}&apos;s own events as you type.</span>
+              <span>
+                {kind === TargetKind.Tender
+                  ? t("Cited transactions are checked against the tender's own events as you type.", "Các giao dịch được dẫn sẽ được đối chiếu ngay với sự kiện của gói thầu khi bạn nhập.")
+                  : t("Cited transactions are checked against the auction's own events as you type.", "Các giao dịch được dẫn sẽ được đối chiếu ngay với sự kiện của phiên đấu giá khi bạn nhập.")}
+              </span>
             </Alert>
           </div>
         </div>

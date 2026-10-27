@@ -8,6 +8,7 @@ import type { Address, Hex } from "viem";
 import { useAccount } from "wagmi";
 import { ChainReference } from "@/components/chain-reference";
 import { WalletGate } from "@/components/gates";
+import { useT } from "@/components/lang-provider";
 import { PageHeader } from "@/components/page-header";
 import { TenderShell } from "@/components/tender-shell";
 import { TxStatus } from "@/components/tx-status";
@@ -28,16 +29,19 @@ import { cn } from "@/lib/utils";
 import { chain } from "@/lib/wagmi";
 
 export default function EvaluatePage() {
+  const t = useT();
   return (
     <TenderShell>
       {({ row, meta }) => (
         <>
           <PageHeader
-            eyebrow="Buyer · evaluation"
-            title="Evaluation"
-            description={meta?.title ? `${meta.title} · budget ${formatBudget(row.tender.budgetMin, row.tender.budgetMax)}` : undefined}
+            eyebrow={t("Buyer · evaluation", "Bên mời thầu · đánh giá")}
+            title={t("Evaluation", "Đánh giá")}
+            description={
+              meta?.title ? `${meta.title} · ${t("budget", "ngân sách")} ${formatBudget(row.tender.budgetMin, row.tender.budgetMax)}` : undefined
+            }
           />
-          <WalletGate message="Connect the buyer wallet to evaluate.">
+          <WalletGate message={t("Connect the buyer wallet to evaluate.", "Kết nối ví bên mời thầu để đánh giá.")}>
             <EvaluateGuard row={row} meta={meta} />
           </WalletGate>
         </>
@@ -48,14 +52,20 @@ export default function EvaluatePage() {
 
 function EvaluateGuard({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
   const { address } = useAccount();
+  const t = useT();
   if (blindBidAddress && address?.toLowerCase() !== row.tender.buyer.toLowerCase()) {
-    return <Notice>Only the buyer of this tender can evaluate bids.</Notice>;
+    return <Notice>{t("Only the buyer of this tender can evaluate bids.", "Chỉ bên mời thầu của gói thầu này mới được đánh giá hồ sơ.")}</Notice>;
   }
   if (row.state !== TenderState.Evaluation) {
     return (
       <Notice>
-        Evaluation is available only after the reveal deadline and before an award. Current phase does not allow it.{" "}
-        <Link className="underline" href={`/tenders/${row.id}`}>Back to tender</Link>
+        {t(
+          "Evaluation is available only after the reveal deadline and before an award. Current phase does not allow it.",
+          "Chỉ đánh giá được sau hạn công bố và trước khi trao thầu. Giai đoạn hiện tại chưa cho phép.",
+        )}{" "}
+        <Link className="underline" href={`/tenders/${row.id}`}>
+          {t("Back to tender", "Quay lại gói thầu")}
+        </Link>
       </Notice>
     );
   }
@@ -81,6 +91,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
   const [error, setError] = useState<string>();
   const [uploading, setUploading] = useState(false);
   const [aiReport, setAiReport] = useState<{ report: AgentReport; hash: Hex }>();
+  const t = useT();
 
   useEffect(() => {
     if (!blindBidAddress) return setAiReport(undefined);
@@ -95,8 +106,9 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
 
   async function award() {
     setError(undefined);
-    if (!winner) return setError("Select a winning bid.");
-    if (reason.trim().length < 10) return setError("Explain the decision (at least 10 characters). It will be public.");
+    if (!winner) return setError(t("Select a winning bid.", "Hãy chọn hồ sơ trúng thầu."));
+    if (reason.trim().length < 10)
+      return setError(t("Explain the decision (at least 10 characters). It will be public.", "Hãy giải thích quyết định (ít nhất 10 ký tự). Nội dung sẽ được công khai."));
     setUploading(true);
     let reasonDigest: Hex;
     try {
@@ -126,10 +138,18 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Revealed bids ({revealed.length})</CardTitle>
+          <CardTitle>
+            {t("Revealed bids", "Hồ sơ đã công bố")} ({revealed.length})
+          </CardTitle>
           <CardDescription>
-            Sorted by price. Documents are decrypted in your browser with the key each bidder published at reveal.
-            {meta?.criteria ? ` Criteria: ${meta.criteria}` : ""} <Link className="underline" href="/agent">Open Plinths Agent to compare proposals.</Link>
+            {t(
+              "Sorted by price. Documents are decrypted in your browser with the key each bidder published at reveal.",
+              "Sắp xếp theo giá. Hồ sơ được giải mã trong trình duyệt bằng khóa mỗi nhà thầu công bố khi reveal.",
+            )}
+            {meta?.criteria ? ` ${t("Criteria:", "Tiêu chí:")} ${meta.criteria}` : ""}{" "}
+            <Link className="underline" href="/agent">
+              {t("Open Plinths Agent to compare proposals.", "Mở Trợ lý Plinths để so sánh hồ sơ.")}
+            </Link>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -140,11 +160,11 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
               <table className="w-full min-w-[640px] text-sm">
                 <thead className="border-y border-overlay/[0.07] bg-overlay/[0.025] text-left text-[0.66rem] uppercase tracking-[0.06em] text-muted-foreground">
                   <tr>
-                    <th className="px-5 py-2 font-medium">Select</th>
-                    <th className="px-2 py-2 font-medium">Bidder</th>
-                    <th className="px-2 py-2 text-right font-medium">Amount</th>
-                    <th className="px-2 py-2 font-medium">Budget fit</th>
-                    <th className="px-5 py-2 font-medium">Proposal</th>
+                    <th className="px-5 py-2 font-medium">{t("Select", "Chọn")}</th>
+                    <th className="px-2 py-2 font-medium">{t("Bidder", "Nhà thầu")}</th>
+                    <th className="px-2 py-2 text-right font-medium">{t("Amount", "Giá")}</th>
+                    <th className="px-2 py-2 font-medium">{t("Budget fit", "So với ngân sách")}</th>
+                    <th className="px-5 py-2 font-medium">{t("Proposal", "Hồ sơ")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -154,7 +174,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
                         <input
                           type="radio"
                           name="winner"
-                          aria-label={`Select ${b.bidder}`}
+                          aria-label={t(`Select ${b.bidder}`, `Chọn ${b.bidder}`)}
                           checked={winner === b.bidder}
                           onChange={() => setWinner(b.bidder)}
                         />
@@ -164,15 +184,19 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
                       </td>
                       <td className="px-2 py-3 text-right font-semibold tabular-nums">
                         {show ? formatTokenAmount(b.bid.amount) : "—"}
-                        {b.bid.amount === lowest && <Badge variant="success" className="ml-2">Lowest</Badge>}
+                        {b.bid.amount === lowest && (
+                          <Badge variant="success" className="ml-2">
+                            {t("Lowest", "Thấp nhất")}
+                          </Badge>
+                        )}
                       </td>
                       <td className="px-2 py-3">
                         {b.bid.amount < tender.budgetMin ? (
-                          <Badge variant="warning">Below range</Badge>
+                          <Badge variant="warning">{t("Below range", "Dưới khoảng")}</Badge>
                         ) : b.bid.amount > tender.budgetMax ? (
-                          <Badge variant="destructive">Over budget</Badge>
+                          <Badge variant="destructive">{t("Over budget", "Vượt ngân sách")}</Badge>
                         ) : (
-                          <Badge variant="muted">Within budget</Badge>
+                          <Badge variant="muted">{t("Within budget", "Trong ngân sách")}</Badge>
                         )}
                       </td>
                       <td className="px-5 py-3">
@@ -187,9 +211,9 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
                         <ChainReference type="address" value={b.bidder} />
                       </td>
                       <td className="px-2 py-3 text-right" colSpan={2}>
-                        <Badge variant="destructive">Not revealed — excluded</Badge>
+                        <Badge variant="destructive">{t("Not revealed — excluded", "Không công bố — bị loại")}</Badge>
                       </td>
-                      <td className="px-5 py-3 text-xs">Document key never published</td>
+                      <td className="px-5 py-3 text-xs">{t("Document key never published", "Chưa từng công bố khóa hồ sơ")}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -202,31 +226,44 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Trophy className="size-4" /> Award
+            <Trophy className="size-4" /> {t("Award", "Trao thầu")}
           </CardTitle>
-          <CardDescription>You choose the winner. Your justification and any AI comparison are published with the result.</CardDescription>
+          <CardDescription>
+            {t(
+              "You choose the winner. Your justification and any AI comparison are published with the result.",
+              "Bạn chọn nhà thầu trúng thầu. Lý do của bạn và bản so sánh AI (nếu có) được công bố cùng kết quả.",
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason for decision</Label>
+            <Label htmlFor="reason">{t("Reason for decision", "Lý do quyết định")}</Label>
             <Textarea
               id="reason"
               rows={4}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Lowest price among bids meeting the eligibility requirements; strongest technical approach…"
+              placeholder={t(
+                "Lowest price among bids meeting the eligibility requirements; strongest technical approach…",
+                "Giá thấp nhất trong các hồ sơ đủ điều kiện; giải pháp kỹ thuật tốt nhất…",
+              )}
             />
           </div>
           {aiReport && (
             <Alert>
               <Trophy />
-              <span>AI comparison from Plinths Agent will be published on IPFS and its hash stored on-chain with this award.</span>
+              <span>
+                {t(
+                  "AI comparison from Plinths Agent will be published on IPFS and its hash stored on-chain with this award.",
+                  "Bản so sánh AI của Trợ lý Plinths sẽ được đăng lên IPFS và mã băm của nó được lưu on-chain cùng quyết định trao thầu.",
+                )}
+              </span>
             </Alert>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button size="lg" disabled={!blindBidAddress || !winner || uploading || tx.busy} onClick={award}>
             {(uploading || tx.busy) && <Loader2 className="animate-spin" />}
-            Award tender
+            {t("Award tender", "Trao thầu")}
           </Button>
           <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
         </CardContent>
@@ -238,6 +275,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
 function DecryptButton({ row }: { row: BidRow }) {
   const [state, setState] = useState<"idle" | "busy" | "error">("idle");
   const [err, setErr] = useState<string>();
+  const t = useT();
   async function run() {
     setState("busy");
     setErr(undefined);
@@ -252,14 +290,14 @@ function DecryptButton({ row }: { row: BidRow }) {
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setState("idle");
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Could not decrypt");
+      setErr(e instanceof Error ? e.message : t("Could not decrypt", "Không giải mã được"));
       setState("error");
     }
   }
   return (
     <div>
       <Button size="sm" variant="outline" onClick={run} disabled={state === "busy"}>
-        {state === "busy" ? <Loader2 className="animate-spin" /> : <Download />} Decrypt
+        {state === "busy" ? <Loader2 className="animate-spin" /> : <Download />} {t("Decrypt", "Giải mã")}
       </Button>
       {err && <p className="mt-1 text-xs text-destructive">{err}</p>}
     </div>

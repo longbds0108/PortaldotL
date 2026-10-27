@@ -21,6 +21,8 @@ import {
 } from "./disputes";
 import { DISPUTES_DEPLOY_BLOCK } from "./env";
 import { RECEIPT_TIMEOUT_MS, describeError, txToaster, useChainNow, type TxStatus } from "./hooks";
+import { useT } from "@/components/lang-provider";
+import { tr, type Text } from "./i18n";
 import { fetchJson } from "./ipfs";
 import { fetchRawLogs } from "./market-logs";
 import { blockTimestamps } from "./timeline";
@@ -124,9 +126,10 @@ export function useTargetContext(kind: TargetKind | undefined, targetId: bigint 
 /** Verification Engine results for the target (all three checks), computed with chain time. */
 export function useEngineChecks(kind: TargetKind | undefined, ctx: TargetContext | undefined): EngineCheck[] | undefined {
   const now = useChainNow();
+  const t = useT();
   if (!ctx?.exists || now === undefined) return undefined;
-  if (kind === TargetKind.Tender && ctx.tender) return tenderChecks(ctx.tender, ctx.times, now);
-  if (kind === TargetKind.NftAuction && ctx.auction) return auctionChecks(ctx.auction, ctx.times, now);
+  if (kind === TargetKind.Tender && ctx.tender) return tenderChecks(ctx.tender, ctx.times, now, t);
+  if (kind === TargetKind.NftAuction && ctx.auction) return auctionChecks(ctx.auction, ctx.times, now, t);
   return undefined;
 }
 
@@ -144,13 +147,17 @@ export function useEvidence(uri: string | undefined) {
 
 // ───────────────────────── writes ─────────────────────────
 
-const LABEL: Record<string, string> = { openDispute: "Open dispute", respond: "Add response", setStatus: "Update dispute" };
+const LABEL: Record<string, Text> = {
+  openDispute: ["Open dispute", "Mở khiếu nại"],
+  respond: ["Add response", "Thêm phản hồi"],
+  setStatus: ["Update dispute", "Cập nhật khiếu nại"],
+};
 
 export function describeDisputeError(e: unknown): string {
   if (e instanceof BaseError) {
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
     const name = revert instanceof ContractFunctionRevertedError ? revert.data?.errorName : undefined;
-    if (name && DISPUTE_ERROR_TEXT[name]) return DISPUTE_ERROR_TEXT[name];
+    if (name && DISPUTE_ERROR_TEXT[name]) return tr(DISPUTE_ERROR_TEXT[name]);
   }
   return describeError(e);
 }
@@ -170,7 +177,7 @@ export function useDisputeTx() {
       setHash(undefined);
       const t = txToaster(LABEL[functionName]);
       try {
-        if (!client || !address || !disputesAddress) throw new Error("Connect your wallet first.");
+        if (!client || !address || !disputesAddress) throw new Error(tr("Connect your wallet first.", "Hãy kết nối ví trước."));
         setStatus("simulating");
         const { request } = await client.simulateContract({ address: disputesAddress, abi: disputeRegistryAbi, functionName, args, account: address } as never);
         setStatus("signing");
@@ -180,7 +187,7 @@ export function useDisputeTx() {
         setStatus("confirming");
         t.confirming();
         const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1, timeout: RECEIPT_TIMEOUT_MS });
-        if (receipt.status !== "success") throw new Error("Transaction reverted.");
+        if (receipt.status !== "success") throw new Error(tr("Transaction reverted.", "Giao dịch bị hoàn tác (revert)."));
         setStatus("success");
         t.success();
         return receipt;

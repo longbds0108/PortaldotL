@@ -1,5 +1,6 @@
 "use client";
 
+import { useT } from "@/components/lang-provider";
 import { TxStatus } from "@/components/tx-status";
 import { Button } from "@/components/ui/button";
 import { forfeitedBonds, type Bid } from "@/lib/contracts";
@@ -8,8 +9,14 @@ import { useBlindBidTx, useChainNow, useTender } from "@/lib/hooks";
 
 export function WithdrawBondButton({ tenderId, bid, onDone }: { tenderId: bigint; bid: Bid; onDone?: () => void }) {
   const tx = useBlindBidTx();
+  const t = useT();
   if (!bid.revealed || bid.bond === 0n) return null;
-  if (bid.bondWithdrawn) return <p className="text-sm text-muted-foreground">Bond of {formatNativeAmount(bid.bond)} withdrawn.</p>;
+  if (bid.bondWithdrawn)
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t(`Bond of ${formatNativeAmount(bid.bond)} withdrawn.`, `Đã rút tiền bảo đảm ${formatNativeAmount(bid.bond)}.`)}
+      </p>
+    );
   return (
     <div className="space-y-2">
       <Button
@@ -20,7 +27,7 @@ export function WithdrawBondButton({ tenderId, bid, onDone }: { tenderId: bigint
           if (await tx.send("withdrawBond", [tenderId])) onDone?.();
         }}
       >
-        Withdraw bond ({formatNativeAmount(bid.bond)})
+        {t("Withdraw bond", "Rút tiền bảo đảm")} ({formatNativeAmount(bid.bond)})
       </Button>
       <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
     </div>
@@ -32,6 +39,7 @@ export function SweepForfeitsButton({ tenderId }: { tenderId: bigint }) {
   const tx = useBlindBidTx();
   const { row, refetch } = useTender(tenderId);
   const now = useChainNow();
+  const t = useT();
   // Same rule as the contract's sweepForfeitedBonds: bond × unrevealed bids, once, after the reveal deadline.
   const amount = row ? forfeitedBonds(row.tender, now) : 0n;
   // After a successful claim the claimable amount refetches to 0; keep the confirmation visible.
@@ -39,8 +47,10 @@ export function SweepForfeitsButton({ tenderId }: { tenderId: bigint }) {
   return (
     <div className="space-y-2">
       <p className="text-sm text-muted-foreground">
-        {formatNativeAmount(amount)} in bonds from bids not revealed in time goes to the Plinths treasury — not to the buyer.
-        Anyone can send it.
+        {t(
+          `${formatNativeAmount(amount)} in bonds from bids not revealed in time goes to the Plinths treasury — not to the buyer. Anyone can send it.`,
+          `${formatNativeAmount(amount)} tiền bảo đảm của các hồ sơ không công bố đúng hạn sẽ chuyển về treasury của Plinths — không về bên mời thầu. Ai cũng có thể thực hiện việc chuyển.`,
+        )}
       </p>
       <Button
         variant="outline"
@@ -50,7 +60,7 @@ export function SweepForfeitsButton({ tenderId }: { tenderId: bigint }) {
           if (await tx.send("sweepForfeitedBonds", [tenderId])) void refetch();
         }}
       >
-        Send forfeited bonds to treasury
+        {t("Send forfeited bonds to treasury", "Chuyển tiền bảo đảm bị phạt về treasury")}
       </Button>
       <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
     </div>

@@ -4,6 +4,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AlertTriangle, ImageOff, Wallet } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useAccount, useSwitchChain } from "wagmi";
+import { useT } from "@/components/lang-provider";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,16 +48,18 @@ const VARIANT = {
 } as const;
 
 export function AuctionStateBadge({ state, className }: { state: AuctionState; className?: string }) {
+  const t = useT();
   return (
     <Badge variant={VARIANT[state]} dot={state !== AuctionState.Cancelled && state !== AuctionState.NoSale} className={className}>
-      {AUCTION_STATE_LABEL[state]}
+      {t(AUCTION_STATE_LABEL[state])}
     </Badge>
   );
 }
 
 /** Requires a connected wallet on PortaldotV3 (skipped in preview so the layout stays visible). */
-export function NftWalletGate({ children, message = "Connect your wallet to continue." }: { children: ReactNode; message?: string }) {
+export function NftWalletGate({ children, message }: { children: ReactNode; message?: string }) {
   const { isConnected, chainId } = useAccount();
+  const t = useT();
   const { switchChain, isPending } = useSwitchChain();
   if (!nftAuctionEnabled) return <>{children}</>;
   if (!isConnected) {
@@ -64,7 +67,7 @@ export function NftWalletGate({ children, message = "Connect your wallet to cont
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
           <Wallet className="size-8 text-muted-foreground" />
-          <p className="text-muted-foreground">{message}</p>
+          <p className="text-muted-foreground">{message ?? t("Connect your wallet to continue.", "Hãy kết nối ví để tiếp tục.")}</p>
           <ConnectButton />
         </CardContent>
       </Card>
@@ -74,9 +77,11 @@ export function NftWalletGate({ children, message = "Connect your wallet to cont
     return (
       <Alert variant="warning" className="items-center">
         <AlertTriangle />
-        <span className="flex-1">Your wallet is on another network. Plinths runs on {chain.name}.</span>
+        <span className="flex-1">
+          {t(`Your wallet is on another network. Plinths runs on ${chain.name}.`, `Ví đang ở mạng khác. Plinths chạy trên ${chain.name}.`)}
+        </span>
         <Button size="sm" disabled={isPending} onClick={() => switchChain({ chainId: chain.id })}>
-          Switch network
+          {t("Switch network", "Chuyển mạng")}
         </Button>
       </Alert>
     );

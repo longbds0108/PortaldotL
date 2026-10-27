@@ -4,6 +4,7 @@ import { ArrowLeft, Ban, CheckCircle2, ExternalLink, Eye, Gavel, Loader2, Messag
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useAccount } from "wagmi";
+import { useLang, useT } from "@/components/lang-provider";
 import { TxStatus } from "@/components/tx-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,12 +23,13 @@ import { AddressLine, DisputeStatusBadge, EMPTY_DRAFT, EvidenceDocument, Evidenc
 export function DisputeDetail() {
   const id = useTenderIdParam();
   const { row, notFound, isLoading, refetch } = useDispute(id);
+  const t = useT();
   if (id === undefined || notFound) {
     return (
       <>
         <BackLink />
         <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">Dispute not found.</CardContent>
+          <CardContent className="py-12 text-center text-muted-foreground">{t("Dispute not found.", "Không tìm thấy khiếu nại.")}</CardContent>
         </Card>
       </>
     );
@@ -41,7 +43,9 @@ function Dispute({ row, onChange }: { row: DisputeView; onChange: () => void }) 
   const { address } = useAccount();
   const arbiter = useArbiter();
   const ctx = useTargetContext(core.kind, core.targetId);
-  const label = targetLabel(core.kind, core.targetId);
+  const t = useT();
+  const lang = useLang();
+  const label = targetLabel(core.kind, core.targetId, t);
   const opening = row.posts.find((p) => p.type === "opened");
   const openingDoc = useEvidence(opening?.evidenceUri || undefined);
   const isArbiter = !!address && !!arbiter && address.toLowerCase() === arbiter.toLowerCase();
@@ -60,9 +64,9 @@ function Dispute({ row, onChange }: { row: DisputeView; onChange: () => void }) 
       <div className="mb-8 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="min-w-0">
           <p className="eyebrow">
-            Dispute #{row.id.toString()} · {label} · {reasonLabel(core.reason)}
+            {t("Dispute", "Khiếu nại")} #{row.id.toString()} · {label} · {reasonLabel(core.reason, t)}
           </p>
-          <h1 className="title-sheen mt-3 max-w-[900px] text-[clamp(1.8rem,4vw,3rem)]">{openingDoc.data?.title ?? reasonLabel(core.reason)}</h1>
+          <h1 className="title-sheen mt-3 max-w-[900px] text-[clamp(1.8rem,4vw,3rem)]">{openingDoc.data?.title ?? reasonLabel(core.reason, t)}</h1>
         </div>
         <div className="flex flex-wrap gap-2 self-start xl:self-end">
           {reason && <TrackBadge track={reason.track} className="px-3 py-1.5 text-[0.74rem]" />}
@@ -75,10 +79,12 @@ function Dispute({ row, onChange }: { row: DisputeView; onChange: () => void }) 
           {decision && decision.type === "status" && (
             <Card className={cn(decision.status === DisputeStatus.Resolved ? "border-[rgba(79,209,197,.3)]" : "")}>
               <CardContent className="space-y-3 pt-6">
-                <p className="eyebrow">Decision</p>
+                <p className="eyebrow">{t("Decision", "Quyết định")}</p>
                 <p className="flex items-center gap-2 text-[1.15rem] font-medium text-foreground">
                   {decision.status === DisputeStatus.Resolved ? <CheckCircle2 className="size-5 text-success-fg" /> : <Ban className="size-5 text-muted-foreground" />}
-                  {decision.status === DisputeStatus.Resolved ? "Resolved — the concern was upheld" : "Rejected — the concern was not upheld"}
+                  {decision.status === DisputeStatus.Resolved
+                    ? t("Resolved — the concern was upheld", "Đã giải quyết — khiếu nại được chấp nhận")
+                    : t("Rejected — the concern was not upheld", "Bị bác — khiếu nại không được chấp nhận")}
                 </p>
                 <EvidenceDocument uri={decision.evidenceUri} events={ctx.data?.events} targetLabel={label} />
               </CardContent>
@@ -88,8 +94,8 @@ function Dispute({ row, onChange }: { row: DisputeView; onChange: () => void }) 
           <Card>
             <CardContent className="space-y-5 pt-6">
               <div>
-                <p className="eyebrow">Dispute timeline</p>
-                <h2 className="mt-2 text-[1.2rem] font-medium text-foreground">History & discussion</h2>
+                <p className="eyebrow">{t("Dispute timeline", "Dòng thời gian khiếu nại")}</p>
+                <h2 className="mt-2 text-[1.2rem] font-medium text-foreground">{t("History & discussion", "Lịch sử & thảo luận")}</h2>
               </div>
               <ol className="relative space-y-6 before:absolute before:left-[15px] before:top-2 before:h-[calc(100%-1rem)] before:w-px before:bg-overlay/10">
                 {row.posts.map((p) => (
@@ -110,26 +116,29 @@ function Dispute({ row, onChange }: { row: DisputeView; onChange: () => void }) 
           {reason && <TrackCard track={reason.track} />}
           <Card>
             <CardContent className="space-y-3 pt-5 text-sm">
-              <p className="eyebrow">Summary</p>
-              <Detail label="Status">{STATUS_LABEL[core.status]}</Detail>
-              <Detail label="Reason">{reasonLabel(core.reason)}</Detail>
-              <Detail label="About">
+              <p className="eyebrow">{t("Summary", "Tóm tắt")}</p>
+              <Detail label={t("Status", "Trạng thái")}>{t(STATUS_LABEL[core.status])}</Detail>
+              <Detail label={t("Reason", "Lý do")}>{reasonLabel(core.reason, t)}</Detail>
+              <Detail label={t("About", "Về")}>
                 <Link href={targetHref(core.kind, core.targetId)} className="inline-flex items-center gap-1 text-link hover:underline">
                   <TargetName kind={core.kind} targetId={core.targetId} ctx={ctx.data} /> <ExternalLink className="size-3" />
                 </Link>
               </Detail>
-              <Detail label="Opened by">
+              <Detail label={t("Opened by", "Mở bởi")}>
                 <AddressLine address={core.opener} />
               </Detail>
-              <Detail label="Opened">{row.openedAt > 0n ? formatDateTime(row.openedAt) : `block #${row.openedBlock}`}</Detail>
-              <Detail label="Decided by">{reason ? TRACK_LABEL[reason.track] : "—"}</Detail>
-              <Detail label="Panel account">{arbiter ? <AddressLine address={arbiter} /> : "…"}</Detail>
-              <Detail label="Evidence check">
+              <Detail label={t("Opened", "Mở lúc")}>{row.openedAt > 0n ? formatDateTime(row.openedAt, lang) : `block #${row.openedBlock}`}</Detail>
+              <Detail label={t("Decided by", "Quyết định bởi")}>{reason ? t(TRACK_LABEL[reason.track]) : "—"}</Detail>
+              <Detail label={t("Panel account", "Tài khoản hội đồng")}>{arbiter ? <AddressLine address={arbiter} /> : "…"}</Detail>
+              <Detail label={t("Evidence check", "Kiểm tra bằng chứng")}>
                 {!openingDoc.data || !ctx.data
                   ? "…"
                   : checks.length === 0
-                    ? "No transactions cited"
-                    : `${checks.filter((c) => c.ok).length} of ${checks.length} verified on-chain`}
+                    ? t("No transactions cited", "Không dẫn giao dịch nào")
+                    : t(
+                        `${checks.filter((c) => c.ok).length} of ${checks.length} verified on-chain`,
+                        `${checks.filter((c) => c.ok).length} / ${checks.length} đã xác minh on-chain`,
+                      )}
               </Detail>
             </CardContent>
           </Card>
@@ -143,16 +152,18 @@ function Dispute({ row, onChange }: { row: DisputeView; onChange: () => void }) 
 function TimelineItem({ post, roles, events, label }: { post: DisputePost; roles: ReturnType<typeof partiesOf>; events?: TargetContext["events"]; label: string }) {
   const icon =
     post.type === "opened" ? <Scale className="size-4" /> : post.type === "response" ? <MessageSquare className="size-4" /> : post.status === DisputeStatus.UnderReview ? <Eye className="size-4" /> : <Gavel className="size-4" />;
+  const t = useT();
+  const lang = useLang();
   const title =
     post.type === "opened"
-      ? "Dispute opened"
+      ? t("Dispute opened", "Mở khiếu nại")
       : post.type === "response"
-        ? "Response"
+        ? t("Response", "Phản hồi")
         : post.status === DisputeStatus.UnderReview
-          ? "Review started"
+          ? t("Review started", "Bắt đầu xem xét")
           : post.status === DisputeStatus.Resolved
-            ? "Resolved"
-            : "Rejected";
+            ? t("Resolved", "Đã giải quyết")
+            : t("Rejected", "Bị bác");
   return (
     <li className="relative flex gap-3">
       <span className="relative z-[1] grid size-8 shrink-0 place-items-center rounded-full border border-[rgba(131,170,255,.3)] bg-background text-link">{icon}</span>
@@ -162,7 +173,7 @@ function TimelineItem({ post, roles, events, label }: { post: DisputePost; roles
           <AddressLine address={post.author} parties={roles} />
         </div>
         <p className="text-[0.7rem] text-muted-foreground">
-          {post.timestamp > 0n ? `${formatDateTime(post.timestamp)} · ` : ""}block #{post.blockNumber.toString()} ·{" "}
+          {post.timestamp > 0n ? `${formatDateTime(post.timestamp, lang)} · ` : ""}block #{post.blockNumber.toString()} ·{" "}
           <span className="font-mono" title={post.txHash}>
             {shortHash(post.txHash)}
           </span>
@@ -184,7 +195,8 @@ function ResponseForm({ id, ctx, label, roles, onDone }: { id: bigint; ctx?: Tar
   const [draft, setDraft] = useState<EvidenceDraft>(EMPTY_DRAFT);
   const [error, setError] = useState<string>();
   const [uploading, setUploading] = useState(false);
-  const problem = draftProblem(draft);
+  const t = useT();
+  const problem = draftProblem(draft, t);
 
   async function submit() {
     setError(undefined);
@@ -199,7 +211,7 @@ function ResponseForm({ id, ctx, label, roles, onDone }: { id: bigint; ctx?: Tar
       }
     } catch (e) {
       setUploading(false);
-      setError(e instanceof Error ? e.message : "Could not upload the evidence.");
+      setError(e instanceof Error ? e.message : t("Could not upload the evidence.", "Không tải lên được bằng chứng."));
     }
   }
 
@@ -207,21 +219,36 @@ function ResponseForm({ id, ctx, label, roles, onDone }: { id: bigint; ctx?: Tar
     <Card>
       <CardContent className="space-y-4 pt-6">
         <div>
-          <p className="eyebrow">Response & discussion</p>
-          <h2 className="mt-2 text-[1.2rem] font-medium text-foreground">Add a response</h2>
+          <p className="eyebrow">{t("Response & discussion", "Phản hồi & thảo luận")}</p>
+          <h2 className="mt-2 text-[1.2rem] font-medium text-foreground">{t("Add a response", "Thêm phản hồi")}</h2>
           <p className="mt-1 text-[0.78rem] text-muted-foreground">
-            The organizer, bidders and anyone else can add context or evidence. It is published with your address
-            {roles.length ? " and your role in this case" : ""}.
+            {roles.length
+              ? t(
+                  "The organizer, bidders and anyone else can add context or evidence. It is published with your address and your role in this case.",
+                  "Bên tổ chức, nhà thầu và bất kỳ ai cũng có thể bổ sung bối cảnh hoặc bằng chứng. Nội dung được công bố kèm địa chỉ và vai trò của bạn trong vụ việc.",
+                )
+              : t(
+                  "The organizer, bidders and anyone else can add context or evidence. It is published with your address.",
+                  "Bên tổ chức, nhà thầu và bất kỳ ai cũng có thể bổ sung bối cảnh hoặc bằng chứng. Nội dung được công bố kèm địa chỉ của bạn.",
+                )}
           </p>
         </div>
         {!address ? (
-          <p className="text-sm text-muted-foreground">Connect your wallet to respond.</p>
+          <p className="text-sm text-muted-foreground">{t("Connect your wallet to respond.", "Hãy kết nối ví để phản hồi.")}</p>
         ) : (
           <>
-            <EvidenceFields draft={draft} onChange={setDraft} events={ctx?.events} targetLabel={label} idPrefix="respond" textLabel="Your response" textPlaceholder="Add context, answer the claim, or point to more evidence." />
+            <EvidenceFields
+              draft={draft}
+              onChange={setDraft}
+              events={ctx?.events}
+              targetLabel={label}
+              idPrefix="respond"
+              textLabel={t("Your response", "Phản hồi của bạn")}
+              textPlaceholder={t("Add context, answer the claim, or point to more evidence.", "Bổ sung bối cảnh, trả lời khiếu nại, hoặc dẫn thêm bằng chứng.")}
+            />
             <FieldError>{error}</FieldError>
             <Button disabled={!!problem || uploading || tx.busy} onClick={submit}>
-              {(uploading || tx.busy) && <Loader2 className="animate-spin" />} {uploading ? "Uploading…" : "Post response"}
+              {(uploading || tx.busy) && <Loader2 className="animate-spin" />} {uploading ? t("Uploading…", "Đang tải lên…") : t("Post response", "Gửi phản hồi")}
             </Button>
             <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
           </>
@@ -238,7 +265,8 @@ function ArbiterPanel({ row, ctx, label, onDone }: { row: DisputeView; ctx?: Tar
   const [draft, setDraft] = useState<EvidenceDraft>(EMPTY_DRAFT);
   const [error, setError] = useState<string>();
   const [uploading, setUploading] = useState(false);
-  const problem = draftProblem(draft);
+  const t = useT();
+  const problem = draftProblem(draft, t);
 
   async function close(status: DisputeStatus.Resolved | DisputeStatus.Rejected) {
     setError(undefined);
@@ -250,7 +278,7 @@ function ArbiterPanel({ row, ctx, label, onDone }: { row: DisputeView; ctx?: Tar
       if (await tx.send("setStatus", [row.id, status, uriToDigest(uri)])) onDone();
     } catch (e) {
       setUploading(false);
-      setError(e instanceof Error ? e.message : "Could not upload the decision.");
+      setError(e instanceof Error ? e.message : t("Could not upload the decision.", "Không tải lên được quyết định."));
     }
   }
 
@@ -258,29 +286,43 @@ function ArbiterPanel({ row, ctx, label, onDone }: { row: DisputeView; ctx?: Tar
     <Card className="border-[rgba(232,181,76,.3)]">
       <CardContent className="space-y-4 pt-5">
         <div>
-          <p className="eyebrow">Arbitration panel</p>
-          <h2 className="mt-2 text-[1.05rem] font-medium text-foreground">Record the outcome</h2>
+          <p className="eyebrow">{t("Arbitration panel", "Hội đồng trọng tài")}</p>
+          <h2 className="mt-2 text-[1.05rem] font-medium text-foreground">{t("Record the outcome", "Ghi nhận kết quả")}</h2>
           <p className="mt-1 text-[0.74rem] text-muted-foreground">
             {track === "engine"
-              ? "Record what the Verification Engine shows. Your note and its reasoning are published and cannot be changed afterwards."
+              ? t(
+                  "Record what the Verification Engine shows. Your note and its reasoning are published and cannot be changed afterwards.",
+                  "Ghi lại những gì Verification Engine cho thấy. Ghi chú và lập luận của bạn được công bố và không thể sửa về sau.",
+                )
               : track === "parties"
-                ? "Record how the parties settled it under their own agreement (Resolved), or close it as Rejected if it is out of scope."
-                : "Publish your decision and its reasoning. It cannot be changed afterwards."}
+                ? t(
+                    "Record how the parties settled it under their own agreement (Resolved), or close it as Rejected if it is out of scope.",
+                    "Ghi lại cách các bên giải quyết theo thỏa thuận riêng (Đã giải quyết), hoặc đóng ở trạng thái Bị bác nếu nằm ngoài phạm vi.",
+                  )
+                : t("Publish your decision and its reasoning. It cannot be changed afterwards.", "Công bố quyết định và lập luận. Không thể sửa về sau.")}
           </p>
         </div>
         {row.core.status === DisputeStatus.Open && (
           <Button variant="outline" className="w-full" disabled={tx.busy} onClick={async () => (await tx.send("setStatus", [row.id, DisputeStatus.UnderReview, `0x${"0".repeat(64)}`])) && onDone()}>
-            <Eye /> Start review
+            <Eye /> {t("Start review", "Bắt đầu xem xét")}
           </Button>
         )}
-        <EvidenceFields draft={draft} onChange={setDraft} events={ctx?.events} targetLabel={label} idPrefix="decide" textLabel="Decision & reasoning" textPlaceholder="What you found, which rule applies, and the outcome." />
+        <EvidenceFields
+          draft={draft}
+          onChange={setDraft}
+          events={ctx?.events}
+          targetLabel={label}
+          idPrefix="decide"
+          textLabel={t("Decision & reasoning", "Quyết định & lập luận")}
+          textPlaceholder={t("What you found, which rule applies, and the outcome.", "Bạn phát hiện gì, áp dụng quy tắc nào, và kết quả.")}
+        />
         <FieldError>{error}</FieldError>
         <div className="grid grid-cols-2 gap-2">
           <Button disabled={!!problem || uploading || tx.busy} onClick={() => close(DisputeStatus.Resolved)}>
-            {(uploading || tx.busy) && <Loader2 className="animate-spin" />} Resolve
+            {(uploading || tx.busy) && <Loader2 className="animate-spin" />} {t("Resolve", "Giải quyết")}
           </Button>
           <Button variant="outline" disabled={!!problem || uploading || tx.busy} onClick={() => close(DisputeStatus.Rejected)}>
-            Reject
+            {t("Reject", "Bác")}
           </Button>
         </div>
         <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
@@ -290,10 +332,11 @@ function ArbiterPanel({ row, ctx, label, onDone }: { row: DisputeView; ctx?: Tar
 }
 
 function BackLink() {
+  const t = useT();
   return (
     <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
       <Link href="/disputes">
-        <ArrowLeft /> Dispute Center
+        <ArrowLeft /> {t("Dispute Center", "Trung tâm khiếu nại")}
       </Link>
     </Button>
   );

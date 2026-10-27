@@ -437,6 +437,36 @@ main,
   gap: 12px;
 }
 
+.lang {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.lang button {
+  height: 32px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12px/1 var(--sans);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background-color 0.25s var(--ease),
+    color 0.25s var(--ease);
+}
+.lang button:hover {
+  color: var(--text);
+}
+.lang button[aria-checked="true"] {
+  background: var(--cream);
+  color: var(--ink);
+}
+
 .nav__toggle {
   display: none;
   width: 44px;
@@ -526,6 +556,10 @@ main,
   font-weight: 600;
   line-height: 0.96;
   letter-spacing: -0.052em;
+}
+/* Vietnamese lines run longer: keep "Đấu thầu công khai" on one line down to phone width. */
+html[lang="vi"] .hero__title {
+  font-size: clamp(2.45rem, 5vw, 5.8rem);
 }
 .hero__title .line {
   display: block;
@@ -2758,7 +2792,8 @@ h2.is-sheen,
 
 @media (max-width: 1024px) {
   .hero {
-    grid-template-columns: 1fr;
+    /* minmax(0, …): the wide dashboard panel must not stretch the text column past the screen */
+    grid-template-columns: minmax(0, 1fr);
     padding-top: 120px;
     text-align: left;
   }

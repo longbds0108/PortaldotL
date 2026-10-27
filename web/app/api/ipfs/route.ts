@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { getT } from "@/lib/i18n-server";
 
 /**
  * Server-side upload fallback. In normal operation the browser uploads straight to Pinata with a
@@ -16,6 +17,7 @@ const MAX_BYTES = 25 * 1024 * 1024;
 const DEV_STORE = path.join(process.cwd(), ".dev-ipfs");
 
 export async function POST(req: Request) {
+  const t = await getT();
   let file: File | null = null;
   try {
     const form = await req.formData();
@@ -24,8 +26,8 @@ export async function POST(req: Request) {
   } catch {
     // fallthrough
   }
-  if (!file) return NextResponse.json({ error: "Missing file" }, { status: 400 });
-  if (file.size > MAX_BYTES) return NextResponse.json({ error: "File too large (max 25 MB)" }, { status: 413 });
+  if (!file) return NextResponse.json({ error: t("Missing file", "Thiếu file") }, { status: 400 });
+  if (file.size > MAX_BYTES) return NextResponse.json({ error: t("File too large (max 25 MB)", "File quá lớn (tối đa 25 MB)") }, { status: 413 });
 
   // With Pinata configured the browser uploads directly via /api/ipfs/sign; this route never proxies to Pinata,
   // so it cannot be used to pin arbitrary files to the project's account.
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Use /api/ipfs/sign (direct upload)" }, { status: 409 });
   }
   if (process.env.VERCEL || (process.env.NODE_ENV === "production" && process.env.ALLOW_LOCAL_IPFS !== "1")) {
-    return NextResponse.json({ error: "IPFS is not configured: set PINATA_JWT" }, { status: 500 });
+    return NextResponse.json({ error: t("IPFS is not configured: set PINATA_JWT", "Chưa cấu hình IPFS: hãy đặt PINATA_JWT") }, { status: 500 });
   }
   const bytes = Buffer.from(await file.arrayBuffer());
   const id = createHash("sha256").update(bytes).digest("hex");

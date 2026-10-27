@@ -1,5 +1,6 @@
 import { candidateUris, digestOfUri, isDigestUri, uriToDigest } from "./cid";
 import { IPFS_GATEWAY } from "./env";
+import { tr } from "./i18n";
 
 /**
  * Only public metadata and AES-GCM ciphertext are ever uploaded — never amount/salt/docKey.
@@ -38,7 +39,7 @@ export async function uploadBlob(blob: Blob, name: string): Promise<string> {
     return `ipfs://${json.data.cid}`;
   }
   if (sign.status !== 409 || signed.mode !== "local") {
-    throw new Error(signed.error || `Upload failed (${sign.status})`);
+    throw new Error(signed.error || tr(`Upload failed (${sign.status})`, `Tải lên thất bại (${sign.status})`));
   }
 
   // Local development store
@@ -46,7 +47,7 @@ export async function uploadBlob(blob: Blob, name: string): Promise<string> {
   form.append("file", blob, name);
   const res = await fetch("/api/ipfs", { method: "POST", body: form });
   const json = (await res.json().catch(() => ({}))) as { uri?: string; error?: string };
-  if (!res.ok || !json.uri) throw new Error(json.error || `Upload failed (${res.status})`);
+  if (!res.ok || !json.uri) throw new Error(json.error || tr(`Upload failed (${res.status})`, `Tải lên thất bại (${res.status})`));
   return json.uri;
 }
 
@@ -69,7 +70,7 @@ export async function fetchDocument(uri: string): Promise<Response> {
     const res = await fetch(proxied).catch(() => undefined);
     if (res?.ok) return res;
     // The proxy already tried every gateway; only retry directly if the proxy itself was unreachable or failed.
-    if (res?.status === 404) throw new Error(`Document not found on IPFS yet (${uri.slice(0, 40)})`);
+    if (res?.status === 404) throw new Error(tr(`Document not found on IPFS yet (${uri.slice(0, 40)})`, `Chưa tìm thấy tài liệu trên IPFS (${uri.slice(0, 40)})`));
   }
   const tries = isDigestUri(uri) ? candidateUris(digestOfUri(uri)) : [uri];
   let last = 0;
@@ -78,7 +79,7 @@ export async function fetchDocument(uri: string): Promise<Response> {
     if (res?.ok) return res;
     last = res?.status ?? 0;
   }
-  throw new Error(`Could not load ${uri.slice(0, 40)} (${last || "network error"})`);
+  throw new Error(tr(`Could not load ${uri.slice(0, 40)} (${last || "network error"})`, `Không tải được ${uri.slice(0, 40)} (${last || "lỗi mạng"})`));
 }
 
 /** /api/doc path for anything addressed by a sha2-256 CID (on-chain digests and ipfs:// CIDs), else undefined. */

@@ -1,6 +1,7 @@
 import type { Address, Hex } from "viem";
 import { blindBidMarketAbi } from "./abi";
 import { BLINDBID_ADDRESS } from "./env";
+import type { Text } from "./i18n";
 
 export { blindBidMarketAbi };
 export const blindBidAddress = BLINDBID_ADDRESS;
@@ -18,13 +19,13 @@ export enum TenderState {
   Failed = 5,
 }
 
-export const STATE_LABEL: Record<TenderState, string> = {
-  [TenderState.Open]: "Open",
-  [TenderState.Reveal]: "Reveal",
-  [TenderState.Evaluation]: "Evaluation",
-  [TenderState.Awarded]: "Awarded",
-  [TenderState.Cancelled]: "Cancelled",
-  [TenderState.Failed]: "Failed",
+export const STATE_LABEL: Record<TenderState, Text> = {
+  [TenderState.Open]: ["Open", "Đang mở"],
+  [TenderState.Reveal]: ["Reveal", "Công bố"],
+  [TenderState.Evaluation]: ["Evaluation", "Đánh giá"],
+  [TenderState.Awarded]: ["Awarded", "Đã trao thầu"],
+  [TenderState.Cancelled]: ["Cancelled", "Đã hủy"],
+  [TenderState.Failed]: ["Failed", "Thất bại"],
 };
 
 /** Bid amounts may be shown only in these states (CLAUDE.md §8), even to the buyer. */
@@ -77,24 +78,33 @@ export function forfeitedBonds(tender: Tender, nowSec: number | undefined): bigi
 }
 
 /** Contract custom errors → user-facing text. */
-export const ERROR_TEXT: Record<string, string> = {
-  TenderNotFound: "This tender does not exist.",
-  InvalidState: "This action is not allowed in the tender's current phase.",
-  InvalidDeadlines: "Deadlines are invalid: submission must be in the future and the reveal window at least 24 hours.",
-  InvalidBudget: "Minimum budget must not exceed maximum budget.",
-  EmptyDocument: "Missing document reference.",
-  NotBuyer: "Only the tender's buyer can do this.",
-  BuyerCannotBid: "Buyers cannot bid on their own tender.",
-  NoBid: "You have no bid on this tender.",
-  ZeroCommitment: "Invalid commitment.",
-  WrongBond: "The bid bond sent does not match the tender's bond (a replacement bid sends none).",
-  AlreadyRevealed: "This bid is already revealed.",
-  CommitmentMismatch: "Amount, salt or document key does not match your sealed commitment. Check your backup file.",
-  ZeroAmount: "Bid amount must be greater than zero.",
-  WinnerNotRevealed: "The selected bidder did not reveal a valid bid.",
-  HasBids: "A tender with bids can no longer be cancelled.",
-  NothingToWithdraw: "Nothing to withdraw.",
-  TransferFailed: "The tPOTv3 transfer failed. Check the wallet and retry.",
-  ZeroTreasury: "Treasury address is not set.",
-  ReentrancyGuardReentrantCall: "Another payout is in progress. Retry in a moment.",
+export const ERROR_TEXT: Record<string, Text> = {
+  TenderNotFound: ["This tender does not exist.", "Gói thầu này không tồn tại."],
+  InvalidState: ["This action is not allowed in the tender's current phase.", "Không thể làm thao tác này ở giai đoạn hiện tại của gói thầu."],
+  InvalidDeadlines: [
+    "Deadlines are invalid: submission must be in the future and the reveal window at least 24 hours.",
+    "Thời hạn không hợp lệ: hạn nộp phải ở tương lai và cửa sổ công bố dài ít nhất 24 giờ.",
+  ],
+  InvalidBudget: ["Minimum budget must not exceed maximum budget.", "Ngân sách tối thiểu không được lớn hơn ngân sách tối đa."],
+  EmptyDocument: ["Missing document reference.", "Thiếu tham chiếu tài liệu."],
+  NotBuyer: ["Only the tender's buyer can do this.", "Chỉ bên mời thầu của gói thầu mới làm được việc này."],
+  BuyerCannotBid: ["Buyers cannot bid on their own tender.", "Bên mời thầu không được dự thầu vào gói thầu của chính mình."],
+  NoBid: ["You have no bid on this tender.", "Bạn chưa có hồ sơ thầu nào cho gói thầu này."],
+  ZeroCommitment: ["Invalid commitment.", "Commitment không hợp lệ."],
+  WrongBond: [
+    "The bid bond sent does not match the tender's bond (a replacement bid sends none).",
+    "Tiền bảo đảm gửi kèm không khớp với mức của gói thầu (gửi lại hồ sơ thay thế thì không gửi thêm).",
+  ],
+  AlreadyRevealed: ["This bid is already revealed.", "Hồ sơ thầu này đã được công bố."],
+  CommitmentMismatch: [
+    "Amount, salt or document key does not match your sealed commitment. Check your backup file.",
+    "Giá, salt hoặc khóa hồ sơ không khớp với commitment đã niêm phong. Hãy kiểm tra file sao lưu.",
+  ],
+  ZeroAmount: ["Bid amount must be greater than zero.", "Giá thầu phải lớn hơn 0."],
+  WinnerNotRevealed: ["The selected bidder did not reveal a valid bid.", "Nhà thầu được chọn chưa công bố hồ sơ hợp lệ."],
+  HasBids: ["A tender with bids can no longer be cancelled.", "Gói thầu đã có hồ sơ thì không thể hủy nữa."],
+  NothingToWithdraw: ["Nothing to withdraw.", "Không có gì để rút."],
+  TransferFailed: ["The tPOTv3 transfer failed. Check the wallet and retry.", "Chuyển tPOTv3 thất bại. Hãy kiểm tra ví rồi thử lại."],
+  ZeroTreasury: ["Treasury address is not set.", "Chưa đặt địa chỉ treasury."],
+  ReentrancyGuardReentrantCall: ["Another payout is in progress. Retry in a moment.", "Một khoản chi trả khác đang xử lý. Hãy thử lại sau giây lát."],
 };

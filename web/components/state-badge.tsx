@@ -1,4 +1,7 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/components/lang-provider";
 import { STATE_LABEL, TenderState } from "@/lib/contracts";
 
 const VARIANT = {
@@ -11,9 +14,10 @@ const VARIANT = {
 } as const;
 
 export function StateBadge({ state }: { state: TenderState }) {
+  const t = useT();
   return (
     <Badge variant={VARIANT[state]} dot={state !== TenderState.Cancelled}>
-      {STATE_LABEL[state]}
+      {t(STATE_LABEL[state])}
     </Badge>
   );
 }

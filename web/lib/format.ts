@@ -1,4 +1,5 @@
 import { parseUnits } from "viem";
+import { dateLocale, tr, type Lang } from "./i18n";
 
 /** Native tPOTv3 precision on PortaldotV3 Testnet. */
 export const TOKEN_DECIMALS = 18;
@@ -42,7 +43,7 @@ export function parseNativeAmount(input: string): bigint {
 
 export function normalizeAmountInput(input: string): string {
   const v = input.replace(/[$,\s]/g, "");
-  if (!/^\d+(\.\d+)?$/.test(v)) throw new Error("Enter a positive number");
+  if (!/^\d+(\.\d+)?$/.test(v)) throw new Error(tr("Enter a positive number", "Hãy nhập một số dương"));
   return v;
 }
 
@@ -63,9 +64,9 @@ export function shortHash(hash?: string): string {
   return hash ? `${hash.slice(0, 10)}…${hash.slice(-6)}` : "";
 }
 
-export function formatDateTime(tsSec: bigint | number): string {
-  // English UI: fixed en-US format, but in the viewer's own time zone
-  return new Date(Number(tsSec) * 1000).toLocaleString("en-US", {
+export function formatDateTime(tsSec: bigint | number, lang: Lang = "en"): string {
+  // Fixed format per UI language (en-US / vi-VN), in the viewer's own time zone
+  return new Date(Number(tsSec) * 1000).toLocaleString(dateLocale(lang), {
     year: "numeric",
     month: "short",
     day: "numeric",

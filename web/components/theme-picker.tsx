@@ -3,13 +3,15 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useId, useRef, useSyncExternalStore } from "react";
+import { useT } from "@/components/lang-provider";
+import type { Text } from "@/lib/i18n";
 import { setPreference, usePreferences, type ThemeChoice } from "@/lib/preferences";
 import { cn } from "@/lib/utils";
 
-const THEMES: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+const THEMES: { value: ThemeChoice; label: Text; icon: typeof Sun }[] = [
+  { value: "light", label: ["Light", "Sáng"], icon: Sun },
+  { value: "dark", label: ["Dark", "Tối"], icon: Moon },
+  { value: "system", label: ["System", "Hệ thống"], icon: Monitor },
 ];
 
 /**
@@ -20,6 +22,7 @@ const noopSubscribe = () => () => {};
 
 export function ThemePicker({ vertical = false, labels = true, className }: { vertical?: boolean; labels?: boolean; className?: string }) {
   const { theme } = usePreferences();
+  const t = useT();
   const reduce = useReducedMotion();
   const groupRef = useRef<HTMLDivElement>(null);
   // Several pickers can be mounted at once (sidebar + mobile menu): keep their thumbs independent.
@@ -35,7 +38,7 @@ export function ThemePicker({ vertical = false, labels = true, className }: { ve
     setPreference("theme", v);
   };
   const move = (dir: 1 | -1) => {
-    const i = THEMES.findIndex((t) => t.value === theme);
+    const i = THEMES.findIndex((o) => o.value === theme);
     choose(THEMES[(i + dir + THEMES.length) % THEMES.length].value);
     // Roving focus follows the checked option.
     requestAnimationFrame(() => groupRef.current?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus());
@@ -45,7 +48,7 @@ export function ThemePicker({ vertical = false, labels = true, className }: { ve
     <div
       ref={groupRef}
       role="radiogroup"
-      aria-label="Theme"
+      aria-label={t("Theme", "Giao diện")}
       onKeyDown={(e) => {
         const dir = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
         if (!dir) return;
@@ -54,18 +57,19 @@ export function ThemePicker({ vertical = false, labels = true, className }: { ve
       }}
       className={cn("flex gap-0.5 rounded-[14px] border border-border bg-muted p-0.5", vertical && "flex-col", className)}
     >
-      {THEMES.map((t) => {
-        const on = t.value === theme;
+      {THEMES.map((option) => {
+        const on = option.value === theme;
+        const label = t(option.label);
         return (
           <button
-            key={t.value}
+            key={option.value}
             type="button"
             role="radio"
             aria-checked={on}
-            aria-label={t.label}
-            title={t.label}
+            aria-label={label}
+            title={label}
             tabIndex={on ? 0 : -1}
-            onClick={() => choose(t.value)}
+            onClick={() => choose(option.value)}
             className={cn(
               "relative flex h-9 items-center justify-center gap-1.5 rounded-[11px] text-[0.72rem] font-medium transition-colors duration-200",
               vertical ? "w-full shrink-0" : "flex-1",
@@ -79,8 +83,8 @@ export function ThemePicker({ vertical = false, labels = true, className }: { ve
                 className="absolute inset-0 rounded-[11px] bg-primary shadow-sm"
               />
             )}
-            <t.icon className="relative size-4 shrink-0" aria-hidden="true" />
-            {labels && <span className="relative">{t.label}</span>}
+            <option.icon className="relative size-4 shrink-0" aria-hidden="true" />
+            {labels && <span className="relative">{label}</span>}
           </button>
         );
       })}

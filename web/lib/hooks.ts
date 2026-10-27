@@ -21,6 +21,7 @@ import {
 } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { toast } from "@/components/toaster";
+import { tr, type Text } from "./i18n";
 import { digestToUri } from "./cid";
 import { ERROR_TEXT, blindBidAddress, blindBidMarketAbi, type Bid, TenderState, type Tender } from "./contracts";
 import { BLINDBID_DEPLOY_BLOCK, PORTALDOT_RPC_URL } from "./env";
@@ -338,24 +339,34 @@ export type TxStatus = "idle" | "simulating" | "signing" | "confirming" | "succe
 /** How long to wait for a receipt before telling the user the transaction is still pending. */
 export const RECEIPT_TIMEOUT_MS = 180_000;
 
-const TX_LABEL: Record<string, string> = {
-  createTender: "Publish tender",
-  submitBid: "Sealed bid",
-  revealBid: "Reveal bid",
-  award: "Award tender",
-  cancel: "Cancel tender",
-  withdrawBond: "Withdraw bond",
-  sweepForfeitedBonds: "Send forfeited bonds",
+const TX_LABEL: Record<string, Text> = {
+  createTender: ["Publish tender", "Đăng gói thầu"],
+  submitBid: ["Sealed bid", "Gửi giá niêm phong"],
+  revealBid: ["Reveal bid", "Công bố giá"],
+  award: ["Award tender", "Trao thầu"],
+  cancel: ["Cancel tender", "Hủy gói thầu"],
+  withdrawBond: ["Withdraw bond", "Rút tiền bảo đảm"],
+  sweepForfeitedBonds: ["Send forfeited bonds", "Chuyển tiền bảo đảm bị phạt"],
 };
 
+export const TX_FALLBACK_LABEL: Text = ["Transaction", "Giao dịch"];
+
 /** Mirrors a transaction's stages in a toast (one toast per transaction, updated in place). */
-export function txToaster(label: string) {
-  const id = toast.show({ kind: "loading", title: label, description: "Checking the transaction…" });
+export function txToaster(text: Text) {
+  const label = tr(text);
+  const id = toast.show({ kind: "loading", title: label, description: tr("Checking the transaction…", "Đang kiểm tra giao dịch…") });
   return {
-    signing: () => toast.show({ id, kind: "loading", title: label, description: "Confirm it in your wallet." }),
-    confirming: () => toast.show({ id, kind: "loading", title: label, description: "Waiting for PortaldotV3 to confirm…" }),
-    success: () => toast.show({ id, kind: "success", title: `${label} confirmed`, description: "Recorded on PortaldotV3." }),
-    error: (message: string) => toast.show({ id, kind: "error", title: `${label} failed`, description: message }),
+    signing: () => toast.show({ id, kind: "loading", title: label, description: tr("Confirm it in your wallet.", "Hãy xác nhận trong ví.") }),
+    confirming: () =>
+      toast.show({ id, kind: "loading", title: label, description: tr("Waiting for PortaldotV3 to confirm…", "Đang chờ PortaldotV3 xác nhận…") }),
+    success: () =>
+      toast.show({
+        id,
+        kind: "success",
+        title: tr(`${label} confirmed`, `${label}: đã xác nhận`),
+        description: tr("Recorded on PortaldotV3.", "Đã ghi lên PortaldotV3."),
+      }),
+    error: (message: string) => toast.show({ id, kind: "error", title: tr(`${label} failed`, `${label}: thất bại`), description: message }),
   };
 }
 
@@ -375,9 +386,9 @@ export function useBlindBidTx() {
     ): Promise<TransactionReceipt | undefined> => {
       setError(undefined);
       setHash(undefined);
-      const t = txToaster(TX_LABEL[functionName] ?? "Transaction");
+      const t = txToaster(TX_LABEL[functionName] ?? TX_FALLBACK_LABEL);
       try {
-        if (!client || !address || !blindBidAddress) throw new Error("Connect your wallet first.");
+        if (!client || !address || !blindBidAddress) throw new Error(tr("Connect your wallet first.", "Hãy kết nối ví trước."));
         setStatus("simulating");
         // Simulate first to decode contract errors before asking the wallet to send a transaction.
         const { request } = await client.simulateContract({
@@ -397,7 +408,7 @@ export function useBlindBidTx() {
         setStatus("confirming");
         t.confirming();
         const receipt = await client.waitForTransactionReceipt({ hash: txHash, confirmations: 1, timeout: RECEIPT_TIMEOUT_MS });
-        if (receipt.status !== "success") throw new Error("Transaction reverted.");
+        if (receipt.status !== "success") throw new Error(tr("Transaction reverted.", "Giao dịch bị hoàn tác (revert)."));
         setStatus("success");
         t.success();
         return receipt;
@@ -424,29 +435,41 @@ export function useBlindBidTx() {
 
 export function describeError(e: unknown): string {
   if (e instanceof BaseError) {
-    if (e.walk((x) => x instanceof UserRejectedRequestError)) return "You rejected the request in your wallet. Nothing was sent.";
+    if (e.walk((x) => x instanceof UserRejectedRequestError)) return tr("You rejected the request in your wallet. Nothing was sent.", "Bạn đã từ chối yêu cầu trong ví. Chưa có gì được gửi.");
     if (e.walk((x) => x instanceof InsufficientFundsError) || /insufficient funds/i.test(e.details ?? e.message)) {
-      return "Not enough tPOTv3 in this wallet for the network fee, the storage deposit and any bond. Fund it through its SS58 account, then retry.";
+      return tr(
+        "Not enough tPOTv3 in this wallet for the network fee, the storage deposit and any bond. Fund it through its SS58 account, then retry.",
+        "Ví không đủ tPOTv3 để trả phí mạng, ký quỹ lưu trữ và tiền bảo đảm (nếu có). Hãy nạp qua tài khoản SS58 của ví rồi thử lại.",
+      );
     }
     // -32002 from the wallet: it cannot reach the RPC configured for this network, or another request is pending.
     if (e.walk((x) => x instanceof ResourceUnavailableRpcError)) {
-      return `Your wallet could not reach its ${chain.name} RPC (or another request is waiting in the wallet). In your wallet's network settings, set the RPC to ${PORTALDOT_RPC_URL}, then retry.`;
+      return tr(
+        `Your wallet could not reach its ${chain.name} RPC (or another request is waiting in the wallet). In your wallet's network settings, set the RPC to ${PORTALDOT_RPC_URL}, then retry.`,
+        `Ví không kết nối được RPC ${chain.name} (hoặc đang có yêu cầu khác chờ trong ví). Trong phần cài đặt mạng của ví, đặt RPC là ${PORTALDOT_RPC_URL} rồi thử lại.`,
+      );
     }
     if (e.walk((x) => x instanceof WaitForTransactionReceiptTimeoutError)) {
-      return "No confirmation after 3 minutes. The transaction may still go through — refresh before retrying.";
+      return tr(
+        "No confirmation after 3 minutes. The transaction may still go through — refresh before retrying.",
+        "Sau 3 phút vẫn chưa được xác nhận. Giao dịch vẫn có thể thành công — hãy tải lại trang trước khi thử lại.",
+      );
     }
     if (
       e.walk((x) => x instanceof LimitExceededRpcError || (x instanceof HttpRequestError && x.status === 429))
     ) {
-      return "The PortaldotV3 RPC is rate-limiting requests right now. Wait a few seconds and try again.";
+      return tr(
+        "The PortaldotV3 RPC is rate-limiting requests right now. Wait a few seconds and try again.",
+        "RPC PortaldotV3 đang giới hạn số yêu cầu. Hãy đợi vài giây rồi thử lại.",
+      );
     }
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
     if (revert instanceof ContractFunctionRevertedError) {
       const name = revert.data?.errorName;
-      if (name && ERROR_TEXT[name]) return ERROR_TEXT[name];
+      if (name && ERROR_TEXT[name]) return tr(ERROR_TEXT[name]);
       if (name) return name;
     }
     return e.shortMessage;
   }
-  return e instanceof Error ? e.message : "Something went wrong.";
+  return e instanceof Error ? e.message : tr("Something went wrong.", "Đã có lỗi xảy ra.");
 }

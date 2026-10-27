@@ -1,5 +1,6 @@
 import { getAddress, isAddress, isHex, type Address, type Hex } from "viem";
 import { z } from "zod";
+import { tr } from "./i18n";
 
 /**
  * Bidder secrets needed to reveal: amount, salt and docKey.
@@ -101,10 +102,10 @@ export function parseBackup(text: string): VaultEntry[] {
   try {
     json = JSON.parse(text);
   } catch {
-    throw new Error("Backup file is not valid JSON");
+    throw new Error(tr("Backup file is not valid JSON", "File sao lưu không phải JSON hợp lệ"));
   }
   const r = backupFileSchema.safeParse(json);
-  if (!r.success) throw new Error("Not a Plinths backup file");
+  if (!r.success) throw new Error(tr("Not a Plinths backup file", "Đây không phải file sao lưu của Plinths"));
   return r.data;
 }
 

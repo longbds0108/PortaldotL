@@ -9,6 +9,7 @@ import { useAccount, useBalance } from "wagmi";
 import { BalancesDialog } from "@/components/balances-dialog";
 import { BidColumns, Gauge, MeterRow, PHASES, PhaseLegend, StackBar, phaseOf, pct, type PhaseKey } from "@/components/dashboard/charts";
 import { ConfigGate } from "@/components/gates";
+import { useLang, useT } from "@/components/lang-provider";
 import { Card } from "@/components/ui/card";
 import { SelectMenu } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,7 +17,7 @@ import { blindBidAddress, STATE_LABEL, TenderState, type Bid } from "@/lib/contr
 import { formatDateTime, formatNativeAmount, formatNativeAmountFloor, shortAddress } from "@/lib/format";
 import { useChainNow, useMyBidTenderIds, useMyLockedBonds, useMyTenderIds, useTenders, type TenderRow } from "@/lib/hooks";
 import { fetchJson } from "@/lib/ipfs";
-import { CATEGORIES, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
+import { CATEGORIES, CATEGORY_LABEL, tenderMetadataSchema, type Category, type TenderMetadata } from "@/lib/metadata";
 import { NETWORK_NAME } from "@/lib/network";
 import { cn } from "@/lib/utils";
 import { chain } from "@/lib/wagmi";
@@ -40,29 +41,33 @@ function useMetadata(rows: TenderRow[]) {
 export default function DashboardPage() {
   const now = useChainNow();
   const [category, setCategory] = useState("all");
+  const t = useT();
+  const lang = useLang();
 
   return (
     <div className="space-y-5">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">Plinths · {NETWORK_NAME}</p>
-          <h1 className="title-sheen mt-2 text-[clamp(2rem,4.4vw,2.9rem)]">Dashboard</h1>
+          <h1 className="title-sheen mt-2 text-[clamp(2rem,4.4vw,2.9rem)]">{t("Dashboard", "Tổng quan")}</h1>
           <p className="mt-1 text-[0.86rem] text-muted-foreground">
-            {blindBidAddress ? "Live figures read from the Plinths contract." : "Visual preview · live figures appear when the contract is connected."}
+            {blindBidAddress
+              ? t("Live figures read from the Plinths contract.", "Số liệu trực tiếp đọc từ contract Plinths.")
+              : t("Visual preview · live figures appear when the contract is connected.", "Bản xem trước · số liệu thật hiện khi kết nối contract.")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <SelectMenu
-            ariaLabel="Category"
+            ariaLabel={t("Category", "Danh mục")}
             value={category}
             onValueChange={setCategory}
-            options={[{ value: "all", label: "All categories" }, ...CATEGORIES.map((c) => ({ value: c, label: c }))]}
+            options={[{ value: "all", label: t("All categories", "Mọi danh mục") }, ...CATEGORIES.map((c) => ({ value: c, label: t(CATEGORY_LABEL[c]) }))]}
             className="h-10 w-[11.5rem]"
           />
           <span className="flex h-10 items-center gap-2 rounded-full border border-overlay/10 bg-field px-4 text-[0.78rem] text-foreground-soft">
             <Clock className="size-3.5 text-muted-foreground" />
-            <span className="text-muted-foreground">{blindBidAddress ? "Chain time" : "Preview time"}</span>
-            <span className="tabular-nums">{now ? formatDateTime(now) : "…"}</span>
+            <span className="text-muted-foreground">{blindBidAddress ? t("Chain time", "Thời gian chain") : t("Preview time", "Thời gian xem trước")}</span>
+            <span className="tabular-nums">{now ? formatDateTime(now, lang) : "…"}</span>
           </span>
         </div>
       </header>
@@ -77,6 +82,8 @@ export default function DashboardPage() {
 function Market({ category, now }: { category: string; now: number | undefined }) {
   const market = useTenders();
   const { metas, isLoading: metaLoading } = useMetadata(market.rows);
+  const t = useT();
+  const catLabel = (c: string) => t(CATEGORY_LABEL[c as Category] ?? [c, c]);
 
   const items: Item[] = useMemo(
     () =>
@@ -117,7 +124,7 @@ function Market({ category, now }: { category: string; now: number | undefined }
   const v = (n: number) => (ready ? n : "…");
   const wallet = useWalletData();
 
-  if (market.error) return <p className="text-sm text-destructive">Could not load tenders: {market.error.message}</p>;
+  if (market.error) return <p className="text-sm text-destructive">{t("Could not load tenders:", "Không tải được gói thầu:")} {market.error.message}</p>;
 
   // Oldest → newest, last 10, for the activity chart.
   const columns = [...items]
@@ -136,48 +143,63 @@ function Market({ category, now }: { category: string; now: number | undefined }
       <WalletKpis wallet={wallet} />
 
       <section className="grid gap-2.5">
-        <RowLabel>Marketplace · all wallets{category !== "all" ? ` · ${category}` : ""}</RowLabel>
+        <RowLabel>
+          {t("Marketplace · all wallets", "Sàn thầu · mọi ví")}
+          {category !== "all" ? ` · ${catLabel(category)}` : ""}
+        </RowLabel>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Kpi
             tone="blue"
             href="/marketplace"
-            label="Total tenders"
+            label={t("Total tenders", "Tổng số gói thầu")}
             value={v(s.total)}
-            hint={ready ? `${s.bids} sealed bid${s.bids === 1 ? "" : "s"} across them` : "Reading the chain…"}
+            hint={
+              ready
+                ? t(`${s.bids} sealed bid${s.bids === 1 ? "" : "s"} across them`, `${s.bids} hồ sơ niêm phong`)
+                : t("Reading the chain…", "Đang đọc chain…")
+            }
           />
           <Kpi
             tone="blue"
             href="/marketplace"
-            label="Awarded"
+            label={t("Awarded", "Đã trao thầu")}
             value={v(s.by.awarded)}
-            hint={ready ? `${s.failed} failed · ${s.cancelled} cancelled` : "…"}
+            hint={ready ? t(`${s.failed} failed · ${s.cancelled} cancelled`, `${s.failed} thất bại · ${s.cancelled} đã hủy`) : "…"}
           />
           <Kpi
             tone="teal"
             href="/marketplace"
-            label="Open for bids"
+            label={t("Open for bids", "Đang nhận hồ sơ")}
             value={v(s.by.open)}
-            hint={ready && now !== undefined ? `${s.open.lt1d} closing within 24h` : "…"}
+            hint={ready && now !== undefined ? t(`${s.open.lt1d} closing within 24h`, `${s.open.lt1d} đóng trong 24 giờ`) : "…"}
           />
           <Kpi
             tone="amber"
             href="/marketplace"
-            label="Awaiting award"
+            label={t("Awaiting award", "Chờ trao thầu")}
             value={v(s.by.evaluation)}
-            hint={ready ? `${s.by.reveal} still in the reveal window` : "…"}
+            hint={ready ? t(`${s.by.reveal} still in the reveal window`, `${s.by.reveal} còn trong cửa sổ công bố`) : "…"}
           />
         </div>
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[1.55fr_1fr]">
         <Panel
-          title="Bid activity"
-          aside={<span className="text-[0.7rem] text-muted-foreground">Sealed bids per tender · latest {columns.length || ""}</span>}
+          title={t("Bid activity", "Hoạt động dự thầu")}
+          aside={
+            <span className="text-[0.7rem] text-muted-foreground">
+              {t("Sealed bids per tender · latest", "Hồ sơ niêm phong mỗi gói thầu · gần nhất")} {columns.length || ""}
+            </span>
+          }
         >
           {!ready ? (
             <Skeleton className="h-[230px]" />
           ) : columns.length === 0 ? (
-            <Empty>No tenders{category !== "all" ? ` in ${category}` : ""} yet.</Empty>
+            <Empty>
+              {category !== "all"
+                ? t(`No tenders in ${catLabel(category)} yet.`, `Chưa có gói thầu nào thuộc ${catLabel(category)}.`)
+                : t("No tenders yet.", "Chưa có gói thầu nào.")}
+            </Empty>
           ) : (
             <>
               <BidColumns columns={columns} />
@@ -194,18 +216,20 @@ function Market({ category, now }: { category: string; now: number | undefined }
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <div className="grid content-start gap-3.5">
-                <h2 className="text-[0.9rem] text-foreground">By phase</h2>
+                <h2 className="text-[0.9rem] text-foreground">{t("By phase", "Theo giai đoạn")}</h2>
                 {PHASES.map((p) => (
-                  <MeterRow key={p.key} label={p.label.replace(" · sealed", "")} count={s.by[p.key]} total={s.total} color={p.color} />
+                  <MeterRow key={p.key} label={t(p.short)} count={s.by[p.key]} total={s.total} color={p.color} />
                 ))}
               </div>
               <div className="grid content-start gap-3.5">
-                <h2 className="text-[0.9rem] text-foreground">Deadlines ahead</h2>
-                <MeterRow label="Submission < 24h" count={s.open.lt1d} total={s.by.open} color="#e5484d" />
-                <MeterRow label="Submission 1–7 days" count={s.open.lt7d} total={s.by.open} color="#e8b54c" />
-                <MeterRow label="Submission > 7 days" count={s.open.later} total={s.by.open} color="#4fd1c5" />
-                <MeterRow label="Reveal ends < 24h" count={s.revealEnding} total={s.by.reveal} color="#83aaff" />
-                <p className="text-[0.66rem] leading-relaxed text-muted-foreground">Shares of open / in-reveal tenders, by chain time.</p>
+                <h2 className="text-[0.9rem] text-foreground">{t("Deadlines ahead", "Thời hạn sắp tới")}</h2>
+                <MeterRow label={t("Submission < 24h", "Nộp hồ sơ < 24 giờ")} count={s.open.lt1d} total={s.by.open} color="#e5484d" />
+                <MeterRow label={t("Submission 1–7 days", "Nộp hồ sơ 1–7 ngày")} count={s.open.lt7d} total={s.by.open} color="#e8b54c" />
+                <MeterRow label={t("Submission > 7 days", "Nộp hồ sơ > 7 ngày")} count={s.open.later} total={s.by.open} color="#4fd1c5" />
+                <MeterRow label={t("Reveal ends < 24h", "Hết hạn công bố < 24 giờ")} count={s.revealEnding} total={s.by.reveal} color="#83aaff" />
+                <p className="text-[0.66rem] leading-relaxed text-muted-foreground">
+                  {t("Shares of open / in-reveal tenders, by chain time.", "Tỷ lệ trên số gói thầu đang mở / đang công bố, theo thời gian chain.")}
+                </p>
               </div>
             </div>
           )}
@@ -215,7 +239,7 @@ function Market({ category, now }: { category: string; now: number | undefined }
       <section className="grid gap-5 lg:grid-cols-[1.2fr_1fr_0.95fr]">
         <MyActivity wallet={wallet} />
 
-        <Panel title="Tenders by category">
+        <Panel title={t("Tenders by category", "Gói thầu theo danh mục")}>
           {!ready || metaLoading ? (
             <Skeleton className="h-[220px]" />
           ) : (
@@ -226,9 +250,12 @@ function Market({ category, now }: { category: string; now: number | undefined }
                 return (
                   <div key={c} className="grid gap-2">
                     <div className="flex items-baseline justify-between gap-2 text-[0.78rem]">
-                      <span className="text-foreground">{c}</span>
+                      <span className="text-foreground">{catLabel(c)}</span>
                       <span className="tabular-nums text-muted-foreground">
-                        {rows.length} tender{rows.length === 1 ? "" : "s"} · {pct(count("awarded"), rows.length)}% awarded
+                        {t(
+                          `${rows.length} tender${rows.length === 1 ? "" : "s"} · ${pct(count("awarded"), rows.length)}% awarded`,
+                          `${rows.length} gói thầu · ${pct(count("awarded"), rows.length)}% đã trao`,
+                        )}
                       </span>
                     </div>
                     <StackBar parts={PHASES.map((p) => ({ phase: p.key, count: count(p.key) }))} />
@@ -242,14 +269,14 @@ function Market({ category, now }: { category: string; now: number | undefined }
           )}
         </Panel>
 
-        <Panel title="Award rate">
+        <Panel title={t("Award rate", "Tỷ lệ trao thầu")}>
           {!ready ? (
             <Skeleton className="h-[220px]" />
           ) : (
             <div className="grid gap-5 pt-2">
               <Gauge
                 value={s.total ? `${pct(s.by.awarded, s.total)}%` : "—"}
-                caption="of tenders awarded"
+                caption={t("of tenders awarded", "gói thầu đã trao")}
                 segments={[
                   { key: "awarded", count: s.by.awarded, color: "#3f7be0" },
                   { key: "progress", count: s.by.open + s.by.reveal + s.by.evaluation, color: "#83aaff" },
@@ -257,10 +284,14 @@ function Market({ category, now }: { category: string; now: number | undefined }
                 ]}
               />
               <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[0.68rem] text-muted-foreground">
-                <Legend color="#3f7be0">Awarded · {s.by.awarded}</Legend>
-                <Legend color="#83aaff">In progress · {s.by.open + s.by.reveal + s.by.evaluation}</Legend>
+                <Legend color="#3f7be0">
+                  {t("Awarded", "Đã trao")} · {s.by.awarded}
+                </Legend>
+                <Legend color="#83aaff">
+                  {t("In progress", "Đang diễn ra")} · {s.by.open + s.by.reveal + s.by.evaluation}
+                </Legend>
                 <Legend color="#e5484d" hatch>
-                  No award · {s.by.closed}
+                  {t("No award", "Không trao")} · {s.by.closed}
                 </Legend>
               </ul>
             </div>
@@ -312,6 +343,7 @@ function useWalletData() {
 function WalletKpis({ wallet: w }: { wallet: WalletData }) {
   const [tokensOpen, setTokensOpen] = useState(false);
   const closeTokens = useCallback(() => setTokensOpen(false), []);
+  const t = useT();
   if (!w.isConnected) {
     return (
       <section className="flex flex-col items-start gap-3 rounded-[20px] border border-dashed border-overlay/12 bg-overlay/[0.02] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
@@ -320,8 +352,13 @@ function WalletKpis({ wallet: w }: { wallet: WalletData }) {
             <Wallet className="size-4" />
           </span>
           <div>
-            <p className="text-[0.88rem] text-foreground">Your wallet</p>
-            <p className="text-[0.74rem] text-muted-foreground">Connect to see its tPOTv3 balance, locked bonds, tenders and bids.</p>
+            <p className="text-[0.88rem] text-foreground">{t("Your wallet", "Ví của bạn")}</p>
+            <p className="text-[0.74rem] text-muted-foreground">
+              {t(
+                "Connect to see its tPOTv3 balance, locked bonds, tenders and bids.",
+                "Kết nối để xem số dư tPOTv3, tiền bảo đảm đang khóa, gói thầu và hồ sơ thầu.",
+              )}
+            </p>
           </div>
         </div>
         <ConnectButton showBalance={false} chainStatus="none" />
@@ -331,30 +368,44 @@ function WalletKpis({ wallet: w }: { wallet: WalletData }) {
   const bal = w.balance.data ? formatNativeAmountFloor(w.balance.data.value) : w.balance.isError ? "—" : "…";
   return (
     <section className="grid gap-2.5">
-      <RowLabel>Your wallet · {shortAddress(w.address)}</RowLabel>
+      <RowLabel>
+        {t("Your wallet", "Ví của bạn")} · {shortAddress(w.address)}
+      </RowLabel>
       {w.address && <BalancesDialog open={tokensOpen} onClose={closeTokens} address={w.address} />}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi featured onClick={() => setTokensOpen(true)} label="BALANCE" value={bal} hint={w.balance.isError ? "Balance unavailable" : NETWORK_NAME} />
+        <Kpi
+          featured
+          onClick={() => setTokensOpen(true)}
+          label={t("BALANCE", "SỐ DƯ")}
+          value={bal}
+          hint={w.balance.isError ? t("Balance unavailable", "Không đọc được số dư") : NETWORK_NAME}
+        />
         <Kpi
           tone="blue"
           href="/my/bids"
-          label="Locked in bid bonds"
+          label={t("Locked in bid bonds", "Đang khóa trong tiền bảo đảm")}
           value={w.bidsReady ? formatNativeAmount(w.bonds.lockedWei) : "…"}
-          hint={w.bidsReady ? (w.bonds.count ? `${w.bonds.count} bond${w.bonds.count > 1 ? "s" : ""} · back after reveal` : "No active bonds") : "…"}
+          hint={
+            w.bidsReady
+              ? w.bonds.count
+                ? t(`${w.bonds.count} bond${w.bonds.count > 1 ? "s" : ""} · back after reveal`, `${w.bonds.count} khoản · hoàn lại sau khi công bố`)
+                : t("No active bonds", "Không có tiền bảo đảm nào đang khóa")
+              : "…"
+          }
         />
         <Kpi
           tone="teal"
           href="/my/tenders"
-          label="My tenders"
+          label={t("My tenders", "Gói thầu của tôi")}
           value={w.tenderCount ?? "…"}
-          hint={w.tendersReady ? `${w.awaitingMyAward} awaiting your award` : "…"}
+          hint={w.tendersReady ? t(`${w.awaitingMyAward} awaiting your award`, `${w.awaitingMyAward} đang chờ bạn trao thầu`) : "…"}
         />
         <Kpi
           tone="amber"
           href="/my/bids"
-          label="My bids"
+          label={t("My bids", "Hồ sơ thầu của tôi")}
           value={w.bidCount ?? "…"}
-          hint={w.bidsReady ? `${w.toReveal} to reveal now` : "…"}
+          hint={w.bidsReady ? t(`${w.toReveal} to reveal now`, `${w.toReveal} cần công bố ngay`) : "…"}
         />
       </div>
     </section>
@@ -365,27 +416,28 @@ function MyActivity({ wallet: w }: { wallet: WalletData }) {
   const { list, isConnected } = w;
   const { metas } = useMetadata(list.map((a) => a.row));
   const loading = !w.tendersReady || !w.bidsReady;
+  const t = useT();
 
   return (
     <Panel
-      title="My activity"
+      title={t("My activity", "Hoạt động của tôi")}
       aside={
         isConnected && (
           <Link
             href="/tenders/new"
             className="flex h-8 items-center gap-1 rounded-full border border-overlay/15 px-3 text-[0.72rem] text-foreground transition-colors hover:border-[rgba(131,170,255,.5)] hover:text-link"
           >
-            <Plus className="size-3.5" /> New tender
+            <Plus className="size-3.5" /> {t("New tender", "Gói thầu mới")}
           </Link>
         )
       }
     >
       {!isConnected ? (
-        <Empty>Connect a wallet to list its tenders and bids.</Empty>
+        <Empty>{t("Connect a wallet to list its tenders and bids.", "Kết nối ví để xem gói thầu và hồ sơ thầu của ví.")}</Empty>
       ) : loading ? (
         <Skeleton className="h-48" />
       ) : list.length === 0 ? (
-        <Empty>No tenders or bids from this wallet yet.</Empty>
+        <Empty>{t("No tenders or bids from this wallet yet.", "Ví này chưa có gói thầu hay hồ sơ thầu nào.")}</Empty>
       ) : (
         <div className="grid gap-3">
           <ul className="grid gap-1">
@@ -396,10 +448,10 @@ function MyActivity({ wallet: w }: { wallet: WalletData }) {
           {list.length > 6 && (
             <div className="flex gap-4 text-[0.72rem]">
               <Link href="/my/tenders" className="text-foreground-soft hover:text-link">
-                All my tenders →
+                {t("All my tenders →", "Tất cả gói thầu của tôi →")}
               </Link>
               <Link href="/my/bids" className="text-foreground-soft hover:text-link">
-                All my bids →
+                {t("All my bids →", "Tất cả hồ sơ thầu của tôi →")}
               </Link>
             </div>
           )}
@@ -412,21 +464,24 @@ function MyActivity({ wallet: w }: { wallet: WalletData }) {
 function ActivityRow({ activity: { row, role, bid }, title }: { activity: Activity; title?: string }) {
   const { state, tender, id } = row;
   const revealClosed = state !== TenderState.Open && state !== TenderState.Reveal;
+  const t = useT();
   const chips: { text: string; tone: Tone }[] = [];
   if (role === "buyer") {
-    if (state === TenderState.Evaluation) chips.push({ text: "Award due", tone: "amber" });
+    if (state === TenderState.Evaluation) chips.push({ text: t("Award due", "Cần trao thầu"), tone: "amber" });
   } else if (bid) {
-    if (state === TenderState.Reveal && !bid.revealed) chips.push({ text: "Reveal now", tone: "red" });
-    else if (revealClosed && !bid.revealed && bid.bond > 0n) chips.push({ text: "Bond forfeited", tone: "red" });
-    else if (revealClosed && bid.revealed && bid.bond > 0n && !bid.bondWithdrawn) chips.push({ text: "Bond to withdraw", tone: "amber" });
+    if (state === TenderState.Reveal && !bid.revealed) chips.push({ text: t("Reveal now", "Công bố ngay"), tone: "red" });
+    else if (revealClosed && !bid.revealed && bid.bond > 0n) chips.push({ text: t("Bond forfeited", "Mất tiền bảo đảm"), tone: "red" });
+    else if (revealClosed && bid.revealed && bid.bond > 0n && !bid.bondWithdrawn) chips.push({ text: t("Bond to withdraw", "Rút tiền bảo đảm"), tone: "amber" });
   }
-  chips.push({ text: STATE_LABEL[state], tone: STATE_TONE[state] });
+  chips.push({ text: t(STATE_LABEL[state]), tone: STATE_TONE[state] });
 
   const Icon = role === "buyer" ? Gavel : FileLock2;
   const sub =
     role === "buyer"
-      ? `Buyer · ${tender.bidCount} bid${tender.bidCount === 1 ? "" : "s"}`
-      : `Bidder · ${bid?.revealed ? "revealed" : "sealed"}`;
+      ? t(`Buyer · ${tender.bidCount} bid${tender.bidCount === 1 ? "" : "s"}`, `Bên mời thầu · ${tender.bidCount} hồ sơ`)
+      : bid?.revealed
+        ? t("Bidder · revealed", "Nhà thầu · đã công bố")
+        : t("Bidder · sealed", "Nhà thầu · đã niêm phong");
   const href = role === "buyer" && state === TenderState.Evaluation ? `/tenders/${id}/evaluate` : role === "bidder" ? "/my/bids" : `/tenders/${id}`;
 
   return (
@@ -441,7 +496,7 @@ function ActivityRow({ activity: { row, role, bid }, title }: { activity: Activi
           <Icon className="size-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[0.82rem] text-foreground">{title ?? `Tender #${id}`}</span>
+          <span className="block truncate text-[0.82rem] text-foreground">{title ?? t(`Tender #${id}`, `Gói thầu #${id}`)}</span>
           <span className="block truncate text-[0.68rem] text-muted-foreground">
             #{id.toString()} · {sub}
           </span>

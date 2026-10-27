@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState, type CSSProperties } from "react";
+import { useT } from "@/components/lang-provider";
 import { TenderState } from "@/lib/contracts";
+import type { Text } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 // ───────────────────────── phases (shared colour key) ─────────────────────────
@@ -10,12 +12,12 @@ import { cn } from "@/lib/utils";
 export type PhaseKey = "awarded" | "evaluation" | "reveal" | "open" | "closed";
 
 /** One colour per tender phase, used by every dashboard chart. Open is hatched: its prices are still sealed. */
-export const PHASES: { key: PhaseKey; label: string; color: string; hatch?: boolean }[] = [
-  { key: "awarded", label: "Awarded", color: "#3f7be0" },
-  { key: "evaluation", label: "Evaluation", color: "#83aaff" },
-  { key: "reveal", label: "Reveal", color: "#e8b54c" },
-  { key: "open", label: "Open · sealed", color: "#4fd1c5", hatch: true },
-  { key: "closed", label: "Failed / cancelled", color: "#e5484d" },
+export const PHASES: { key: PhaseKey; label: Text; short: Text; color: string; hatch?: boolean }[] = [
+  { key: "awarded", label: ["Awarded", "Đã trao thầu"], short: ["Awarded", "Đã trao thầu"], color: "#3f7be0" },
+  { key: "evaluation", label: ["Evaluation", "Đánh giá"], short: ["Evaluation", "Đánh giá"], color: "#83aaff" },
+  { key: "reveal", label: ["Reveal", "Công bố"], short: ["Reveal", "Công bố"], color: "#e8b54c" },
+  { key: "open", label: ["Open · sealed", "Đang mở · niêm phong"], short: ["Open", "Đang mở"], color: "#4fd1c5", hatch: true },
+  { key: "closed", label: ["Failed / cancelled", "Thất bại / đã hủy"], short: ["Failed / cancelled", "Thất bại / đã hủy"], color: "#e5484d" },
 ];
 const PHASE = Object.fromEntries(PHASES.map((p) => [p.key, p])) as Record<PhaseKey, (typeof PHASES)[number]>;
 
@@ -48,12 +50,13 @@ export function Swatch({ phase, className }: { phase: PhaseKey; className?: stri
 }
 
 export function PhaseLegend({ phases = PHASES.map((p) => p.key) }: { phases?: PhaseKey[] }) {
+  const t = useT();
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-2 text-[0.68rem] text-muted-foreground">
       {phases.map((k) => (
         <li key={k} className="flex items-center gap-1.5">
           <Swatch phase={k} />
-          {PHASE[k].label}
+          {t(PHASE[k].label)}
         </li>
       ))}
     </ul>
@@ -85,6 +88,7 @@ export function MeterRow({ label, count, total, color }: { label: string; count:
 /** Horizontal bar split into phase segments. */
 export function StackBar({ parts }: { parts: { phase: PhaseKey; count: number }[] }) {
   const total = parts.reduce((s, p) => s + p.count, 0);
+  const t = useT();
   return (
     <div className="flex h-2 gap-[3px] overflow-hidden rounded-full bg-overlay/[0.06]">
       {total > 0 &&
@@ -95,7 +99,7 @@ export function StackBar({ parts }: { parts: { phase: PhaseKey; count: number }[
             return (
               <span
                 key={p.phase}
-                title={`${PHASE[p.phase].label}: ${p.count}`}
+                title={`${t(PHASE[p.phase].label)}: ${p.count}`}
                 className={cn("h-full rounded-full transition-[width] duration-700", fill.className)}
                 style={{ ...fill.style, width: `${(p.count / total) * 100}%` }}
               />
@@ -116,6 +120,7 @@ export function BidColumns({ columns }: { columns: BidColumn[] }) {
   const [active, setActive] = useState<number>();
   const shown = active ?? busiest;
   const a = columns[shown];
+  const t = useT();
 
   return (
     <div className="grid gap-4">
@@ -130,7 +135,7 @@ export function BidColumns({ columns }: { columns: BidColumn[] }) {
               onMouseEnter={() => setActive(i)}
               onFocus={() => setActive(i)}
               onBlur={() => setActive(undefined)}
-              aria-label={`Tender #${c.id}: ${c.bids} bid${c.bids === 1 ? "" : "s"}, ${c.revealed} revealed`}
+              aria-label={t(`Tender #${c.id}: ${c.bids} bid${c.bids === 1 ? "" : "s"}, ${c.revealed} revealed`, `Gói thầu #${c.id}: ${c.bids} hồ sơ, ${c.revealed} đã công bố`)}
               className="group flex h-full min-w-0 max-w-[58px] flex-1 flex-col items-center justify-end gap-2 rounded-[14px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <span
@@ -163,13 +168,13 @@ export function BidColumns({ columns }: { columns: BidColumn[] }) {
       {a && (
         <p className="well flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full px-4 py-2 text-[0.72rem] text-muted-foreground">
           <Swatch phase={a.phase} />
-          <span className="max-w-[16rem] truncate text-foreground">{a.title ?? `Tender #${a.id}`}</span>
+          <span className="max-w-[16rem] truncate text-foreground">{a.title ?? t(`Tender #${a.id}`, `Gói thầu #${a.id}`)}</span>
           <span>·</span>
           <span className="tabular-nums">
-            {a.bids} bid{a.bids === 1 ? "" : "s"} sealed · {a.revealed} revealed
+            {t(`${a.bids} bid${a.bids === 1 ? "" : "s"} sealed · ${a.revealed} revealed`, `${a.bids} hồ sơ niêm phong · ${a.revealed} đã công bố`)}
           </span>
           <span>·</span>
-          <span>{PHASE[a.phase].label}</span>
+          <span>{t(PHASE[a.phase].label)}</span>
         </p>
       )}
     </div>

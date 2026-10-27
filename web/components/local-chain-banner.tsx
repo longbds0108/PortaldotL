@@ -1,8 +1,12 @@
+"use client";
+
 import { TriangleAlert } from "lucide-react";
+import { useT } from "@/components/lang-provider";
 import { IS_LOCAL_CHAIN } from "@/lib/network";
 
 /** Shown only when the app reads from a local chain, so nobody mistakes test balances for real ones. */
 export function LocalChainBanner({ className = "" }: { className?: string }) {
+  const t = useT();
   if (!IS_LOCAL_CHAIN) return null;
   return (
     <div
@@ -11,7 +15,10 @@ export function LocalChainBanner({ className = "" }: { className?: string }) {
     >
       <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
       <span>
-        Local test chain — balances, tenders and bids shown here are test data, not real PortaldotV3 Testnet funds.
+        {t(
+          "Local test chain — balances, tenders and bids shown here are test data, not real PortaldotV3 Testnet funds.",
+          "Chain thử nghiệm cục bộ — số dư, gói thầu và hồ sơ thầu ở đây là dữ liệu thử, không phải tiền thật trên PortaldotV3 Testnet.",
+        )}
       </span>
     </div>
   );

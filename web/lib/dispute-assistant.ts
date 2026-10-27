@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Text } from "./i18n";
 
 /** Dispute Assistant report (AI). It prepares material for the arbitration panel; it never decides or recommends. */
 export const assistantReportSchema = z.object({
@@ -20,8 +21,8 @@ export const assistantReportSchema = z.object({
 });
 export type AssistantReport = z.infer<typeof assistantReportSchema>;
 
-export const SUPPORT_LABEL: Record<AssistantReport["evidence"][number]["support"], string> = {
-  "on-chain": "Backed by on-chain data",
-  document: "Stated in a document only",
-  unsupported: "No evidence given",
+export const SUPPORT_LABEL: Record<AssistantReport["evidence"][number]["support"], Text> = {
+  "on-chain": ["Backed by on-chain data", "Có dữ liệu on-chain chứng minh"],
+  document: ["Stated in a document only", "Chỉ nêu trong tài liệu"],
+  unsupported: ["No evidence given", "Không có bằng chứng"],
 };

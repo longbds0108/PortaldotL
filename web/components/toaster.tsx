@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Info, Loader2, X, XCircle } from "lucide-react";
 import { useSyncExternalStore } from "react";
+import { useT } from "@/components/lang-provider";
 import { cn } from "@/lib/utils";
 
 /*
@@ -52,6 +53,7 @@ const ICON = {
 
 export function Toaster() {
   const list = useSyncExternalStore(subscribe, () => items, () => EMPTY);
+  const tt = useT();
   return (
     <div
       aria-live="polite"
@@ -73,7 +75,7 @@ export function Toaster() {
           </div>
           <button
             type="button"
-            aria-label="Dismiss"
+            aria-label={tt("Dismiss", "Đóng")}
             onClick={() => dismiss(t.id)}
             className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:bg-overlay/10 hover:text-foreground"
           >

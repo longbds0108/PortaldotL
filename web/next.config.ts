@@ -9,7 +9,11 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_COMMIT: (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7),
   },
   // The homepage is a static page (public/home) with its own CSS and scripts, kept outside the React app.
-  rewrites: async () => [{ source: "/", destination: "/home/index.html" }],
+  // The EN | VI switch (cookie shared with the app, see lib/i18n.ts) picks the Vietnamese edition.
+  rewrites: async () => [
+    { source: "/", has: [{ type: "cookie", key: "plinths_lang", value: "vi" }], destination: "/home/vi.html" },
+    { source: "/", destination: "/home/index.html" },
+  ],
   webpack: (config) => {
     // WalletConnect / MetaMask SDK optional deps that are not used in the browser bundle
     config.externals.push("pino-pretty", "lokijs", "encoding");

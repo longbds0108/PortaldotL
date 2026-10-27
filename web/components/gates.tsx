@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AddNetworkButton } from "@/components/add-network-button";
+import { useT } from "@/components/lang-provider";
 import { blindBidAddress } from "@/lib/contracts";
 import { chain } from "@/lib/wagmi";
 
@@ -17,8 +18,9 @@ export function ConfigGate({ children }: { children: ReactNode }) {
 }
 
 /** Requires a connected wallet on the configured chain before rendering children. */
-export function WalletGate({ children, message = "Connect your wallet to continue." }: { children: ReactNode; message?: string }) {
+export function WalletGate({ children, message }: { children: ReactNode; message?: string }) {
   const { isConnected, chainId } = useAccount();
+  const t = useT();
   const { switchChain, isPending } = useSwitchChain();
 
   if (!blindBidAddress) return <>{children}</>;
@@ -28,7 +30,7 @@ export function WalletGate({ children, message = "Connect your wallet to continu
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
           <Wallet className="size-8 text-muted-foreground" />
-          <p className="text-muted-foreground">{message}</p>
+          <p className="text-muted-foreground">{message ?? t("Connect your wallet to continue.", "Hãy kết nối ví để tiếp tục.")}</p>
           <ConnectButton />
         </CardContent>
       </Card>
@@ -38,9 +40,11 @@ export function WalletGate({ children, message = "Connect your wallet to continu
     return (
       <Alert variant="warning" className="items-center">
         <AlertTriangle />
-        <span className="flex-1">Your wallet is on another network. Plinths runs on {chain.name}.</span>
+        <span className="flex-1">
+          {t(`Your wallet is on another network. Plinths runs on ${chain.name}.`, `Ví đang ở mạng khác. Plinths chạy trên ${chain.name}.`)}
+        </span>
         <Button size="sm" disabled={isPending} onClick={() => switchChain({ chainId: chain.id })}>
-          Switch network
+          {t("Switch network", "Chuyển mạng")}
         </Button>
         <AddNetworkButton />
       </Alert>

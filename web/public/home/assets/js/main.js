@@ -22,11 +22,22 @@
   window.addEventListener("scroll", onScrollNav, { passive: true });
   onScrollNav();
 
+  // Language: the page's own <html lang> picks script texts; the switch stores the choice for the app too.
+  const VI = root.lang === "vi";
+  const L = (en, vi) => (VI ? vi : en);
+  $$(".lang [data-lang]").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (b.getAttribute("aria-checked") === "true") return;
+      document.cookie = `plinths_lang=${b.dataset.lang}; path=/; max-age=31536000; samesite=lax`;
+      location.reload();
+    }),
+  );
+
   const toggle = $(".nav__toggle");
   const mnav = $("#mnav");
   const setMenu = (open) => {
     toggle.setAttribute("aria-expanded", String(open));
-    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    toggle.setAttribute("aria-label", open ? L("Close menu", "Đóng menu") : L("Open menu", "Mở menu"));
     mnav.hidden = !open;
     document.body.style.overflow = open ? "hidden" : "";
   };
@@ -53,7 +64,7 @@
   function updateCommit() {
     const amount18 = H.parseUnits18(amountEl.value);
     amountEl.setAttribute("aria-invalid", String(amount18 === null));
-    hashEl.textContent = amount18 === null ? "enter a price, e.g. 8.25" : H.commitment({ tenderId: 0, bidder: BIDDER, amount18, salt, docKey });
+    hashEl.textContent = amount18 === null ? L("enter a price, e.g. 8.25", "nhập giá, vd. 8.25") : H.commitment({ tenderId: 0, bidder: BIDDER, amount18, salt, docKey });
     hashEl.classList.remove("flash");
     void hashEl.offsetWidth;
     hashEl.classList.add("flash");
@@ -84,7 +95,7 @@
       cid.textContent = "ipfs://bafybei" + rand(B32, 6) + "…";
     };
     if (reduce) return finish();
-    cid.textContent = "encrypting…";
+    cid.textContent = L("encrypting…", "đang mã hóa…");
     const t0 = performance.now();
     const step = (now) => {
       const p = Math.min(1, (now - t0) / 1500);

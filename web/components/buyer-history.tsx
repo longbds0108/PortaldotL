@@ -3,6 +3,7 @@
 import { ShieldAlert, UserRound } from "lucide-react";
 import type { Address } from "viem";
 import { ChainReference } from "@/components/chain-reference";
+import { useT } from "@/components/lang-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBuyerHistory } from "@/lib/hooks";
@@ -10,22 +11,28 @@ import { useBuyerHistory } from "@/lib/hooks";
 /** Buyer track record computed from on-chain tenders only (no off-chain reputation). */
 export function BuyerHistory({ buyer }: { buyer: Address }) {
   const { history: h } = useBuyerHistory(buyer);
+  const t = useT();
 
   const flags: string[] = [];
   if (h) {
-    if (h.total <= 1) flags.push("First tender from this wallet — no track record yet.");
+    if (h.total <= 1) flags.push(t("First tender from this wallet — no track record yet.", "Gói thầu đầu tiên của ví này — chưa có lịch sử."));
     if (h.stalled > 0)
-      flags.push(`${h.stalled} tender${h.stalled > 1 ? "s" : ""} with revealed bids still not awarded more than 7 days after the reveal deadline.`);
+      flags.push(
+        t(
+          `${h.stalled} tender${h.stalled > 1 ? "s" : ""} with revealed bids still not awarded more than 7 days after the reveal deadline.`,
+          `${h.stalled} gói thầu đã có giá công bố nhưng vẫn chưa trao thầu sau hạn công bố hơn 7 ngày.`,
+        ),
+      );
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <UserRound className="size-4" /> About the buyer
+          <UserRound className="size-4" /> {t("About the buyer", "Về bên mời thầu")}
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          <ChainReference type="address" value={buyer} /> · history on this contract
+          <ChainReference type="address" value={buyer} /> · {t("history on this contract", "lịch sử trên contract này")}
         </p>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
@@ -34,13 +41,13 @@ export function BuyerHistory({ buyer }: { buyer: Address }) {
         ) : (
           <>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
-              <Stat label="Tenders published" value={h.total} />
-              <Stat label="Awarded" value={h.awarded} />
-              <Stat label="Open / revealing" value={h.active} />
-              <Stat label="Awaiting award" value={h.awaitingAward} />
-              <Stat label="Not awarded > 7 days" value={h.stalled} warn={h.stalled > 0} />
-              <Stat label="No bid revealed" value={h.failed} />
-              <Stat label="Cancelled (no bids)" value={h.cancelled} />
+              <Stat label={t("Tenders published", "Gói thầu đã đăng")} value={h.total} />
+              <Stat label={t("Awarded", "Đã trao thầu")} value={h.awarded} />
+              <Stat label={t("Open / revealing", "Đang mở / công bố")} value={h.active} />
+              <Stat label={t("Awaiting award", "Chờ trao thầu")} value={h.awaitingAward} />
+              <Stat label={t("Not awarded > 7 days", "Chưa trao > 7 ngày")} value={h.stalled} warn={h.stalled > 0} />
+              <Stat label={t("No bid revealed", "Không ai công bố")} value={h.failed} />
+              <Stat label={t("Cancelled (no bids)", "Đã hủy (chưa có hồ sơ)")} value={h.cancelled} />
             </dl>
             {flags.length > 0 && (
               <ul className="space-y-1.5 rounded-[12px] border border-[rgba(232,181,76,.25)] bg-[rgba(232,181,76,.06)] p-3 text-xs text-warning-fg">

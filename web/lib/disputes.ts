@@ -1,6 +1,7 @@
 import { encodeAbiParameters, keccak256, toHex, type Address, type Hash } from "viem";
 import { z } from "zod";
 import { DISPUTES_ADDRESS } from "./env";
+import { translator, type T, type Text } from "./i18n";
 
 /*
  * Dispute Center: DisputeRegistry (contracts/src/DisputeRegistry.sol) keeps one storage slot per dispute; texts,
@@ -25,11 +26,11 @@ export enum DisputeStatus {
   Rejected = 3,
 }
 
-export const STATUS_LABEL: Record<DisputeStatus, string> = {
-  [DisputeStatus.Open]: "Open",
-  [DisputeStatus.UnderReview]: "Under review",
-  [DisputeStatus.Resolved]: "Resolved",
-  [DisputeStatus.Rejected]: "Rejected",
+export const STATUS_LABEL: Record<DisputeStatus, Text> = {
+  [DisputeStatus.Open]: ["Open", "Đang mở"],
+  [DisputeStatus.UnderReview]: ["Under review", "Đang xem xét"],
+  [DisputeStatus.Resolved]: ["Resolved", "Đã giải quyết"],
+  [DisputeStatus.Rejected]: ["Rejected", "Bị bác"],
 };
 
 export const isClosed = (s: DisputeStatus) => s === DisputeStatus.Resolved || s === DisputeStatus.Rejected;
@@ -43,31 +44,84 @@ export const isClosed = (s: DisputeStatus) => s === DisputeStatus.Resolved || s 
  */
 export type Track = "engine" | "panel" | "parties";
 
-export const TRACK_LABEL: Record<Track, string> = {
-  engine: "Verification Engine",
-  panel: "Arbitration panel",
-  parties: "Between the parties",
+export const TRACK_LABEL: Record<Track, Text> = {
+  engine: ["Verification Engine", "Verification Engine"],
+  panel: ["Arbitration panel", "Hội đồng trọng tài"],
+  parties: ["Between the parties", "Giữa các bên"],
 };
 
-export const TRACK_TEXT: Record<Track, string> = {
-  engine: "Settled by on-chain data. The Verification Engine re-checks it from the contracts; the panel only records the result.",
-  panel: "A judgement call. The appointed arbitration panel weighs the evidence and publishes a reasoned decision.",
-  parties: "A real-world obligation. The parties resolve it by negotiation or the mechanism they agreed on; Plinths keeps the evidence and the record.",
+export const TRACK_TEXT: Record<Track, Text> = {
+  engine: [
+    "Settled by on-chain data. The Verification Engine re-checks it from the contracts; the panel only records the result.",
+    "Giải quyết bằng dữ liệu on-chain. Verification Engine kiểm tra lại từ contract; hội đồng chỉ ghi nhận kết quả.",
+  ],
+  panel: [
+    "A judgement call. The appointed arbitration panel weighs the evidence and publishes a reasoned decision.",
+    "Cần phán xét. Hội đồng trọng tài được chỉ định cân nhắc bằng chứng và công bố quyết định kèm lý do.",
+  ],
+  parties: [
+    "A real-world obligation. The parties resolve it by negotiation or the mechanism they agreed on; Plinths keeps the evidence and the record.",
+    "Nghĩa vụ ngoài đời thực. Các bên tự giải quyết bằng thương lượng hoặc cơ chế đã thỏa thuận; Plinths lưu giữ bằng chứng và hồ sơ.",
+  ],
 };
 
 /** Reason codes (the contract accepts 0–5). `check` = the Verification Engine check that answers it. */
 export const REASONS = [
-  { code: 0, label: "Bid or reveal after the deadline", hint: "A bid or reveal accepted outside its window.", track: "engine", check: "deadlines" },
-  { code: 1, label: "Reveal does not match its sealed bid", hint: "A revealed price, salt or key that does not open the sealed commitment.", track: "engine", check: "reveals" },
-  { code: 2, label: "Unfair evaluation", hint: "The award does not follow the published criteria or reasoning.", track: "panel" },
-  { code: 3, label: "Suspected fraudulent proposal", hint: "False documents, ineligible bidder, or collusion.", track: "panel" },
-  { code: 4, label: "NFT or payout not delivered", hint: "An NFT, deposit or bond that did not go where the rules say after settlement.", track: "engine", check: "settlement" },
-  { code: 5, label: "Quality of goods or services", hint: "Delivery after the award did not meet what was agreed.", track: "parties" },
-] as const satisfies readonly { code: number; label: string; hint: string; track: Track; check?: "deadlines" | "reveals" | "settlement" }[];
+  {
+    code: 0,
+    label: ["Bid or reveal after the deadline", "Gửi giá hoặc công bố sau thời hạn"],
+    hint: ["A bid or reveal accepted outside its window.", "Một lượt gửi giá hoặc công bố được chấp nhận ngoài khung thời gian."],
+    track: "engine",
+    check: "deadlines",
+  },
+  {
+    code: 1,
+    label: ["Reveal does not match its sealed bid", "Công bố không khớp giá niêm phong"],
+    hint: [
+      "A revealed price, salt or key that does not open the sealed commitment.",
+      "Giá, salt hoặc khóa được công bố không mở được commitment đã niêm phong.",
+    ],
+    track: "engine",
+    check: "reveals",
+  },
+  {
+    code: 2,
+    label: ["Unfair evaluation", "Đánh giá không công bằng"],
+    hint: ["The award does not follow the published criteria or reasoning.", "Kết quả trao thầu không theo tiêu chí hoặc lập luận đã công bố."],
+    track: "panel",
+  },
+  {
+    code: 3,
+    label: ["Suspected fraudulent proposal", "Nghi ngờ hồ sơ gian lận"],
+    hint: ["False documents, ineligible bidder, or collusion.", "Tài liệu giả, nhà thầu không đủ điều kiện, hoặc thông đồng."],
+    track: "panel",
+  },
+  {
+    code: 4,
+    label: ["NFT or payout not delivered", "Không nhận được NFT hoặc tiền"],
+    hint: [
+      "An NFT, deposit or bond that did not go where the rules say after settlement.",
+      "NFT, tiền cọc hoặc tiền bảo đảm không đến đúng nơi theo quy tắc sau khi kết thúc.",
+    ],
+    track: "engine",
+    check: "settlement",
+  },
+  {
+    code: 5,
+    label: ["Quality of goods or services", "Chất lượng hàng hóa hoặc dịch vụ"],
+    hint: ["Delivery after the award did not meet what was agreed.", "Việc giao hàng sau khi trao thầu không đúng như đã thỏa thuận."],
+    track: "parties",
+  },
+] as const satisfies readonly { code: number; label: Text; hint: Text; track: Track; check?: "deadlines" | "reveals" | "settlement" }[];
 
 export const reasonOf = (code: number) => REASONS.find((r) => r.code === code);
 
-export const reasonLabel = (code: number) => reasonOf(code)?.label ?? "Unknown";
+const EN = translator("en");
+
+export const reasonLabel = (code: number, t: T = EN) => {
+  const r = reasonOf(code);
+  return r ? t<string>(r.label[0], r.label[1]) : t("Unknown", "Không rõ");
+};
 
 export type DisputeCore = { opener: Address; kind: TargetKind; status: DisputeStatus; reason: number; targetId: bigint };
 
@@ -92,8 +146,8 @@ export function targetKey(kind: TargetKind, targetId: bigint): bigint {
   return (BigInt(kind) << 64n) | targetId;
 }
 
-export function targetLabel(kind: TargetKind, targetId: bigint): string {
-  return kind === TargetKind.Tender ? `Tender #${targetId}` : `NFT auction #${targetId}`;
+export function targetLabel(kind: TargetKind, targetId: bigint, t: T = EN): string {
+  return kind === TargetKind.Tender ? t(`Tender #${targetId}`, `Gói thầu #${targetId}`) : t(`NFT auction #${targetId}`, `Đấu giá NFT #${targetId}`);
 }
 
 export function targetHref(kind: TargetKind, targetId: bigint): string {
@@ -193,12 +247,12 @@ export function verifyTxHashes(hashes: readonly string[], events: TargetEvent[])
 /** Roles a wallet holds in the disputed tender or auction, for labelling posts. */
 export type Party = "opener" | "arbiter" | "buyer" | "seller" | "bidder";
 
-export const PARTY_LABEL: Record<Party, string> = {
-  opener: "Opened the dispute",
-  arbiter: "Arbitration panel",
-  buyer: "Buyer",
-  seller: "Seller",
-  bidder: "Bidder",
+export const PARTY_LABEL: Record<Party, Text> = {
+  opener: ["Opened the dispute", "Người mở khiếu nại"],
+  arbiter: ["Arbitration panel", "Hội đồng trọng tài"],
+  buyer: ["Buyer", "Bên mời thầu"],
+  seller: ["Seller", "Người bán"],
+  bidder: ["Bidder", "Nhà thầu"],
 };
 
 export function partiesOf(
@@ -215,11 +269,14 @@ export function partiesOf(
 }
 
 /** Contract custom errors → user-facing text. */
-export const DISPUTE_ERROR_TEXT: Record<string, string> = {
-  DisputeNotFound: "This dispute does not exist.",
-  DisputeClosed: "This dispute is closed; no more responses or decisions.",
-  NotArbiter: "Only the arbitration panel's account can change a dispute's status.",
-  EmptyEvidence: "Add an evidence document.",
-  InvalidReason: "Pick a reason.",
-  InvalidStatus: "That status change is not allowed.",
+export const DISPUTE_ERROR_TEXT: Record<string, Text> = {
+  DisputeNotFound: ["This dispute does not exist.", "Khiếu nại này không tồn tại."],
+  DisputeClosed: ["This dispute is closed; no more responses or decisions.", "Khiếu nại đã đóng; không nhận thêm phản hồi hay quyết định."],
+  NotArbiter: [
+    "Only the arbitration panel's account can change a dispute's status.",
+    "Chỉ tài khoản của hội đồng trọng tài mới đổi được trạng thái khiếu nại.",
+  ],
+  EmptyEvidence: ["Add an evidence document.", "Hãy thêm tài liệu bằng chứng."],
+  InvalidReason: ["Pick a reason.", "Hãy chọn lý do."],
+  InvalidStatus: ["That status change is not allowed.", "Không được đổi sang trạng thái đó."],
 };

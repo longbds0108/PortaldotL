@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
+import { useT } from "@/components/lang-provider";
+import { LangSwitch } from "@/components/lang-switch";
 import { DOC_GROUPS, DOC_PAGES, docHref } from "@/lib/docs";
 import { BLINDBID_ADDRESS, NODE_CONSOLE_URL } from "@/lib/env";
 import { shortAddress } from "@/lib/format";
@@ -31,6 +33,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
   const current = useCurrentDoc();
   const [drawer, setDrawer] = useState(false);
   const pathname = usePathname();
+  const t = useT();
   useEffect(() => setDrawer(false), [pathname]);
 
   return (
@@ -38,27 +41,29 @@ export function DocsShell({ children }: { children: ReactNode }) {
       {/* ───────── top bar ───────── */}
       <header className="sticky top-0 z-40 border-b border-white/[0.07] bg-[#050b14]/[0.98]">
         <div className="mx-auto flex h-[74px] max-w-[1440px] items-center gap-4 px-4 sm:px-8 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-          <a href="/" aria-label="Plinths home" className="flex items-center">
+          <a href="/" aria-label={t("Plinths home", "Trang chủ Plinths")} className="flex items-center">
             <BrandLogo priority className="h-7 sm:h-8" />
           </a>
-          <nav className="hidden items-center gap-1 rounded-full border border-white/[0.09] bg-white/[0.03] p-1 lg:flex" aria-label="Site">
-            <TopLink href="/#features">Product</TopLink>
-            <TopLink href="/#how">How it works</TopLink>
+          <nav className="hidden items-center gap-1 rounded-full border border-white/[0.09] bg-white/[0.03] p-1 lg:flex" aria-label={t("Site", "Trang")}>
+            <TopLink href="/#features">{t("Product", "Sản phẩm")}</TopLink>
+            <TopLink href="/#how">{t("How it works", "Cách hoạt động")}</TopLink>
             <TopLink href="/docs" active>
-              Docs
+              {t("Docs", "Tài liệu")}
             </TopLink>
           </nav>
           <div className="ml-auto flex items-center gap-2 lg:justify-self-end">
+            {/* Docs are always dark: pin the switch to dark colours instead of the app theme tokens. */}
+            <LangSwitch className="hidden w-[86px] border-white/[0.12] bg-white/[0.04] sm:flex [&>button[aria-checked=false]]:text-[#a7acc5] [&>button[aria-checked=false]:hover]:text-white [&>button[aria-checked=true]]:bg-white [&>button[aria-checked=true]]:text-[#0b0f1a]" />
             <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,#e8e3d5,#8fb4ff)] px-4 py-2.5 text-[14px] font-semibold text-[#0b0f1a] shadow-[0_0_28px_rgba(143,180,255,.35)] transition-[transform,box-shadow] hover:-translate-y-px hover:shadow-[0_0_36px_rgba(143,180,255,.5)]"
             >
-              Launch app <ArrowUpRight className="size-4" />
+              {t("Launch app", "Mở ứng dụng")} <ArrowUpRight className="size-4" />
             </Link>
             <button
               type="button"
               onClick={() => setDrawer((d) => !d)}
-              aria-label={drawer ? "Close documentation menu" : "Open documentation menu"}
+              aria-label={drawer ? t("Close documentation menu", "Đóng menu tài liệu") : t("Open documentation menu", "Mở menu tài liệu")}
               aria-expanded={drawer}
               className="grid size-11 place-items-center rounded-full border border-white/[0.12] text-[#c4c8db] hover:bg-white/[0.05] lg:hidden"
             >
@@ -73,10 +78,10 @@ export function DocsShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-8">
           <p className="flex min-w-0 items-center gap-2 text-[14px]">
             <Link href="/docs" className="shrink-0 font-semibold text-white">
-              Documentation
+              {t("Documentation", "Tài liệu")}
             </Link>
             <ChevronRight className="size-3.5 shrink-0 text-[#6f7690]" />
-            <span className="truncate text-[#979eb8]">{current?.title ?? "Not found"}</span>
+            <span className="truncate text-[#979eb8]">{current ? t(current.title) : t("Not found", "Không tìm thấy")}</span>
           </p>
           <div className="hidden items-center gap-5 text-[13px] text-[#979eb8] sm:flex">
             <a href={NODE_CONSOLE_URL} target="_blank" rel="noreferrer" className="hover:text-white">
@@ -97,6 +102,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
             transition={{ type: "spring", stiffness: 260, damping: 28 }}
             className="fixed inset-x-0 bottom-0 top-[130px] z-30 overflow-y-auto border-t border-white/[0.07] bg-[#050b14] px-5 py-6 lg:hidden"
           >
+            <LangSwitch className="mb-6 w-[96px] border-white/[0.12] bg-white/[0.04] sm:hidden [&>button[aria-checked=false]]:text-[#a7acc5] [&>button[aria-checked=true]]:bg-white [&>button[aria-checked=true]]:text-[#0b0f1a]" />
             <SidebarNav />
           </motion.div>
         )}
@@ -136,11 +142,12 @@ function TopLink({ href, active, children }: { href: string; active?: boolean; c
 
 function SidebarNav() {
   const current = useCurrentDoc();
+  const t = useT();
   return (
-    <nav aria-label="Documentation" className="grid gap-8">
+    <nav aria-label={t("Documentation", "Tài liệu")} className="grid gap-8">
       {DOC_GROUPS.map((g) => (
-        <div key={g.label}>
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6f7690]">{g.label}</p>
+        <div key={g.label[0]}>
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6f7690]">{t(g.label)}</p>
           <ul className="grid gap-0.5">
             {g.pages.map((p) => {
               const active = current?.slug === p.slug;
@@ -154,7 +161,7 @@ function SidebarNav() {
                       active && "border-[#8fb4ff] bg-[linear-gradient(90deg,rgba(143,180,255,.12),transparent)] font-semibold text-white",
                     )}
                   >
-                    {p.title}
+                    {t(p.title)}
                   </Link>
                 </li>
               );
@@ -167,9 +174,10 @@ function SidebarNav() {
 }
 
 function RightRail() {
+  const t = useT();
   const rows: [string, ReactNode][] = [
     ["Chain ID", String(chain.id)],
-    ["Gas token", "tPOTv3"],
+    [t("Gas token", "Token gas"), "tPOTv3"],
     [
       "Contract",
       BLINDBID_ADDRESS ? (
@@ -177,14 +185,14 @@ function RightRail() {
           {shortAddress(BLINDBID_ADDRESS)}
         </span>
       ) : (
-        "Not configured"
+        t("Not configured", "Chưa cấu hình")
       ),
     ],
   ];
   return (
     <div className="grid gap-8 text-[13px]">
       <section>
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6f7690]">Network</p>
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6f7690]">{t("Network", "Mạng")}</p>
         <p className="flex items-center gap-2 text-[14px] text-white">
           <i className={cn("size-2 rounded-full", IS_LOCAL_CHAIN ? "bg-[#e8b54c]" : "bg-[#4fd1c5]")} />
           {NETWORK_NAME}
@@ -200,7 +208,7 @@ function RightRail() {
       </section>
       <div className="h-px bg-white/[0.07]" />
       <section>
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6f7690]">Resources</p>
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6f7690]">{t("Resources", "Tài nguyên")}</p>
         <ul className="grid gap-3.5 text-[#a7acc5]">
           <RailLink href={NODE_CONSOLE_URL} external>
             Portaldot Node Console
@@ -208,15 +216,18 @@ function RightRail() {
           <RailLink href={REPO_URL} external>
             GitHub
           </RailLink>
-          <RailLink href="/dashboard">Open Plinths app</RailLink>
+          <RailLink href="/dashboard">{t("Open Plinths app", "Mở ứng dụng Plinths")}</RailLink>
         </ul>
       </section>
       <section className="border-l-2 border-[#e8b54c] py-1 pl-3.5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#e8b54c]">{IS_LOCAL_CHAIN ? "Local chain" : "Testnet"}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#e8b54c]">{IS_LOCAL_CHAIN ? t("Local chain", "Chain cục bộ") : "Testnet"}</p>
         <p className="mt-1.5 leading-5 text-[#979eb8]">
           {IS_LOCAL_CHAIN
-            ? "This build reads a local test chain. Balances and tenders are test data."
-            : "Testnet build — tokens have no value. Verify the contract address before every interaction."}
+            ? t("This build reads a local test chain. Balances and tenders are test data.", "Bản này đọc chain thử nghiệm cục bộ. Số dư và gói thầu là dữ liệu thử.")
+            : t(
+                "Testnet build — tokens have no value. Verify the contract address before every interaction.",
+                "Bản testnet — token không có giá trị. Hãy kiểm tra địa chỉ contract trước mỗi lần tương tác.",
+              )}
         </p>
       </section>
     </div>

@@ -1,7 +1,15 @@
 import { z } from "zod";
+import type { Text } from "./i18n";
 
 export const CATEGORIES = ["Technology", "Construction", "Services"] as const;
 export type Category = (typeof CATEGORIES)[number];
+
+/** Display names; the English value is what tender metadata stores. */
+export const CATEGORY_LABEL: Record<Category, Text> = {
+  Technology: ["Technology", "Công nghệ"],
+  Construction: ["Construction", "Xây dựng"],
+  Services: ["Services", "Dịch vụ"],
+};
 
 /** Public tender metadata (IPFS). Never contains bid data. */
 export const tenderMetadataSchema = z.object({

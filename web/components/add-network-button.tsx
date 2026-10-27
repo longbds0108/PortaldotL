@@ -4,6 +4,8 @@ import { CheckCircle2, Loader2, Plus, XCircle } from "lucide-react";
 import { useState } from "react";
 import { numberToHex } from "viem";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/lang-provider";
+import { tr } from "@/lib/i18n";
 import { PORTALDOT_RPC_URL } from "@/lib/env";
 import { chain } from "@/lib/wagmi";
 
@@ -24,7 +26,13 @@ export const ADD_CHAIN_PARAMS = {
  */
 export async function addPortaldotToWallet(provider?: Eip1193): Promise<void> {
   const eth = provider ?? (globalThis as { ethereum?: Eip1193 }).ethereum;
-  if (!eth) throw new Error("No browser wallet found. Install MetaMask (or another EVM wallet) and reload.");
+  if (!eth)
+    throw new Error(
+      tr(
+        "No browser wallet found. Install MetaMask (or another EVM wallet) and reload.",
+        "Không tìm thấy ví trên trình duyệt. Hãy cài MetaMask (hoặc ví EVM khác) rồi tải lại trang.",
+      ),
+    );
   await eth.request({ method: "wallet_addEthereumChain", params: [ADD_CHAIN_PARAMS] });
   await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: ADD_CHAIN_PARAMS.chainId }] }).catch(() => {});
 }
@@ -32,6 +40,7 @@ export async function addPortaldotToWallet(provider?: Eip1193): Promise<void> {
 export function AddNetworkButton({ size = "sm", variant = "outline" }: { size?: "sm" | "default"; variant?: "outline" | "default" }) {
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle");
   const [error, setError] = useState<string>();
+  const t = useT();
   return (
     <div className="space-y-2">
       <Button
@@ -47,17 +56,21 @@ export function AddNetworkButton({ size = "sm", variant = "outline" }: { size?: 
             setState("done");
           } catch (e) {
             const err = e as { code?: number; message?: string };
-            setError(err.code === 4001 ? "Request rejected in the wallet." : err.message ?? "The wallet could not add the network.");
+            setError(
+              err.code === 4001
+                ? t("Request rejected in the wallet.", "Yêu cầu đã bị từ chối trong ví.")
+                : err.message ?? t("The wallet could not add the network.", "Ví không thêm được mạng."),
+            );
             setState("error");
           }
         }}
       >
         {state === "busy" ? <Loader2 className="animate-spin" /> : <Plus />}
-        Add {chain.name} to wallet
+        {t(`Add ${chain.name} to wallet`, `Thêm ${chain.name} vào ví`)}
       </Button>
       {state === "done" && (
         <p className="flex items-center gap-1.5 text-xs text-success-fg">
-          <CheckCircle2 className="size-3.5" /> Network ready in your wallet ({PORTALDOT_RPC_URL}).
+          <CheckCircle2 className="size-3.5" /> {t("Network ready in your wallet", "Mạng đã sẵn sàng trong ví")} ({PORTALDOT_RPC_URL}).
         </p>
       )}
       {state === "error" && (

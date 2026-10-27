@@ -1,5 +1,6 @@
 import { getAddress, isAddress, isHex, type Address, type Hex } from "viem";
 import { z } from "zod";
+import { tr } from "./i18n";
 
 /**
  * Secrets needed to reveal a sealed NFT bid: amount and salt.
@@ -94,10 +95,10 @@ export function parseNftBackup(text: string): NftVaultEntry[] {
   try {
     json = JSON.parse(text);
   } catch {
-    throw new Error("Backup file is not valid JSON");
+    throw new Error(tr("Backup file is not valid JSON", "File sao lưu không phải JSON hợp lệ"));
   }
   const r = backupFileSchema.safeParse(json);
-  if (!r.success) throw new Error("Not a Plinths NFT bid backup file");
+  if (!r.success) throw new Error(tr("Not a Plinths NFT bid backup file", "Đây không phải file sao lưu giá NFT của Plinths"));
   return r.data;
 }
 

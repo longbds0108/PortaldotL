@@ -27,37 +27,40 @@ import { AccountMenu } from "@/components/account-panel";
 import { NetworkChip } from "@/components/network-chip";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemePicker } from "@/components/theme-picker";
+import { LangSwitch } from "@/components/lang-switch";
+import { useT } from "@/components/lang-provider";
 import { DISPUTES_ADDRESS, NFT_AUCTION_ADDRESS } from "@/lib/env";
+import type { Text } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useAppliedTheme } from "@/lib/preferences";
 import { SIDEBAR_COOKIE } from "@/lib/sidebar";
 
-type NavLink = { href: string; label: string; icon: LucideIcon; badge?: string; iconClass?: string };
-type NavSection = { label?: string; labelIcon?: LucideIcon; badge?: string; items: NavLink[] };
+type NavLink = { href: string; label: Text; icon: LucideIcon; badge?: Text; iconClass?: string };
+type NavSection = { label?: Text; labelIcon?: LucideIcon; badge?: Text; items: NavLink[] };
 
 const NAV_SECTIONS: NavSection[] = [
   {
     items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/marketplace", label: "Marketplace", icon: Store },
-      { href: "/tenders/new", label: "Create Tender", icon: FilePlus2 },
-      { href: "/my/tenders", label: "My Tenders", icon: FolderKanban },
-      { href: "/my/bids", label: "My Bids", icon: Gavel },
-      { href: "/nft", label: "NFT Auctions", icon: Gem, badge: NFT_AUCTION_ADDRESS ? undefined : "Soon" },
-      { href: "/agent", label: "Agent", icon: Bot },
+      { href: "/dashboard", label: ["Dashboard", "Tổng quan"], icon: LayoutDashboard },
+      { href: "/marketplace", label: ["Marketplace", "Sàn thầu"], icon: Store },
+      { href: "/tenders/new", label: ["Create Tender", "Tạo gói thầu"], icon: FilePlus2 },
+      { href: "/my/tenders", label: ["My Tenders", "Gói thầu của tôi"], icon: FolderKanban },
+      { href: "/my/bids", label: ["My Bids", "Hồ sơ thầu của tôi"], icon: Gavel },
+      { href: "/nft", label: ["NFT Auctions", "Đấu giá NFT"], icon: Gem, badge: NFT_AUCTION_ADDRESS ? undefined : ["Soon", "Sắp có"] },
+      { href: "/agent", label: ["Agent", "Trợ lý AI"], icon: Bot },
     ],
   },
   {
     // Section label, like "Workspace": these pages make the market's fairness checkable.
-    label: "Proof of Fairness",
+    label: ["Proof of Fairness", "Bằng chứng công bằng"],
     labelIcon: ShieldCheck,
     items: [
-      { href: "/disputes", label: "Dispute Center", icon: Scale, badge: DISPUTES_ADDRESS ? undefined : "Soon" },
-      { href: "/analytics", label: "Analytics", icon: ChartColumn },
-      { href: "/reputation", label: "Reputation", icon: Award },
+      { href: "/disputes", label: ["Dispute Center", "Trung tâm khiếu nại"], icon: Scale, badge: DISPUTES_ADDRESS ? undefined : ["Soon", "Sắp có"] },
+      { href: "/analytics", label: ["Analytics", "Phân tích"], icon: ChartColumn },
+      { href: "/reputation", label: ["Reputation", "Uy tín"], icon: Award },
     ],
   },
-  { items: [{ href: "/profile", label: "Profile & Settings", icon: UserCog }] },
+  { items: [{ href: "/profile", label: ["Profile & Settings", "Hồ sơ & Cài đặt"], icon: UserCog }] },
 ];
 
 /** Brand glyphs (lucide has no brand icons). Filled, drawn in currentColor. */
@@ -96,9 +99,10 @@ function useIsActive() {
 
 function Brand() {
   const theme = useAppliedTheme();
+  const t = useT();
   return (
     // A plain link: "/" is the static homepage (public/home), which the client router can neither prefetch nor render.
-    <a href="/" className="flex min-h-10 items-center" aria-label="Plinths home">
+    <a href="/" className="flex min-h-10 items-center" aria-label={t("Plinths home", "Trang chủ Plinths")}>
       <BrandLogo priority onLight={theme === "light"} className="h-7 sm:h-8" />
     </a>
   );
@@ -108,19 +112,21 @@ function Brand() {
 export function SiteHeader() {
   const isActive = useIsActive();
   const [open, setOpen] = useState(false);
+  const t = useT();
 
   return (
     <header className="sticky top-2 z-40 mx-2.5 mt-2 sm:top-3.5 sm:mx-6 sm:mt-3.5">
       <div className="flex h-14 items-center gap-3 rounded-[15px] border border-overlay/[0.055] bg-[var(--header)] px-3 shadow-[0_16px_45px_var(--surface-shadow)] sm:h-[62px] sm:px-5">
         <Brand />
         <div className="ml-auto flex items-center gap-2">
-          {/* Desktop: theme switch sits in the header; on small screens it lives in the menu. */}
+          {/* Desktop: language and theme switches sit in the header; on small screens they live in the menu. */}
+          <LangSwitch className="hidden w-[86px] lg:flex" />
           <ThemePicker labels={false} className="hidden w-[116px] rounded-full lg:flex [&>button]:h-[30px] [&>button]:rounded-full [&_span.absolute]:rounded-full" />
           <NetworkChip />
           <AccountMenu />
           <button
             className="grid size-10 place-items-center rounded-full hover:bg-overlay/5 lg:hidden"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? t("Close menu", "Đóng menu") : t("Open menu", "Mở menu")}
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((o) => !o)}
@@ -149,8 +155,9 @@ export function SiteHeader() {
                   <SocialItem key={s.href} item={s} />
                 ))}
               </div>
-              <div className="border-t border-overlay/[0.055] p-2">
-                <ThemePicker />
+              <div className="flex gap-2 border-t border-overlay/[0.055] p-2">
+                <LangSwitch className="w-[96px] shrink-0 rounded-[14px] [&>button]:h-9 [&>button]:rounded-[11px]" />
+                <ThemePicker className="flex-1" />
               </div>
             </LayoutGroup>
           </motion.nav>
@@ -164,6 +171,7 @@ export function SiteHeader() {
 // Spacing tightens below 860px of viewport height so the whole menu fits without scrolling.
 export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: boolean }) {
   const isActive = useIsActive();
+  const t = useT();
   const [collapsed, setCollapsed] = useState(initialCollapsed);
   // Skip animating the very first paint; animate only user toggles afterwards.
   const [animate, setAnimate] = useState(false);
@@ -183,7 +191,7 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
 
   return (
     <motion.aside
-      aria-label="Workspace"
+      aria-label={t("Workspace", "Không gian làm việc")}
       initial={false}
       animate={{ width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }}
       transition={transition}
@@ -200,7 +208,7 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
               transition={transition}
               className="eyebrow mx-3 block whitespace-nowrap text-[0.62rem] tracking-[0.14em] text-muted-foreground"
             >
-              Workspace
+              {t("Workspace", "Không gian làm việc")}
             </motion.span>
           )}
         </AnimatePresence>
@@ -209,8 +217,8 @@ export function SiteSidebar({ initialCollapsed = false }: { initialCollapsed?: b
           type="button"
           onClick={toggle}
           aria-expanded={!collapsed}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? t("Expand sidebar", "Mở rộng thanh bên") : t("Collapse sidebar", "Thu gọn thanh bên")}
+          title={collapsed ? t("Expand sidebar", "Mở rộng thanh bên") : t("Collapse sidebar", "Thu gọn thanh bên")}
           className="absolute right-0 grid size-[42px] place-items-center rounded-[11px] text-muted-foreground transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground"
         >
           <ToggleIcon className="size-[18px]" />
@@ -242,17 +250,18 @@ function NavSections({
   transition?: Transition;
   onNavigate?: () => void;
 }) {
+  const t = useT();
   return (
     <>
       {NAV_SECTIONS.map((section, i) => (
-        <div key={section.label ?? i} className={cn("grid gap-0.5 [@media(min-height:860px)]:gap-1", i > 0 && "mt-2 border-t border-overlay/[0.055] pt-2 [@media(min-height:860px)]:mt-2.5 [@media(min-height:860px)]:pt-2.5")}>
+        <div key={section.label?.[0] ?? i} className={cn("grid gap-0.5 [@media(min-height:860px)]:gap-1", i > 0 && "mt-2 border-t border-overlay/[0.055] pt-2 [@media(min-height:860px)]:mt-2.5 [@media(min-height:860px)]:pt-2.5")}>
           {section.label && !collapsed && (
             <p className="eyebrow mx-3 mb-1 flex items-center gap-2 whitespace-nowrap text-[0.62rem] tracking-[0.14em] text-muted-foreground">
               {section.labelIcon && <section.labelIcon className="size-3.5 text-success-fg" aria-hidden="true" />}
-              {section.label}
+              {t(section.label)}
               {section.badge && (
                 <span className="rounded-full border border-[rgba(131,170,255,.3)] px-1.5 py-px text-[0.56rem] font-medium tracking-[0.06em] text-link">
-                  {section.badge}
+                  {t(section.badge)}
                 </span>
               )}
             </p>
@@ -280,13 +289,15 @@ function NavItem({
   onClick?: () => void;
 }) {
   const Icon = item.icon;
+  const t = useT();
+  const label = t(item.label);
   return (
     <Link
       href={item.href}
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      aria-label={item.label}
-      title={collapsed ? item.label : undefined}
+      aria-label={label}
+      title={collapsed ? label : undefined}
       className={cn(
         "relative flex min-h-[34px] items-center gap-3 [@media(min-height:860px)]:min-h-[40px] overflow-hidden whitespace-nowrap rounded-[11px] px-3 text-[0.78rem] text-foreground-soft transition-colors duration-200 hover:bg-overlay/[0.045] hover:text-foreground",
         active && "font-semibold text-foreground hover:bg-transparent hover:text-foreground",
@@ -313,10 +324,10 @@ function NavItem({
             transition={transition}
             className="relative z-[1] flex items-center gap-2"
           >
-            {item.label}
+            {label}
             {item.badge && (
               <span className="rounded-full border border-[rgba(131,170,255,.3)] px-1.5 py-px text-[0.6rem] font-medium uppercase tracking-[0.06em] text-link">
-                {item.badge}
+                {t(item.badge)}
               </span>
             )}
           </motion.span>
@@ -329,12 +340,13 @@ function NavItem({
 /** External community link: brand logo only (name in the accessible label and tooltip). */
 function SocialItem({ item }: { item: (typeof SOCIAL)[number] }) {
   const Icon = item.icon;
+  const t = useT();
   return (
     <a
       href={item.href}
       target="_blank"
       rel="noreferrer"
-      aria-label={`${item.label} (opens in a new tab)`}
+      aria-label={t(`${item.label} (opens in a new tab)`, `${item.label} (mở trong thẻ mới)`)}
       title={item.label}
       className="grid size-[34px] shrink-0 place-items-center rounded-[10px] text-foreground-soft transition-[color,background-color,transform] duration-200 hover:-translate-y-px hover:bg-overlay/[0.045] hover:text-foreground"
     >

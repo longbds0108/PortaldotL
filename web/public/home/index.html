@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- Vietnamese edition: vi.html, same markup. Edit both files together. -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -57,6 +58,11 @@
         <a href="/docs">Docs</a>
       </nav>
       <div class="nav__right">
+        <!-- EN | VI: sets the plinths_lang cookie (shared with the app); next.config.ts serves vi.html for "vi". -->
+        <div class="lang" role="radiogroup" aria-label="Language">
+          <button type="button" role="radio" aria-checked="true" data-lang="en" lang="en" title="English">EN</button>
+          <button type="button" role="radio" aria-checked="false" data-lang="vi" lang="vi" title="Tiếng Việt">VI</button>
+        </div>
         <a class="btn btn--primary btn--sm magnetic" href="/dashboard" data-boost>Launch app</a>
         <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="mnav" aria-label="Open menu">
           <span></span><span></span>

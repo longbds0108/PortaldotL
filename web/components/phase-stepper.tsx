@@ -1,13 +1,16 @@
+"use client";
+
 import { Check } from "lucide-react";
+import { useLang, useT } from "@/components/lang-provider";
 import { TenderState, type Tender } from "@/lib/contracts";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { key: "open", label: "Bidding open" },
-  { key: "reveal", label: "Reveal" },
-  { key: "eval", label: "Evaluation" },
-  { key: "done", label: "Result" },
+  { key: "open", label: ["Bidding open", "Nhận hồ sơ"] },
+  { key: "reveal", label: ["Reveal", "Công bố"] },
+  { key: "eval", label: ["Evaluation", "Đánh giá"] },
+  { key: "done", label: ["Result", "Kết quả"] },
 ] as const;
 
 function activeIndex(state: TenderState): number {
@@ -25,11 +28,19 @@ function activeIndex(state: TenderState): number {
 
 export function PhaseStepper({ tender, state }: { tender: Tender; state: TenderState }) {
   const active = activeIndex(state);
+  const t = useT();
+  const lang = useLang();
   const sub = [
-    `until ${formatDateTime(tender.submissionDeadline)}`,
-    `until ${formatDateTime(tender.revealDeadline)}`,
-    "buyer selects winner",
-    state === TenderState.Cancelled ? "cancelled" : state === TenderState.Failed ? "no valid bids" : state === TenderState.Awarded ? "awarded" : "pending",
+    t(`until ${formatDateTime(tender.submissionDeadline, lang)}`, `đến ${formatDateTime(tender.submissionDeadline, lang)}`),
+    t(`until ${formatDateTime(tender.revealDeadline, lang)}`, `đến ${formatDateTime(tender.revealDeadline, lang)}`),
+    t("buyer selects winner", "bên mời thầu chọn nhà thầu"),
+    state === TenderState.Cancelled
+      ? t("cancelled", "đã hủy")
+      : state === TenderState.Failed
+        ? t("no valid bids", "không có hồ sơ hợp lệ")
+        : state === TenderState.Awarded
+          ? t("awarded", "đã trao thầu")
+          : t("pending", "đang chờ"),
   ];
   return (
     <ol className="grid gap-3 sm:grid-cols-4">
@@ -48,7 +59,7 @@ export function PhaseStepper({ tender, state }: { tender: Tender; state: TenderS
               {done ? <Check className="size-3.5" /> : i + 1}
             </span>
             <div className="min-w-0">
-              <p className={cn("text-sm font-medium", !done && !current && "text-muted-foreground")}>{s.label}</p>
+              <p className={cn("text-sm font-medium", !done && !current && "text-muted-foreground")}>{t(s.label)}</p>
               <p className="text-xs text-muted-foreground">{sub[i]}</p>
             </div>
           </li>

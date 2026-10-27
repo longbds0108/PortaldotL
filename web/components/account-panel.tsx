@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useAccount, useBalance, useConnections, useDisconnect, type Connection } from "wagmi";
+import { useT } from "@/components/lang-provider";
 import { NODE_CONSOLE_URL } from "@/lib/env";
 import { formatNativeAmountFloor, shortAddress } from "@/lib/format";
 import { NETWORK_NAME } from "@/lib/network";
@@ -41,6 +42,7 @@ function AccountPanel({ address }: { address: `0x${string}` }) {
   const panelId = useId();
   const reduce = useReducedMotion();
   const prefs = usePreferences();
+  const t = useT();
   // Native tPOTv3 (18 decimals), floored to two decimals — same figure as the dashboard.
   const balance = useBalance({ address, chainId: chain.id, query: { refetchInterval: 15_000 } });
   const hidden = prefs.hideSmallBalances && balance.data !== undefined && balance.data.value < SMALL_BALANCE_BASE_UNITS;
@@ -84,7 +86,7 @@ function AccountPanel({ address }: { address: `0x${string}` }) {
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={open ? panelId : undefined}
-          aria-label="Account and settings"
+          aria-label={t("Account and settings", "Tài khoản và cài đặt")}
           onClick={() => setOpen((o) => !o)}
           className={cn(
             "flex h-9 items-center gap-2 rounded-[11px] bg-muted pl-1.5 pr-2 text-[0.82rem] font-semibold text-foreground transition-colors duration-200 hover:bg-accent",
@@ -103,7 +105,7 @@ function AccountPanel({ address }: { address: `0x${string}` }) {
             ref={panelRef}
             id={panelId}
             role="dialog"
-            aria-label="Account and settings"
+            aria-label={t("Account and settings", "Tài khoản và cài đặt")}
             tabIndex={-1}
             initial={{ opacity: 0, y: reduce ? 0 : -8, scale: reduce ? 1 : 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -114,7 +116,7 @@ function AccountPanel({ address }: { address: `0x${string}` }) {
           >
             <PanelBody
               address={address}
-              balanceText={hidden ? "Hidden · under 1 tPOTv3" : balanceText}
+              balanceText={hidden ? t("Hidden · under 1 tPOTv3", "Đã ẩn · dưới 1 tPOTv3") : balanceText}
               onClose={() => close(true)}
               onNavigate={() => close()}
             />
@@ -137,6 +139,7 @@ function PanelBody({
   onNavigate: () => void;
 }) {
   const prefs = usePreferences();
+  const t = useT();
   const connections = useConnections();
   const { connector: active } = useAccount();
   const { disconnect, disconnectAsync } = useDisconnect();
@@ -159,7 +162,7 @@ function PanelBody({
       <div className="flex items-center gap-3 p-4">
         <Avatar address={address} className="size-11" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.95rem] font-medium tracking-[-0.01em]">{name || "Plinths account"}</p>
+          <p className="truncate text-[0.95rem] font-medium tracking-[-0.01em]">{name || t("Plinths account", "Tài khoản Plinths")}</p>
           <div className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-muted-foreground">
             <span className="tabular-nums">{shortAddress(address)}</span>
             <CopyButton value={address} />
@@ -168,7 +171,7 @@ function PanelBody({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t("Close", "Đóng")}
           className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <X className="size-4" />
@@ -178,7 +181,7 @@ function PanelBody({
       <Separator />
 
       {/* Wallets */}
-      <Section title="Wallets">
+      <Section title={t("Wallets", "Ví")}>
         <ul className="grid gap-1">
           {connections.map((c) => (
             <WalletRow
@@ -199,7 +202,7 @@ function PanelBody({
           }}
           className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-[12px] border border-dashed border-border text-[0.8rem] text-muted-foreground transition-colors duration-200 hover:border-ring hover:bg-accent hover:text-foreground"
         >
-          <Plus className="size-4" /> Use a different wallet
+          <Plus className="size-4" /> {t("Use a different wallet", "Dùng ví khác")}
         </button>
       </Section>
 
@@ -208,20 +211,24 @@ function PanelBody({
       {/* Account actions */}
       <div className="grid gap-0.5 p-2">
         <MenuItem as="a" href={NODE_CONSOLE_URL} icon={<Activity />} trailing={<ExternalLink className="size-3.5" />} onClick={onNavigate}>
-          Open Node Console
+          {t("Open Node Console", "Mở Node Console")}
         </MenuItem>
         <MenuItem as="button" icon={<LogOut />} danger onClick={() => disconnect()}>
-          Sign out
+          {t("Sign out", "Đăng xuất")}
         </MenuItem>
       </div>
 
       <Separator />
 
       {/* Preferences */}
-      <Section title="Preferences">
+      <Section title={t("Preferences", "Tùy chọn")}>
         <div className="grid gap-1">
-          <PrefRow label="Hide small balances" hint="Balances under 1 tPOTv3">
-            <Switch checked={prefs.hideSmallBalances} onChange={(v) => setPreference("hideSmallBalances", v)} label="Hide small balances" />
+          <PrefRow label={t("Hide small balances", "Ẩn số dư nhỏ")} hint={t("Balances under 1 tPOTv3", "Số dư dưới 1 tPOTv3")}>
+            <Switch
+              checked={prefs.hideSmallBalances}
+              onChange={(v) => setPreference("hideSmallBalances", v)}
+              label={t("Hide small balances", "Ẩn số dư nhỏ")}
+            />
           </PrefRow>
           <a
             href={NETWORK_CONSOLE_URL}
@@ -230,7 +237,7 @@ function PanelBody({
             className="group -mx-2 flex min-h-11 items-center justify-between gap-3 rounded-[12px] px-2 transition-colors duration-200 hover:bg-accent"
           >
             <span className="min-w-0">
-              <span className="block text-[0.82rem] text-foreground">Open network console</span>
+              <span className="block text-[0.82rem] text-foreground">{t("Open network console", "Mở bảng điều khiển mạng")}</span>
               <span className="block text-[0.68rem] text-muted-foreground">PortaldotV3 Node Console</span>
             </span>
             <span className="grid size-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors duration-200 group-hover:border-ring group-hover:text-foreground">
@@ -242,11 +249,11 @@ function PanelBody({
 
       <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3 text-[0.68rem] text-muted-foreground">
         <span>
-          Version {VERSION ?? "—"}
+          {t("Version", "Phiên bản")} {VERSION ?? "—"}
           {COMMIT ? ` · ${COMMIT}` : ""}
         </span>
         <Link href="/profile" onClick={onNavigate} className="transition-colors hover:text-foreground">
-          Profile & Settings →
+          {t("Profile & Settings →", "Hồ sơ & Cài đặt →")}
         </Link>
       </div>
     </div>
@@ -258,6 +265,7 @@ function PanelBody({
 function WalletRow({ connection, active, balanceText, network }: { connection: Connection; active: boolean; balanceText: string; network?: string }) {
   const { connector, accounts } = connection;
   const icon = typeof connector.icon === "string" ? connector.icon.trim() : undefined;
+  const t = useT();
   return (
     <li className="flex items-center gap-3 rounded-[12px] px-2 py-2 transition-colors duration-200 hover:bg-accent">
       <span className="grid size-9 shrink-0 place-items-center overflow-hidden rounded-[10px] border border-border bg-muted text-muted-foreground">
@@ -271,7 +279,7 @@ function WalletRow({ connection, active, balanceText, network }: { connection: C
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-[0.82rem] text-foreground">
           <span className="truncate">{connector.name}</span>
-          {active && <i aria-label="Active" className="status-dot shrink-0 text-success" />}
+          {active && <i aria-label={t("Active", "Đang dùng")} className="status-dot shrink-0 text-success" />}
         </span>
         <span className="block truncate text-[0.7rem] tabular-nums text-muted-foreground">
           {shortAddress(accounts[0])}
@@ -368,16 +376,17 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: 
 
 function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
+  const t = useT();
   useEffect(() => {
     if (!copied) return;
-    const t = setTimeout(() => setCopied(false), 1500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(timer);
   }, [copied]);
   return (
     <button
       type="button"
-      aria-label={copied ? "Address copied" : "Copy address"}
-      title={copied ? "Copied" : "Copy address"}
+      aria-label={copied ? t("Address copied", "Đã sao chép địa chỉ") : t("Copy address", "Sao chép địa chỉ")}
+      title={copied ? t("Copied", "Đã sao chép") : t("Copy address", "Sao chép địa chỉ")}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(value);

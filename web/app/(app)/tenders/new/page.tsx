@@ -3,12 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Info, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { parseEventLogs, type Hex } from "viem";
 import { z } from "zod";
 import { Countdown, TimeNote } from "@/components/countdown";
 import { ConfigGate, WalletGate } from "@/components/gates";
+import { useLang, useT } from "@/components/lang-provider";
 import { PageHeader } from "@/components/page-header";
 import { TxStatus } from "@/components/tx-status";
 import { Alert } from "@/components/ui/alert";
@@ -21,35 +22,46 @@ import { formatDateTime, formatDuration, isValidAmountInput, parseNativeAmount, 
 import { describeError, useBlindBidTx, useChainNow } from "@/lib/hooks";
 import { uriToDigest } from "@/lib/cid";
 import { uploadJson } from "@/lib/ipfs";
-import { CATEGORIES, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
+import type { T } from "@/lib/i18n";
+import { CATEGORIES, CATEGORY_LABEL, tenderMetadataSchema, type TenderMetadata } from "@/lib/metadata";
 import { loadProfile } from "@/lib/profile";
 
-
-const amount = (label: string, decimals = 6) =>
-  z.string().refine((v) => isValidAmountInput(v, decimals), `${label}: enter a positive amount (max ${decimals} decimals)`);
-
-const formSchema = z
-  .object({
-    title: z.string().trim().min(3, "At least 3 characters").max(120),
-    category: z.enum(CATEGORIES),
-    description: z.string().trim().min(10, "At least 10 characters").max(5000),
-    eligibility: z.string().max(2000),
-    criteria: z.string().max(2000),
-    budgetMin: amount("Minimum budget"),
-    budgetMax: amount("Maximum budget"),
-    submissionDeadline: z.string().min(1, "Required"),
-    revealDeadline: z.string().min(1, "Required"),
-    bidBond: amount("Bid bond", 6),
-  })
-  .refine((v) => !isValidAmountInput(v.budgetMin) || !isValidAmountInput(v.budgetMax) || parseTokenAmount(v.budgetMin) <= parseTokenAmount(v.budgetMax), {
-    path: ["budgetMax"],
-    message: "Maximum must be ≥ minimum",
-  })
-  .refine((v) => toUnix(v.revealDeadline) - toUnix(v.submissionDeadline) >= MIN_REVEAL_WINDOW_S, {
-    path: ["revealDeadline"],
-    message: "Reveal deadline must be at least 24 hours after the submission deadline",
-  });
-type FormValues = z.infer<typeof formSchema>;
+/** Validation messages follow the UI language, so the schema is built per language. */
+function makeFormSchema(t: T) {
+  const amount = (label: string, decimals = 6) =>
+    z
+      .string()
+      .refine(
+        (v) => isValidAmountInput(v, decimals),
+        t(`${label}: enter a positive amount (max ${decimals} decimals)`, `${label}: nhập số dương (tối đa ${decimals} chữ số thập phân)`),
+      );
+  const required = t("Required", "Bắt buộc");
+  return z
+    .object({
+      title: z.string().trim().min(3, t("At least 3 characters", "Ít nhất 3 ký tự")).max(120),
+      category: z.enum(CATEGORIES),
+      description: z.string().trim().min(10, t("At least 10 characters", "Ít nhất 10 ký tự")).max(5000),
+      eligibility: z.string().max(2000),
+      criteria: z.string().max(2000),
+      budgetMin: amount(t("Minimum budget", "Ngân sách tối thiểu")),
+      budgetMax: amount(t("Maximum budget", "Ngân sách tối đa")),
+      submissionDeadline: z.string().min(1, required),
+      revealDeadline: z.string().min(1, required),
+      bidBond: amount(t("Bid bond", "Tiền bảo đảm"), 6),
+    })
+    .refine((v) => !isValidAmountInput(v.budgetMin) || !isValidAmountInput(v.budgetMax) || parseTokenAmount(v.budgetMin) <= parseTokenAmount(v.budgetMax), {
+      path: ["budgetMax"],
+      message: t("Maximum must be ≥ minimum", "Mức tối đa phải ≥ mức tối thiểu"),
+    })
+    .refine((v) => toUnix(v.revealDeadline) - toUnix(v.submissionDeadline) >= MIN_REVEAL_WINDOW_S, {
+      path: ["revealDeadline"],
+      message: t(
+        "Reveal deadline must be at least 24 hours after the submission deadline",
+        "Hạn công bố phải sau hạn nộp hồ sơ ít nhất 24 giờ",
+      ),
+    });
+}
+type FormValues = z.infer<ReturnType<typeof makeFormSchema>>;
 
 /** datetime-local (device time zone) → unix seconds */
 function toUnix(local: string): number {
@@ -64,15 +76,19 @@ function toLocalInput(unix: number): string {
 }
 
 export default function CreateTenderPage() {
+  const t = useT();
   return (
     <>
       <PageHeader
-        eyebrow="Buyer · new tender"
-        title="Create tender"
-        description="Publish a public tender. Bidders submit sealed commitments; nobody — including you — can read prices before the submission deadline."
+        eyebrow={t("Buyer · new tender", "Bên mời thầu · gói thầu mới")}
+        title={t("Create tender", "Tạo gói thầu")}
+        description={t(
+          "Publish a public tender. Bidders submit sealed commitments; nobody — including you — can read prices before the submission deadline.",
+          "Đăng một gói thầu công khai. Nhà thầu gửi commitment niêm phong; không ai — kể cả bạn — đọc được giá trước hạn nộp hồ sơ.",
+        )}
       />
       <ConfigGate>
-        <WalletGate message="Connect the wallet that will own this tender.">
+        <WalletGate message={t("Connect the wallet that will own this tender.", "Kết nối ví sẽ sở hữu gói thầu này.")}>
           <CreateTenderForm />
         </WalletGate>
       </ConfigGate>
@@ -86,6 +102,8 @@ function CreateTenderForm() {
   const tx = useBlindBidTx();
   const [uploadError, setUploadError] = useState<string>();
   const [uploading, setUploading] = useState(false);
+  const t = useT();
+  const formSchema = useMemo(() => makeFormSchema(t), [t]);
 
   const now = Math.floor(Date.now() / 1000);
   const form = useForm<FormValues>({
@@ -114,7 +132,7 @@ function CreateTenderForm() {
     const submissionDeadline = toUnix(v.submissionDeadline);
     const revealDeadline = toUnix(v.revealDeadline);
     if (chainNow !== undefined && submissionDeadline <= chainNow + 60) {
-      form.setError("submissionDeadline", { message: "Must be in the future (chain time)" });
+      form.setError("submissionDeadline", { message: t("Must be in the future (chain time)", "Phải ở tương lai (theo thời gian chain)") });
       return;
     }
 
@@ -153,23 +171,24 @@ function CreateTenderForm() {
   }
 
   const busy = uploading || tx.busy;
+  const lang = useLang();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Tender details</CardTitle>
-            <CardDescription>Published to IPFS and visible to everyone.</CardDescription>
+            <CardTitle>{t("Tender details", "Thông tin gói thầu")}</CardTitle>
+            <CardDescription>{t("Published to IPFS and visible to everyone.", "Được đăng lên IPFS và ai cũng xem được.")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="Tender title" {...register("title")} />
+              <Label htmlFor="title">{t("Title", "Tiêu đề")}</Label>
+              <Input id="title" placeholder={t("Tender title", "Tên gói thầu")} {...register("title")} />
               <FieldError>{errors.title?.message}</FieldError>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">{t("Category", "Danh mục")}</Label>
               <Controller
                 name="category"
                 control={form.control}
@@ -178,66 +197,81 @@ function CreateTenderForm() {
                     id="category"
                     value={field.value}
                     onValueChange={field.onChange}
-                    options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                    options={CATEGORIES.map((c) => ({ value: c, label: t(CATEGORY_LABEL[c]) }))}
                   />
                 )}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Scope of work</Label>
+              <Label htmlFor="description">{t("Scope of work", "Phạm vi công việc")}</Label>
               <Textarea id="description" rows={6} {...register("description")} />
               <FieldError>{errors.description?.message}</FieldError>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="eligibility">Eligibility requirements</Label>
-              <Textarea id="eligibility" rows={3} placeholder="Licences, experience, certifications…" {...register("eligibility")} />
+              <Label htmlFor="eligibility">{t("Eligibility requirements", "Điều kiện tham gia")}</Label>
+              <Textarea
+                id="eligibility"
+                rows={3}
+                placeholder={t("Licences, experience, certifications…", "Giấy phép, kinh nghiệm, chứng chỉ…")}
+                {...register("eligibility")}
+              />
               <p className="text-xs text-muted-foreground">
-                Not verified on-chain yet (verifiable attestations are on the roadmap) — you exclude ineligible bids during evaluation.
+                {t(
+                  "Not verified on-chain yet (verifiable attestations are on the roadmap) — you exclude ineligible bids during evaluation.",
+                  "Chưa được xác minh on-chain (chứng thực kiểm chứng được nằm trong lộ trình) — bạn loại hồ sơ không đủ điều kiện khi đánh giá.",
+                )}
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="criteria">Evaluation criteria</Label>
-              <Textarea id="criteria" rows={3} placeholder="How bids will be compared" {...register("criteria")} />
+              <Label htmlFor="criteria">{t("Evaluation criteria", "Tiêu chí đánh giá")}</Label>
+              <Textarea id="criteria" rows={3} placeholder={t("How bids will be compared", "Cách so sánh các hồ sơ")} {...register("criteria")} />
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Budget & deadlines</CardTitle>
-            <CardDescription>Budgets are public. Deadlines are enforced by the contract using block time.</CardDescription>
+            <CardTitle>{t("Budget & deadlines", "Ngân sách & thời hạn")}</CardTitle>
+            <CardDescription>
+              {t(
+                "Budgets are public. Deadlines are enforced by the contract using block time.",
+                "Ngân sách công khai. Contract cưỡng chế thời hạn theo thời gian block.",
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="budgetMin">Minimum budget (tPOTv3)</Label>
-              <Input id="budgetMin" inputMode="decimal" placeholder="Minimum, in tPOTv3" {...register("budgetMin")} />
+              <Label htmlFor="budgetMin">{t("Minimum budget (tPOTv3)", "Ngân sách tối thiểu (tPOTv3)")}</Label>
+              <Input id="budgetMin" inputMode="decimal" placeholder={t("Minimum, in tPOTv3", "Tối thiểu, tính bằng tPOTv3")} {...register("budgetMin")} />
               <FieldError>{errors.budgetMin?.message}</FieldError>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="budgetMax">Maximum budget (tPOTv3)</Label>
-              <Input id="budgetMax" inputMode="decimal" placeholder="Maximum, in tPOTv3" {...register("budgetMax")} />
+              <Label htmlFor="budgetMax">{t("Maximum budget (tPOTv3)", "Ngân sách tối đa (tPOTv3)")}</Label>
+              <Input id="budgetMax" inputMode="decimal" placeholder={t("Maximum, in tPOTv3", "Tối đa, tính bằng tPOTv3")} {...register("budgetMax")} />
               <FieldError>{errors.budgetMax?.message}</FieldError>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="submissionDeadline">Submission deadline</Label>
-              <Input id="submissionDeadline" type="datetime-local" lang="en-US" {...register("submissionDeadline")} />
+              <Label htmlFor="submissionDeadline">{t("Submission deadline", "Hạn nộp hồ sơ")}</Label>
+              <Input id="submissionDeadline" type="datetime-local" lang={lang === "vi" ? "vi-VN" : "en-US"} {...register("submissionDeadline")} />
               <DatePreview unix={sub} />
               <FieldError>{errors.submissionDeadline?.message}</FieldError>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="revealDeadline">Reveal deadline</Label>
-              <Input id="revealDeadline" type="datetime-local" lang="en-US" {...register("revealDeadline")} />
+              <Label htmlFor="revealDeadline">{t("Reveal deadline", "Hạn công bố")}</Label>
+              <Input id="revealDeadline" type="datetime-local" lang={lang === "vi" ? "vi-VN" : "en-US"} {...register("revealDeadline")} />
               <DatePreview unix={rev} />
               <FieldError>{errors.revealDeadline?.message}</FieldError>
-              {rev > sub && <p className="text-xs text-muted-foreground">Reveal window: {formatDuration(rev - sub)}</p>}
+              {rev > sub && <p className="text-xs text-muted-foreground">{t("Reveal window:", "Cửa sổ công bố:")} {formatDuration(rev - sub)}</p>}
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="bidBond">Bid bond (tPOTv3, optional)</Label>
-              <Input id="bidBond" inputMode="decimal" placeholder="0 for no bond" {...register("bidBond")} />
+              <Label htmlFor="bidBond">{t("Bid bond (tPOTv3, optional)", "Tiền bảo đảm dự thầu (tPOTv3, tùy chọn)")}</Label>
+              <Input id="bidBond" inputMode="decimal" placeholder={t("0 for no bond", "0 nếu không yêu cầu")} {...register("bidBond")} />
               <FieldError>{errors.bidBond?.message}</FieldError>
               <p className="text-xs text-muted-foreground">
-                Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to the Plinths
-                treasury, not to you.
+                {t(
+                  "Each bidder locks this amount. Revealed bids get it back; bonds of bids not revealed in time go to the Plinths treasury, not to you.",
+                  "Mỗi nhà thầu khóa khoản này. Hồ sơ đã công bố được hoàn lại; tiền bảo đảm của hồ sơ không công bố đúng hạn chuyển về treasury của Plinths, không về bạn.",
+                )}
               </p>
             </div>
             <div className="sm:col-span-2">
@@ -251,17 +285,26 @@ function CreateTenderForm() {
         <Alert variant="info">
           <Info />
           <div className="space-y-1">
-            <p className="font-medium">How sealed bidding works</p>
+            <p className="font-medium">{t("How sealed bidding works", "Cách đấu thầu niêm phong hoạt động")}</p>
             <ol className="list-decimal space-y-1 pl-4">
-              <li>Until the submission deadline, bidders post only a hash of their price.</li>
-              <li>During the reveal window, they open it; the contract checks it matches.</li>
-              <li>After that you compare revealed bids and award one, publicly and permanently.</li>
+              <li>{t("Until the submission deadline, bidders post only a hash of their price.", "Đến hạn nộp hồ sơ, nhà thầu chỉ gửi mã băm của giá.")}</li>
+              <li>{t("During the reveal window, they open it; the contract checks it matches.", "Trong cửa sổ công bố, họ mở giá; contract kiểm tra có khớp không.")}</li>
+              <li>
+                {t(
+                  "After that you compare revealed bids and award one, publicly and permanently.",
+                  "Sau đó bạn so sánh các giá đã công bố và trao thầu cho một nhà thầu, công khai và vĩnh viễn.",
+                )}
+              </li>
             </ol>
           </div>
         </Alert>
         <Button type="submit" size="lg" className="w-full" disabled={busy || !blindBidAddress}>
           {busy && <Loader2 className="animate-spin" />}
-          {uploading ? "Uploading metadata…" : blindBidAddress ? "Publish tender" : "Contract required to publish"}
+          {uploading
+            ? t("Uploading metadata…", "Đang tải metadata lên…")
+            : blindBidAddress
+              ? t("Publish tender", "Đăng gói thầu")
+              : t("Contract required to publish", "Cần contract để đăng")}
         </Button>
         {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
         <TxStatus status={tx.status} hash={tx.hash} error={tx.error} />
@@ -270,13 +313,20 @@ function CreateTenderForm() {
   );
 }
 
-/** The native picker follows the browser language; echo the chosen time in English with a live chain-time countdown. */
+/** The native picker follows the browser language; echo the chosen time in the UI language with a live chain-time countdown. */
 function DatePreview({ unix }: { unix: number }) {
+  const t = useT();
+  const lang = useLang();
   if (!unix) return null;
   return (
     <div className="space-y-1 text-xs text-muted-foreground">
-      <p>{formatDateTime(unix)}</p>
-      <Countdown deadline={BigInt(unix)} label="In" passedLabel="Already passed in chain time — pick a later time" className="text-xs" />
+      <p>{formatDateTime(unix, lang)}</p>
+      <Countdown
+        deadline={BigInt(unix)}
+        label={t("In", "Còn")}
+        passedLabel={t("Already passed in chain time — pick a later time", "Đã qua theo thời gian chain — hãy chọn thời điểm muộn hơn")}
+        className="text-xs"
+      />
     </div>
   );
 }

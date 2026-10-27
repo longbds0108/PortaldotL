@@ -9,7 +9,8 @@ import { B, Callout, Cards, Chips, Code, DocCard, H3, P, Pre, Steps, Table, Ul }
 /*
  * Every statement here is grounded in the code: contracts/src/BlindBidMarket.sol, CommitmentLib.sol,
  * SealedNFTAuction.sol, NFTCommitmentLib.sol, DisputeRegistry.sol, web/lib/analytics.ts, web/lib/reputation.ts,
- * the web app (web/app, web/lib) and CLAUDE.md. Keep it in sync when behaviour changes.
+ * the web app (web/app, web/lib) and CLAUDE.md. Keep it in sync when behaviour changes, together with the
+ * Vietnamese edition in content.vi.tsx.
  */
 
 const COMMITMENT = `commitment = keccak256(abi.encode(
@@ -714,7 +715,7 @@ export const DOC_CONTENT: Record<string, { title: string; body: ReactNode }> = {
         <P>Every wallet starts at {BASE_SCORE}; the score stays between 0 and 100. Each change is listed in the wallet&apos;s history with its reason and transaction.</P>
         <Table
           head={["Event", "Points"]}
-          rows={Object.values(RULES).map((r) => [r.text, `${r.points > 0 ? "+" : ""}${r.points}`])}
+          rows={Object.values(RULES).map((r) => [r.text[0], `${r.points > 0 ? "+" : ""}${r.points}`])}
         />
         <H3>What a profile shows</H3>
         <Ul
