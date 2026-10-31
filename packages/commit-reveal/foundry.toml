@@ -1,0 +1,15 @@
+# Self-contained except for forge-std, borrowed from the Plinths contracts. Outside this repo, install forge-std and
+# change the remapping.
+[profile.default]
+src = "src"
+out = "out"
+test = "test"
+libs = ["../../contracts/lib"]
+solc_version = "0.8.24"
+evm_version = "shanghai"
+remappings = ["forge-std/=../../contracts/lib/forge-std/src/"]
+fs_permissions = [{ access = "read", path = "./test/vectors.json" }]
+allow_paths = ["../../contracts/lib"]
+
+[fuzz]
+runs = 1024

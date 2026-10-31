@@ -1,0 +1,15 @@
+{
+  "name": "@plinths/commit-reveal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Domain-separated commit-reveal hashing for Solidity and TypeScript, with shared test vectors.",
+  "main": "src/commitReveal.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:sol": "forge test",
+    "vectors": "bash scripts/gen-vectors.sh"
+  },
+  "peerDependencies": { "viem": "^2.0.0" },
+  "devDependencies": { "typescript": "^5.9.0", "viem": "^2.37.0", "vitest": "^3.2.0" }
+}
