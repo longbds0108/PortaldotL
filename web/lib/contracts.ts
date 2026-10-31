@@ -77,6 +77,11 @@ export function forfeitedBonds(tender: Tender, nowSec: number | undefined): bigi
   return tender.bidBond * BigInt(tender.bidCount - tender.revealedCount);
 }
 
+/** Whether a bid can win. BlindBidMarketV2 enforces this in award(); on V1 only the app does, so check it here too. */
+export function withinBudget(amount18: bigint, tender: Pick<Tender, "budgetMin" | "budgetMax">): boolean {
+  return amount18 >= tender.budgetMin && amount18 <= tender.budgetMax;
+}
+
 /** Contract custom errors → user-facing text. */
 export const ERROR_TEXT: Record<string, Text> = {
   TenderNotFound: ["This tender does not exist.", "Gói thầu này không tồn tại."],
@@ -102,6 +107,7 @@ export const ERROR_TEXT: Record<string, Text> = {
   ],
   ZeroAmount: ["Bid amount must be greater than zero.", "Giá thầu phải lớn hơn 0."],
   WinnerNotRevealed: ["The selected bidder did not reveal a valid bid.", "Nhà thầu được chọn chưa công bố hồ sơ hợp lệ."],
+  BidOutOfBudget: ["This bid is outside the tender's published budget, so it cannot win.", "Hồ sơ này nằm ngoài ngân sách đã công bố nên không thể trúng thầu."],
   HasBids: ["A tender with bids can no longer be cancelled.", "Gói thầu đã có hồ sơ thì không thể hủy nữa."],
   NothingToWithdraw: ["Nothing to withdraw.", "Không có gì để rút."],
   TransferFailed: ["The tPOTv3 transfer failed. Check the wallet and retry.", "Chuyển tPOTv3 thất bại. Hãy kiểm tra ví rồi thử lại."],

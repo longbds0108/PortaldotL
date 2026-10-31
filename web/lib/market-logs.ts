@@ -12,6 +12,7 @@ export type MarketEvent =
   | { name: "BidSubmitted"; tenderId: bigint; bidder: Address; commitment: Hex; encryptedDoc: Hex; first: boolean }
   | { name: "BidRevealed"; tenderId: bigint; bidder: Address; amount: bigint; salt: Hex; docKey: Hex }
   | { name: "TenderAwarded"; tenderId: bigint; winner: Address; amount: bigint; reason: Hex }
+  | { name: "SelectionRecorded"; tenderId: bigint; winner: Address; revealSetDigest: Hex; revealedCount: number; rule: number }
   | { name: "TenderCancelled"; tenderId: bigint }
   | { name: "BondWithdrawn"; tenderId: bigint; bidder: Address; amount: bigint }
   | { name: "ForfeitedBondsSwept"; tenderId: bigint; amount: bigint };

@@ -130,6 +130,7 @@ export const NFT_ERROR_TEXT: Record<string, Text> = {
   HasBids: ["An auction with bids can no longer be cancelled.", "Phiên đấu giá đã có người đặt giá thì không thể hủy nữa."],
   NothingToWithdraw: ["Nothing to withdraw.", "Không có gì để rút."],
   TransferFailed: ["The tPOTv3 transfer failed. Check the wallet and retry.", "Chuyển tPOTv3 thất bại. Hãy kiểm tra ví rồi thử lại."],
+  NftNotEscrowed: ["The auction does not hold this NFT, so it cannot be listed.", "Hợp đồng đấu giá không giữ NFT này nên không thể niêm yết."],
   ZeroDeposit: ["Send a deposit with your sealed bid.", "Hãy gửi kèm tiền đặt cọc với giá niêm phong."],
   NotAuthorized: ["Only the owner of this NFT can transfer or list it.", "Chỉ chủ sở hữu NFT này mới chuyển hoặc đăng bán được."],
   UnsafeRecipient: ["The auction contract did not accept the NFT.", "Contract đấu giá không nhận NFT này."],

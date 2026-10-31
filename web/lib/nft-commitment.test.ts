@@ -4,7 +4,7 @@ import type { Address, Hex } from "viem";
 import { describe, expect, it } from "vitest";
 import { randomBytes32 } from "./commitment";
 import { encodeListingData } from "./nft-auction";
-import { computeNftCommitment, verifyNftCommitment } from "./nft-commitment";
+import { AUCTION_DOMAIN_TAG, computeNftCommitment, verifyNftCommitment } from "./nft-commitment";
 
 // Same fixture is asserted by contracts/test/NFTCommitmentLib.t.sol (test_matchesSharedVectors).
 const fixture = JSON.parse(
@@ -43,5 +43,23 @@ describe("listing data", () => {
         (1_800_000_000n).toString(16).padStart(64, "0") +
         (1_800_086_400n).toString(16).padStart(64, "0"),
     );
+  });
+});
+
+const v2 = JSON.parse(
+  readFileSync(resolve(__dirname, "../../contracts/test/fixtures/commitment-v2-vectors.json"), "utf8"),
+) as {
+  auctionDomainTag: Hex;
+  auction: { chainId: string; contract: Address; auctionId: string; bidder: Address; amount: string; salt: Hex; commitment: Hex }[];
+};
+
+describe("V2 NFT commitment (TS ↔ Solidity)", () => {
+  it("uses the shared domain tag", () => {
+    expect(AUCTION_DOMAIN_TAG).toBe(v2.auctionDomainTag);
+  });
+
+  it.each(v2.auction.map((v, i) => [i, v] as const))("matches shared vector #%i", (_, v) => {
+    const domain = { chainId: BigInt(v.chainId), contract: v.contract };
+    expect(computeNftCommitment({ auctionId: BigInt(v.auctionId), bidder: v.bidder, amount18: BigInt(v.amount), salt: v.salt, domain })).toBe(v.commitment);
   });
 });

@@ -7,12 +7,18 @@ export const BLINDBID_ADDRESS: Address | undefined = isAddress(rawAddress) ? get
 
 export const BLINDBID_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_BLINDBID_DEPLOY_BLOCK || 0);
 
+/** 1 = the deployed BlindBidMarket, 2 = BlindBidMarketV2. Decides the commitment format and storage layout. */
+export const BLINDBID_VERSION: 1 | 2 = process.env.NEXT_PUBLIC_BLINDBID_VERSION === "2" ? 2 : 1;
+
 const rawNftAuction = process.env.NEXT_PUBLIC_NFT_AUCTION_ADDRESS ?? "";
 
 /** Deployed ISealedNFTAuction implementation, or undefined: the NFT pages then run as a visual preview. */
 export const NFT_AUCTION_ADDRESS: Address | undefined = isAddress(rawNftAuction) ? getAddress(rawNftAuction) : undefined;
 
 export const NFT_AUCTION_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_NFT_AUCTION_DEPLOY_BLOCK || 0);
+
+/** 1 = the deployed SealedNFTAuction, 2 = SealedNFTAuctionV2. Decides the commitment format. */
+export const NFT_AUCTION_VERSION: 1 | 2 = process.env.NEXT_PUBLIC_NFT_AUCTION_VERSION === "2" ? 2 : 1;
 
 const rawTestNft = process.env.NEXT_PUBLIC_TEST_NFT_ADDRESS ?? "";
 
@@ -25,6 +31,9 @@ const rawDisputes = process.env.NEXT_PUBLIC_DISPUTES_ADDRESS ?? "";
 export const DISPUTES_ADDRESS: Address | undefined = isAddress(rawDisputes) ? getAddress(rawDisputes) : undefined;
 
 export const DISPUTES_DEPLOY_BLOCK = BigInt(process.env.NEXT_PUBLIC_DISPUTES_DEPLOY_BLOCK || 0);
+
+/** PortaldotV3 Testnet; the local test chain uses the same id (README). V2 commitments are bound to it. */
+export const PORTALDOT_CHAIN_ID = 420420777;
 
 export const PORTALDOT_RPC_URL = process.env.NEXT_PUBLIC_PORTALDOT_RPC_URL || "https://test-evm-rpc-v3.portaldot.dev";
 

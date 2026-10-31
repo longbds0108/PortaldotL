@@ -2,6 +2,19 @@
 export const sealedNftAuctionAbi = [
   {
     "type": "function",
+    "name": "COMMITMENT_DOMAIN",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "onERC721Received",
     "inputs": [
       {
@@ -320,6 +333,11 @@ export const sealedNftAuctionAbi = [
   {
     "type": "error",
     "name": "InvalidState",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NftNotEscrowed",
     "inputs": []
   },
   {

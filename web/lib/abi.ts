@@ -13,6 +13,19 @@ export const blindBidMarketAbi = [
   },
   {
     "type": "function",
+    "name": "COMMITMENT_DOMAIN",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "MIN_REVEAL_WINDOW",
     "inputs": [],
     "outputs": [
@@ -314,6 +327,43 @@ export const blindBidMarketAbi = [
   },
   {
     "type": "event",
+    "name": "SelectionRecorded",
+    "inputs": [
+      {
+        "name": "tenderId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "revealSetDigest",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "revealedCount",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "rule",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "TenderAwarded",
     "inputs": [
       {
@@ -414,6 +464,11 @@ export const blindBidMarketAbi = [
   {
     "type": "error",
     "name": "AlreadyRevealed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BidOutOfBudget",
     "inputs": []
   },
   {

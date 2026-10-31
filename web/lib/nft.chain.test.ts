@@ -4,7 +4,8 @@ import { createPublicClient, createWalletClient, defineChain, http, keccak256, p
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, expect, it } from "vitest";
 import { AuctionState, encodeListingData, erc721Abi, sealedNftAuctionAbi } from "./nft-auction";
-import { computeNftCommitment } from "./nft-commitment";
+import { NFT_AUCTION_VERSION } from "./env";
+import { computeNftCommitment as computeForDomain, type NftCommitmentInput } from "./nft-commitment";
 import { fetchAuctionLogs, fetchBidderAuctionIds, fetchSellerAuctionIds } from "./nft-logs";
 import { auctionState, readAuction, readAuctionBid, readAuctionCount, withdrawableAmount } from "./nft-storage";
 
@@ -30,6 +31,11 @@ const salt = (s: string) => keccak256(toHex(s));
 const artifact = (name: string) =>
   JSON.parse(readFileSync(resolve(__dirname, `../../contracts/out/${name}.sol/${name}.json`), "utf8")) as { abi: Abi; bytecode: { object: Hex } };
 
+let auction: Address;
+
+const computeNftCommitment = (input: NftCommitmentInput) =>
+  computeForDomain({ ...input, domain: NFT_AUCTION_VERSION === 2 ? { chainId: 420420777, contract: auction } : null });
+
 describe.skipIf(RPC === "")("SealedNFTAuction on a local chain, read the way the app reads it", { timeout: 60_000 }, () => {
   const chain = defineChain({ id: 420420777, name: "local", nativeCurrency: { name: "tPOTv3", symbol: "tPOTv3", decimals: 18 }, rpcUrls: { default: { http: [RPC || "http://127.0.0.1:8545"] } } });
   const client = createPublicClient({ chain, transport: http(), pollingInterval: 100 }) as PublicClient;
@@ -49,7 +55,7 @@ describe.skipIf(RPC === "")("SealedNFTAuction on a local chain, read the way the
   const now = async () => Number((await client.getBlock()).timestamp);
   const balance = (a: Address) => client.getBalance({ address: a });
 
-  let auction: Address;
+
   let nft: Address;
   let bidDeadline: bigint;
   let revealDeadline: bigint;
@@ -60,7 +66,7 @@ describe.skipIf(RPC === "")("SealedNFTAuction on a local chain, read the way the
     }
     const n = artifact("PlinthsTestNFT");
     nft = (await client.waitForTransactionReceipt({ hash: await wallet(0).deployContract({ abi: n.abi, bytecode: n.bytecode.object }) })).contractAddress!;
-    const a = artifact("SealedNFTAuction");
+    const a = artifact(NFT_AUCTION_VERSION === 2 ? "SealedNFTAuctionV2" : "SealedNFTAuction");
     auction = (await client.waitForTransactionReceipt({ hash: await wallet(0).deployContract({ abi: a.abi, bytecode: a.bytecode.object, args: [carol.address] }) }))
       .contractAddress!;
 

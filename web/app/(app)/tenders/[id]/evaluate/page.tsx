@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label, Textarea } from "@/components/ui/input";
-import { blindBidAddress, TenderState, pricesVisible } from "@/lib/contracts";
+import { blindBidAddress, TenderState, pricesVisible, withinBudget } from "@/lib/contracts";
 import { uriToDigest } from "@/lib/cid";
 import { decryptDocument, encryptedEnvelopeSchema } from "@/lib/crypto";
 import { agentReportKey, readAgentReport, type AgentReport } from "@/lib/agent";
@@ -107,6 +107,9 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
   async function award() {
     setError(undefined);
     if (!winner) return setError(t("Select a winning bid.", "Hãy chọn hồ sơ trúng thầu."));
+    const chosen = revealed.find((b) => b.bidder === winner);
+    if (!chosen || !withinBudget(chosen.bid.amount, tender))
+      return setError(t("This bid is outside the published budget, so it cannot win.", "Hồ sơ này nằm ngoài ngân sách đã công bố nên không thể trúng thầu."));
     if (reason.trim().length < 10)
       return setError(t("Explain the decision (at least 10 characters). It will be public.", "Hãy giải thích quyết định (ít nhất 10 ký tự). Nội dung sẽ được công khai."));
     setUploading(true);
@@ -176,6 +179,7 @@ function Evaluation({ row, meta }: { row: TenderRow; meta?: TenderMetadata }) {
                           name="winner"
                           aria-label={t(`Select ${b.bidder}`, `Chọn ${b.bidder}`)}
                           checked={winner === b.bidder}
+                          disabled={!withinBudget(b.bid.amount, tender)}
                           onChange={() => setWinner(b.bidder)}
                         />
                       </td>

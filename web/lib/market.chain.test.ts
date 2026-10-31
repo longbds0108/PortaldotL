@@ -5,6 +5,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { describe, expect, it } from "vitest";
 import { blindBidMarketAbi } from "./abi";
 import { computeCommitment } from "./commitment";
+import { BLINDBID_VERSION } from "./env";
 import { TenderState } from "./contracts";
 import { fetchBidderTenderIds, fetchCreatedLogs, fetchTenderLogs } from "./market-logs";
 import { readBid, readTender, readTenderCount, tenderState } from "./market-storage";
@@ -15,6 +16,7 @@ import { readBid, readTender, readTenderCount, tenderState } from "./market-stor
  * one a dev server is reading:
  *   anvil --chain-id 420420777 &   cd contracts && forge build
  *   CHAIN_TEST_RPC=http://127.0.0.1:8545 pnpm vitest run lib/market.chain.test.ts
+ * Add NEXT_PUBLIC_BLINDBID_VERSION=2 to run it against BlindBidMarketV2.
  */
 const RPC = process.env.CHAIN_TEST_RPC ?? "";
 
@@ -54,7 +56,7 @@ describe.skipIf(RPC === "")("BlindBidMarket on a local chain, read the way the a
       await client.request({ method: "anvil_setBalance" as never, params: [a.address, toHex(ether(1_000n))] as never });
     }
     // Read lazily: contracts/out only exists after `forge build`, and this suite is skipped without a chain.
-    const artifact = JSON.parse(readFileSync(resolve(__dirname, "../../contracts/out/BlindBidMarket.sol/BlindBidMarket.json"), "utf8"));
+    const artifact = JSON.parse(readFileSync(resolve(__dirname, BLINDBID_VERSION === 2 ? "../../contracts/out/BlindBidMarketV2.sol/BlindBidMarketV2.json" : "../../contracts/out/BlindBidMarket.sol/BlindBidMarket.json"), "utf8"));
     const hash = await wallet(0).deployContract({ abi: blindBidMarketAbi, bytecode: artifact.bytecode.object, args: [buyer.address] });
     market = (await client.waitForTransactionReceipt({ hash })).contractAddress!;
     start = BigInt(await now());
@@ -74,7 +76,7 @@ describe.skipIf(RPC === "")("BlindBidMarket on a local chain, read the way the a
 
   it("seals three bids, one replaced, and reads them back", async () => {
     const commit = (who: Address, amount: bigint, salt: string, key: string) =>
-      computeCommitment({ tenderId: 0n, bidder: who, amount18: amount, salt: doc(salt), docKey: doc(key) });
+      computeCommitment({ tenderId: 0n, bidder: who, amount18: amount, salt: doc(salt), docKey: doc(key), domain: BLINDBID_VERSION === 2 ? { chainId: 420420777, contract: market } : null });
     await send(1, "submitBid", [0n, commit(alice.address, ether(7_500n), "a", "ka"), doc("alice-doc")], ether(10n));
     await send(2, "submitBid", [0n, commit(bob.address, ether(9_000n), "b", "kb"), doc("bob-doc")], ether(10n));
     await send(2, "submitBid", [0n, commit(bob.address, ether(6_900n), "b2", "kb2"), doc("bob-doc-2")], 0n); // replacement

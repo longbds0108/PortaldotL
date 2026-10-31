@@ -18,6 +18,11 @@ describe("market storage layout", () => {
     expect(tenderSlot(5n)).toBe(base + 15n);
   });
 
+  it("uses 5 words per Tender on BlindBidMarketV2", () => {
+    const base = 0xb10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6n;
+    expect(tenderSlot(5n, 5n)).toBe(base + 25n);
+  });
+
   it("locates a Bid at keccak(bidder . keccak(id . 2))", () => {
     const inner = keccak256(encodeAbiParameters([{ type: "uint256" }, { type: "uint256" }], [7n, 2n]));
     const expected = BigInt(keccak256(encodeAbiParameters([{ type: "address" }, { type: "bytes32" }], [BUYER, inner])));

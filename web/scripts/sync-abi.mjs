@@ -5,15 +5,25 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-/** The NFT auction ABI comes from its interface, so the app works with any implementation of it. */
+/**
+ * The NFT auction ABI comes from its interface, so the app works with any implementation of it.
+ * The market and auction ABIs come from V2, a superset of V1 (`v1` below is checked), so one ABI serves both.
+ */
 const TARGETS = [
-  { artifact: "BlindBidMarket.sol/BlindBidMarket.json", out: "../lib/abi.ts", name: "blindBidMarketAbi" },
-  { artifact: "ISealedNFTAuction.sol/ISealedNFTAuction.json", out: "../lib/nft-abi.ts", name: "sealedNftAuctionAbi" },
+  { artifact: "BlindBidMarketV2.sol/BlindBidMarketV2.json", v1: "BlindBidMarket.sol/BlindBidMarket.json", out: "../lib/abi.ts", name: "blindBidMarketAbi" },
+  { artifact: "ISealedNFTAuctionV2.sol/ISealedNFTAuctionV2.json", v1: "ISealedNFTAuction.sol/ISealedNFTAuction.json", out: "../lib/nft-abi.ts", name: "sealedNftAuctionAbi" },
   { artifact: "DisputeRegistry.sol/DisputeRegistry.json", out: "../lib/dispute-abi.ts", name: "disputeRegistryAbi" },
 ];
 
+const readAbi = (artifact) => JSON.parse(readFileSync(resolve(here, "../../contracts/out", artifact), "utf8")).abi;
+
 for (const t of TARGETS) {
-  const { abi } = JSON.parse(readFileSync(resolve(here, "../../contracts/out", t.artifact), "utf8"));
+  const abi = readAbi(t.artifact);
+  if (t.v1) {
+    const entries = new Set(abi.map((e) => JSON.stringify(e)));
+    const missing = readAbi(t.v1).filter((e) => e.type !== "constructor" && !entries.has(JSON.stringify(e)));
+    if (missing.length) throw new Error(`${t.artifact} dropped V1 entries: ${missing.map((e) => e.name).join(", ")}`);
+  }
   const out = resolve(here, t.out);
   writeFileSync(
     out,

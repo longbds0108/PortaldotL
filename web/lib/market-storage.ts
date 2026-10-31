@@ -1,21 +1,24 @@
 import { encodeAbiParameters, keccak256, toHex, type Address, type Hex, type PublicClient } from "viem";
 import { TenderState } from "./contracts";
+import { BLINDBID_VERSION } from "./env";
 
 /*
  * BlindBidMarket has no view functions (PortaldotV3 charges a deposit per byte of code), so the app reads its
  * storage directly. This layout is pinned by contracts/test/BlindBidMarket.t.sol (test_storageLayoutMatchesApp):
  *   slot 0  ReentrancyGuard._status
- *   slot 1  Tender[] _tenders          (length; element i at keccak(1) + 3·i)
+ *   slot 1  Tender[] _tenders          (length; element i at keccak(1) + 3·i, or + 5·i on BlindBidMarketV2)
  *   slot 2  mapping(id => mapping(bidder => Bid)) _bids   (Bid at keccak(bidder . keccak(id . 2)))
  *   Tender w0 = buyer(160) | submissionDeadline(64) | bidCount(32)
  *          w1 = winner(160) | revealDeadline(64) | revealedCount(32)
  *          w2 = bidBond(96) | createdBlock(64) | cancelled(8) | awarded(8) | forfeitSwept(8)
+ *          V2 adds w3 = budgetMin(128) | budgetMax(128), w4 = revealSetDigest; the app reads neither (budgets come
+ *          from TenderCreated, the digest from SelectionRecorded).
  *   Bid    w0 = commitment
  *          w1 = bond(96) | amount(128) | revealed(8) | bondWithdrawn(8)
  */
 export const TENDERS_SLOT = 1n;
 export const BIDS_SLOT = 2n;
-const TENDER_WORDS = 3n;
+export const TENDER_WORDS = BLINDBID_VERSION === 2 ? 5n : 3n;
 
 export type TenderCore = {
   buyer: Address;
@@ -37,8 +40,8 @@ const word = (n: bigint) => toHex(n, { size: 32 });
 const bits = (w: bigint, offset: number, size: number) => (w >> BigInt(offset)) & ((1n << BigInt(size)) - 1n);
 const addr = (w: bigint) => toHex(bits(w, 0, 160), { size: 20 }) as Address;
 
-export function tenderSlot(id: bigint): bigint {
-  return BigInt(keccak256(encodeAbiParameters([{ type: "uint256" }], [TENDERS_SLOT]))) + id * TENDER_WORDS;
+export function tenderSlot(id: bigint, words = TENDER_WORDS): bigint {
+  return BigInt(keccak256(encodeAbiParameters([{ type: "uint256" }], [TENDERS_SLOT]))) + id * words;
 }
 
 export function bidSlot(id: bigint, bidder: Address): bigint {
