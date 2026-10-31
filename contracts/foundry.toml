@@ -25,12 +25,27 @@ exclude_lints = ["block-timestamp"]
 [fuzz]
 runs = 512
 
+# Stateful suites in test/invariant: random call sequences from several actors. `runs` x `depth` calls per invariant.
+[invariant]
+runs = 256
+depth = 128
+fail_on_revert = false
+show_metrics = true
+
 # Slower, deeper run for review/CI: FOUNDRY_PROFILE=ci forge test
 [profile.ci]
 verbosity = 2
 
 [profile.ci.fuzz]
 runs = 10000
+# Fixed so a CI failure can be replayed exactly. Change it to explore other sequences.
+seed = "0x706c696e746873"
+
+[profile.ci.invariant]
+runs = 1000
+depth = 128
+fail_on_revert = false
+show_metrics = true
 
 [fmt]
 line_length = 110
