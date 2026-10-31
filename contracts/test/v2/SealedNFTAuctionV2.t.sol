@@ -522,4 +522,30 @@ contract SealedNFTAuctionV2Test is Test {
         vm.expectRevert(ISealedNFTAuction.CommitmentMismatch.selector);
         auction.revealBid(id, uint112(RESERVE), "s");
     }
+
+    function test_placeBid_depositAboveLimitReverts() public {
+        uint256 id = _list(1);
+        vm.deal(alice, uint256(type(uint112).max) + 1);
+        vm.prank(alice);
+        vm.expectRevert(ISealedNFTAuction.ZeroDeposit.selector);
+        auction.placeBid{value: uint256(type(uint112).max) + 1}(id, "c");
+    }
+
+    function test_withdraw_failedPaymentReverts() public {
+        uint256 id = _list(1);
+        RejectsAuctionPayment bidder = new RejectsAuctionPayment();
+        vm.deal(address(bidder), RESERVE);
+        vm.prank(address(bidder));
+        auction.placeBid{value: RESERVE}(id, "c");
+        vm.warp(revealDeadline);
+        vm.prank(address(bidder));
+        vm.expectRevert(ISealedNFTAuction.TransferFailed.selector);
+        auction.withdraw(id);
+    }
+}
+
+contract RejectsAuctionPayment {
+    receive() external payable {
+        revert("no");
+    }
 }
