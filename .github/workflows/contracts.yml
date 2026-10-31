@@ -116,5 +116,7 @@ jobs:
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      # next-env.d.ts is gitignored; without it tsc cannot resolve static image imports on a clean checkout.
+      - run: pnpm exec next typegen
       - run: pnpm typecheck
       - run: pnpm test
