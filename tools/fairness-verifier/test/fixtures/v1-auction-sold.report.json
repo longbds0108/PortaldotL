@@ -1,0 +1,281 @@
+{
+  "schemaVersion": "1.0.0",
+  "generator": {
+    "name": "plinths-fairness-verifier",
+    "version": "1.0.0"
+  },
+  "result": "VERIFIED",
+  "exitCode": 0,
+  "subject": {
+    "kind": "auction",
+    "roundId": "0",
+    "chainId": 31337,
+    "contract": "0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44",
+    "contractVersion": 1,
+    "roundDocument": null
+  },
+  "outcome": {
+    "status": "SOLD",
+    "final": true,
+    "winner": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+    "winningAmount": "11000000000000000000",
+    "rule": {
+      "id": "plinths.auction.highest-counted-first-reveal",
+      "version": 1,
+      "deterministic": true,
+      "description": "Highest revealed amount that is at least the reserve and at most the bidder's deposit. On a tie the earlier reveal keeps the lead. The winner pays their own price. Recomputed here from logs alone."
+    },
+    "randomness": {
+      "used": false,
+      "note": "Plinths auctions use no randomness."
+    }
+  },
+  "budget": null,
+  "revealSet": {
+    "algorithm": "d0 = bytes32(0); d(i) = keccak256(abi.encode(d(i-1), bidder, amount, commitment)), over reveals in (blockNumber, logIndex) order",
+    "digest": "0xfc7bf0ba2b8e822819c7145b766ccc14264fb3c16c13ae4b6c74b0f4af02d58e",
+    "onChainDigest": null,
+    "count": 4,
+    "entries": [
+      {
+        "bidder": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "amount": "8000000000000000000",
+        "commitment": "0xecfe8598f060b1502d60d03a259569119435db2a0d6ac8190209b342864adb35",
+        "counted": true,
+        "blockNumber": "1480",
+        "logIndex": 0,
+        "txHash": "0xe5e5bb243048bfe0752f9b80383e71714336d37a2f5badea8b60f948c48ad5ac"
+      },
+      {
+        "bidder": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "amount": "11000000000000000000",
+        "commitment": "0x3c4166e5b2af21d1f4e44363723c4b08dbd786458e5177574fd123ec6f0e8307",
+        "counted": true,
+        "blockNumber": "1481",
+        "logIndex": 0,
+        "txHash": "0x01152d005352f65c12ded3dda43a58b13414ef6f8d79ce333f4bf43888ef540e"
+      },
+      {
+        "bidder": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "amount": "11000000000000000000",
+        "commitment": "0xecf18274c76ed2071f1e029edfdd1b5b1d127d477932c2dc0d7daf6d13a35658",
+        "counted": false,
+        "blockNumber": "1482",
+        "logIndex": 0,
+        "txHash": "0x1daa900a14ec3df3f71a7a20604ab8162e030ea841003e4b70a0d4441651204d"
+      },
+      {
+        "bidder": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+        "amount": "30000000000000000000",
+        "commitment": "0x29f20da970e8fc9ea5e67317bfe34cfa86b3e484c083268b8dced1bf6fe6ea93",
+        "counted": false,
+        "blockNumber": "1483",
+        "logIndex": 0,
+        "txHash": "0x29494ac019529e26cee8e49fb2d6f97c2b3d374fc0acfd2f2909ffacc7d209f6"
+      }
+    ],
+    "notRevealed": [
+      "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+    ]
+  },
+  "references": [
+    {
+      "label": "AuctionCreated",
+      "txHash": "0x1d829326875b22fa35746949058ba3d57136b0a2546d550e515d59a644102d57",
+      "blockNumber": "1473"
+    },
+    {
+      "label": "BidPlaced",
+      "txHash": "0x0ae7ff12d1c631074855ea2be1c91a930ec5c39254396d5949783a26d8f272b9",
+      "blockNumber": "1474"
+    },
+    {
+      "label": "BidPlaced",
+      "txHash": "0x961208ac3808de028294e493aabc96d814a276b962b14d2c72f8beaeb9f730cd",
+      "blockNumber": "1475"
+    },
+    {
+      "label": "BidPlaced",
+      "txHash": "0x612fbd2116cfc96fdd040bd451239521ba9f0c6a536df1963a0fbcfeada0bc34",
+      "blockNumber": "1476"
+    },
+    {
+      "label": "BidPlaced",
+      "txHash": "0x2f4af4ee3ad6ea6b092fcd1c6916ecc72dbe4eb33cf9998bfd2830308224b2c1",
+      "blockNumber": "1477"
+    },
+    {
+      "label": "BidPlaced",
+      "txHash": "0x347c2af69228dc4d8576244655951f3e904447af21c6d599a09308628525ff13",
+      "blockNumber": "1478"
+    },
+    {
+      "label": "BidRevealed",
+      "txHash": "0xe5e5bb243048bfe0752f9b80383e71714336d37a2f5badea8b60f948c48ad5ac",
+      "blockNumber": "1480"
+    },
+    {
+      "label": "BidRevealed",
+      "txHash": "0x01152d005352f65c12ded3dda43a58b13414ef6f8d79ce333f4bf43888ef540e",
+      "blockNumber": "1481"
+    },
+    {
+      "label": "BidRevealed",
+      "txHash": "0x1daa900a14ec3df3f71a7a20604ab8162e030ea841003e4b70a0d4441651204d",
+      "blockNumber": "1482"
+    },
+    {
+      "label": "BidRevealed",
+      "txHash": "0x29494ac019529e26cee8e49fb2d6f97c2b3d374fc0acfd2f2909ffacc7d209f6",
+      "blockNumber": "1483"
+    },
+    {
+      "label": "AuctionSettled",
+      "txHash": "0x078d65705441fa3e4e81fc754f2706a08e8eb24f0fc3dd26bf266be4ccb5eaaa",
+      "blockNumber": "1485"
+    },
+    {
+      "label": "Withdrawn",
+      "txHash": "0xbc0ceb79ff9e5e29dc6096d49a43af4125f1c03db36b7afd155e771aa74281a8",
+      "blockNumber": "1486"
+    },
+    {
+      "label": "Withdrawn",
+      "txHash": "0x182447f862feaad65eb79e592b164eff294f49aaeb0be36868398c9e28daceef",
+      "blockNumber": "1487"
+    },
+    {
+      "label": "Withdrawn",
+      "txHash": "0x6289ab72ccccea21a4b589aca7a1a734326be4850897021cd6ad5d90ab77e9cc",
+      "blockNumber": "1488"
+    },
+    {
+      "label": "Withdrawn",
+      "txHash": "0x61d6a6197f4bbdec25f0d48edb68bda4f01d45e822668f87ac447931d221aba2",
+      "blockNumber": "1489"
+    },
+    {
+      "label": "Withdrawn",
+      "txHash": "0xa260d09e43e52bbd9db24afc3e61f73c368b6d626988a03c867e68beeee90549",
+      "blockNumber": "1490"
+    }
+  ],
+  "documents": [],
+  "evidence": {
+    "rpcCalls": 58,
+    "logCount": 16,
+    "fromBlock": "0",
+    "headBlock": "1690",
+    "headTimestamp": "1793981706",
+    "finalizedBlock": "1626"
+  },
+  "sealing": {
+    "amount": "Hidden until the bidder reveals: only a salted hash is on-chain. Public from the reveal onward, for ever. A bid never revealed stays hidden. The public deposit is an upper bound on any bid that can count.",
+    "identity": "NOT hidden. The bidder's address is public from the first commitment, as are the time of the bid and any replacements.",
+    "proposal": "Not applicable: auctions have no proposal document."
+  },
+  "checks": [
+    {
+      "id": "chain_id",
+      "status": "PASS",
+      "required": true,
+      "detail": "chain 31337"
+    },
+    {
+      "id": "contract_identity",
+      "status": "PASS",
+      "required": true,
+      "detail": "local build of SealedNFTAuction: runtime code matches (immutables read from chain: 0000000000000000000000009965507d1a55bcc2695c58ba16fb37d819b0a4dc)"
+    },
+    {
+      "id": "log_integrity",
+      "status": "PASS",
+      "required": true,
+      "detail": "16 logs: no duplicates, all from this contract and inside the queried range"
+    },
+    {
+      "id": "log_schema",
+      "status": "PASS",
+      "required": true,
+      "detail": "all 16 logs decode against the expected event signatures"
+    },
+    {
+      "id": "finality",
+      "status": "PASS",
+      "required": true,
+      "detail": "latest event in block 1490, finalized head 1626"
+    },
+    {
+      "id": "round_exists",
+      "status": "PASS",
+      "required": true,
+      "detail": "AuctionCreated agrees with storage: token 1 of 0x4ed7c70f96b99c776995fb64377f0d4ab3b0e1c1"
+    },
+    {
+      "id": "phase_order",
+      "status": "PASS",
+      "required": true,
+      "detail": "bids, reveals and settlement appear in a legal order"
+    },
+    {
+      "id": "commitment_openings",
+      "status": "PASS",
+      "required": true,
+      "detail": "all 4 reveals open their sealed commitment"
+    },
+    {
+      "id": "timing",
+      "status": "PASS",
+      "required": false,
+      "detail": "all 10 events fall inside their phase by block time"
+    },
+    {
+      "id": "bid_count",
+      "status": "PASS",
+      "required": true,
+      "detail": "5 in logs, 5 in storage"
+    },
+    {
+      "id": "reveal_count",
+      "status": "PASS",
+      "required": true,
+      "detail": "4 in logs, 4 in storage"
+    },
+    {
+      "id": "winner_recomputed",
+      "status": "PASS",
+      "required": true,
+      "detail": "replaying the reveals gives 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC at 11000000000000000000, same as the contract"
+    },
+    {
+      "id": "bid_storage",
+      "status": "PASS",
+      "required": true,
+      "detail": "5 bid(s) agree with storage"
+    },
+    {
+      "id": "settlement",
+      "status": "PASS",
+      "required": true,
+      "detail": "AuctionSettled agrees with storage"
+    },
+    {
+      "id": "nft_delivery",
+      "status": "PASS",
+      "required": true,
+      "detail": "settlement transaction moved token 1 to 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+    },
+    {
+      "id": "payouts",
+      "status": "PASS",
+      "required": true,
+      "detail": "every withdrawal matches the payment rules"
+    }
+  ],
+  "limitations": [
+    "A bidder who sees rivals' reveals can still withhold their own, at a cost of 10% of the deposit. Two addresses run by one person can use this to place a bid only if it is needed.",
+    "The collection is whatever contract listed the token. This tool checks transfers it reports, not that the collection is honest or the artwork genuine.",
+    "Evidence comes from one RPC endpoint. A dishonest RPC could serve false data; compare another endpoint or your own node where one exists.",
+    "V1 contract: commitments are not bound to a chain or contract, and listings are not checked for custody (docs/issues/ISSUE-002, ISSUE-003)."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "plinths-fairness-verifier",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Rechecks a Plinths tender or NFT auction from chain data, without any Plinths server.",
+  "engines": { "node": ">=20.9.0" },
+  "scripts": {
+    "verify": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lifecycle": "tsx scripts/local-lifecycle.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.20.0",
+    "viem": "^2.37.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

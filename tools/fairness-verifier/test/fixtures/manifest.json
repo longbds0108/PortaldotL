@@ -1,0 +1,42 @@
+{
+  "v2-awarded": {
+    "artifact": "BlindBidMarketV2",
+    "version": 2,
+    "runtimeKeccak": "0x8ded72b35329187b248e6ef253da241bb74fe3fba2523569b1d9ad09c350436b"
+  },
+  "v1-awarded": {
+    "artifact": "BlindBidMarket",
+    "version": 1,
+    "runtimeKeccak": "0x158c851d86a5b5c086b2e2d259f3d354174e10c23fb8192be3fa60e96c6ab896"
+  },
+  "v1-out-of-budget": {
+    "artifact": "BlindBidMarket",
+    "version": 1,
+    "runtimeKeccak": "0x158c851d86a5b5c086b2e2d259f3d354174e10c23fb8192be3fa60e96c6ab896"
+  },
+  "v2-no-reveals": {
+    "artifact": "BlindBidMarketV2",
+    "version": 2,
+    "runtimeKeccak": "0x8ded72b35329187b248e6ef253da241bb74fe3fba2523569b1d9ad09c350436b"
+  },
+  "v2-cancelled": {
+    "artifact": "BlindBidMarketV2",
+    "version": 2,
+    "runtimeKeccak": "0x8ded72b35329187b248e6ef253da241bb74fe3fba2523569b1d9ad09c350436b"
+  },
+  "v2-open": {
+    "artifact": "BlindBidMarketV2",
+    "version": 2,
+    "runtimeKeccak": "0x8ded72b35329187b248e6ef253da241bb74fe3fba2523569b1d9ad09c350436b"
+  },
+  "v2-auction-sold": {
+    "artifact": "SealedNFTAuctionV2",
+    "version": 2,
+    "runtimeKeccak": "0xe3446e3fdb72a9d61c003a440e5849e0715385d220f0cb40f8283c2182c8ef13"
+  },
+  "v1-auction-sold": {
+    "artifact": "SealedNFTAuction",
+    "version": 1,
+    "runtimeKeccak": "0x430f29e1a0daa18469901b018c4db0b4a799032f3e2485c0c3c3f63e577e7372"
+  }
+}

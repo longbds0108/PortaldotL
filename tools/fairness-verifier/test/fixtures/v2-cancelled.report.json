@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "1.0.0",
+  "generator": {
+    "name": "plinths-fairness-verifier",
+    "version": "1.0.0"
+  },
+  "result": "VERIFIED",
+  "exitCode": 0,
+  "subject": {
+    "kind": "tender",
+    "roundId": "1",
+    "chainId": 31337,
+    "contract": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+    "contractVersion": 2,
+    "roundDocument": "0x4c7b5cd57855cee824dfb36438b88ecb25d2d1493a0c53b69912ec4957d84d68"
+  },
+  "outcome": {
+    "status": "CANCELLED",
+    "final": true,
+    "winner": null,
+    "winningAmount": null,
+    "rule": {
+      "id": "plinths.tender.buyer-choice-within-budget",
+      "version": 1,
+      "deterministic": false,
+      "description": "The buyer picks any revealed bid; it need not be the cheapest. Logs can show the choice was allowed, not that it was the best one. V2 enforces the budget on-chain; on V1 this tool enforces it after the fact."
+    },
+    "randomness": {
+      "used": false,
+      "note": "Plinths tenders use no randomness."
+    }
+  },
+  "budget": {
+    "min": "1",
+    "max": "5000000000000000000"
+  },
+  "revealSet": {
+    "algorithm": "d0 = bytes32(0); d(i) = keccak256(abi.encode(d(i-1), bidder, amount, commitment)), over reveals in (blockNumber, logIndex) order",
+    "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "onChainDigest": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "count": 0,
+    "entries": [],
+    "notRevealed": []
+  },
+  "references": [
+    {
+      "label": "TenderCreated",
+      "txHash": "0xd222e6d08099f1daad3be4219d872733a77cd23d4766dacb202bd5529c92cda8",
+      "blockNumber": "644"
+    },
+    {
+      "label": "TenderCancelled",
+      "txHash": "0x32142b3f60d8886e381c9b6cd51028db88c1efa6703d4707b9c14329ae09eb09",
+      "blockNumber": "645"
+    }
+  ],
+  "documents": [
+    {
+      "label": "Tender metadata",
+      "digest": "0x4c7b5cd57855cee824dfb36438b88ecb25d2d1493a0c53b69912ec4957d84d68",
+      "cidRaw": "bafkreicmpnonk6cvz3ucjx5tmq4lrdwlexjncsj2brj3ngis5revpwcnna",
+      "cidDagPb": "bafybeicmpnonk6cvz3ucjx5tmq4lrdwlexjncsj2brj3ngis5revpwcnna"
+    }
+  ],
+  "evidence": {
+    "rpcCalls": 18,
+    "logCount": 2,
+    "fromBlock": "0",
+    "headBlock": "1048",
+    "headTimestamp": "1793801706",
+    "finalizedBlock": "984"
+  },
+  "sealing": {
+    "amount": "Hidden until the bidder reveals: only a salted hash is on-chain. Public from the reveal onward, for ever. A bid never revealed stays hidden.",
+    "identity": "NOT hidden. The bidder's address is public from the first commitment, as are the time of the bid and any replacements.",
+    "proposal": "Encrypted in the browser; only ciphertext is on IPFS. The key is published at reveal, so a revealed proposal is readable by anyone, for ever. Size and upload time are not hidden."
+  },
+  "checks": [
+    {
+      "id": "chain_id",
+      "status": "PASS",
+      "required": true,
+      "detail": "chain 31337"
+    },
+    {
+      "id": "contract_identity",
+      "status": "PASS",
+      "required": true,
+      "detail": "local build of BlindBidMarketV2: runtime code matches (immutables read from chain: 0000000000000000000000009965507d1a55bcc2695c58ba16fb37d819b0a4dc)"
+    },
+    {
+      "id": "log_integrity",
+      "status": "PASS",
+      "required": true,
+      "detail": "2 logs: no duplicates, all from this contract and inside the queried range"
+    },
+    {
+      "id": "log_schema",
+      "status": "PASS",
+      "required": true,
+      "detail": "all 2 logs decode against the expected event signatures"
+    },
+    {
+      "id": "finality",
+      "status": "PASS",
+      "required": true,
+      "detail": "latest event in block 645, finalized head 984"
+    },
+    {
+      "id": "round_exists",
+      "status": "PASS",
+      "required": true,
+      "detail": "TenderCreated agrees with storage: buyer 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+    },
+    {
+      "id": "phase_order",
+      "status": "PASS",
+      "required": true,
+      "detail": "bids, reveals and the award appear in a legal order"
+    },
+    {
+      "id": "commitment_openings",
+      "status": "PASS",
+      "required": true,
+      "detail": "no reveals to check"
+    },
+    {
+      "id": "timing",
+      "status": "PASS",
+      "required": false,
+      "detail": "all 1 events fall inside their phase by block time"
+    },
+    {
+      "id": "bid_count",
+      "status": "PASS",
+      "required": true,
+      "detail": "0 in logs, 0 in storage"
+    },
+    {
+      "id": "reveal_count",
+      "status": "PASS",
+      "required": true,
+      "detail": "0 in logs, 0 in storage"
+    },
+    {
+      "id": "bid_storage",
+      "status": "PASS",
+      "required": true,
+      "detail": "0 bid(s) agree with storage"
+    },
+    {
+      "id": "reveal_digest",
+      "status": "PASS",
+      "required": true,
+      "detail": "the digest the contract built during reveals equals the one recomputed from logs"
+    },
+    {
+      "id": "bonds",
+      "status": "PASS",
+      "required": true,
+      "detail": "bond withdrawals and sweeps follow the rules"
+    }
+  ],
+  "limitations": [
+    "This report covers procedure, not merit: the buyer's choice among allowed bids is a judgement that logs cannot prove right or wrong.",
+    "Identity is an address. Logs cannot show that two addresses are unrelated, so collusion or a buyer bidding through another account stays invisible.",
+    "Evidence comes from one RPC endpoint. A dishonest RPC could serve false data; compare another endpoint or your own node where one exists.",
+    "Eligibility requirements live in the off-chain tender metadata and are not checked."
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "note": "Runtime hashes pinned from the live chain after contracts/scripts/verify-deployment.mjs matched them to this repo's source. To avoid trusting this file, compile the contracts yourself and pass --artifact.",
+  "deployments": [
+    { "chainId": 420420777, "address": "0x6e79287f62B47307B5b7349072c51AdAF8833d54", "kind": "tender", "version": 1, "deployBlock": 91531, "runtimeKeccak": "0xe999c2123eb6c78eb6201c5ac2d2471cfb3c3de124cb347b32d4f86e9bfc9ed8" },
+    { "chainId": 420420777, "address": "0xc05A1f041a42FFa96FC24a3aeBc576b1157aA7F6", "kind": "auction", "version": 1, "deployBlock": 102866, "runtimeKeccak": "0x46e7be347a501d4958751872f2a6b54ccbfb7c16559c28e109c7a489c1115ac5" }
+  ]
+}

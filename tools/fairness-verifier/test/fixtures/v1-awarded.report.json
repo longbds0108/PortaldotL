@@ -1,0 +1,283 @@
+{
+  "schemaVersion": "1.0.0",
+  "generator": {
+    "name": "plinths-fairness-verifier",
+    "version": "1.0.0"
+  },
+  "result": "VERIFIED",
+  "exitCode": 0,
+  "subject": {
+    "kind": "tender",
+    "roundId": "0",
+    "chainId": 31337,
+    "contract": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "contractVersion": 1,
+    "roundDocument": "0x207311c5ff7fa94d7b442174639cc8bdf979413afb1f6144157ef8838c2389ff"
+  },
+  "outcome": {
+    "status": "AWARDED",
+    "final": true,
+    "winner": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "winningAmount": "4200000000000000000000",
+    "rule": {
+      "id": "plinths.tender.buyer-choice-within-budget",
+      "version": 1,
+      "deterministic": false,
+      "description": "The buyer picks any revealed bid; it need not be the cheapest. Logs can show the choice was allowed, not that it was the best one. V2 enforces the budget on-chain; on V1 this tool enforces it after the fact."
+    },
+    "randomness": {
+      "used": false,
+      "note": "Plinths tenders use no randomness."
+    }
+  },
+  "budget": {
+    "min": "3000000000000000000000",
+    "max": "5000000000000000000000"
+  },
+  "revealSet": {
+    "algorithm": "d0 = bytes32(0); d(i) = keccak256(abi.encode(d(i-1), bidder, amount, commitment)), over reveals in (blockNumber, logIndex) order",
+    "digest": "0xa45f2b6742fa6a6c334d563f3f83c361948ad88b8c0549f251019a7a8cfde35c",
+    "onChainDigest": null,
+    "count": 3,
+    "entries": [
+      {
+        "bidder": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "amount": "4200000000000000000000",
+        "commitment": "0xbc9bc144c371845d7c5ba9fa10ec6dc5f568d79620bfd70e60b8af1c3f7981af",
+        "blockNumber": "226",
+        "logIndex": 0,
+        "txHash": "0xef811713d48097fbfa0327d55d590a6ac5fbd878c31d6ede8115097786cf67ac"
+      },
+      {
+        "bidder": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "amount": "3500000000000000000000",
+        "commitment": "0xbee4c24674c8a3f7132e61e7a971844582026319fa5c57fbe6392f5a01f577a9",
+        "blockNumber": "227",
+        "logIndex": 0,
+        "txHash": "0x6d7f195288dc2aec054342986c3796144eceb0d8b9944127ac2662ecb4b01c88"
+      },
+      {
+        "bidder": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "amount": "5600000000000000000000",
+        "commitment": "0x099cd31a12d2a936f7f55d6df463de3a180025a78d4738a68ea2023825c8b165",
+        "blockNumber": "228",
+        "logIndex": 0,
+        "txHash": "0x43040b082edbbc43acfad1f79b9a5cc3da53bb753079d815f2ccf52b744193d8"
+      }
+    ],
+    "notRevealed": [
+      "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+    ]
+  },
+  "references": [
+    {
+      "label": "TenderCreated",
+      "txHash": "0x36c8af40312bb57cf668d4b0215c1d4d13a28cbf28c08b6b4aac65ae8ff5d979",
+      "blockNumber": "219"
+    },
+    {
+      "label": "BidSubmitted",
+      "txHash": "0x7477f5bc26302dbb5fbaf6644c9e0d543ae8d1815eb8e1de0b4a74bd9313531e",
+      "blockNumber": "220"
+    },
+    {
+      "label": "BidSubmitted",
+      "txHash": "0xa636aef96a40af70a08bcc8645f5e2325e6856a65e900d42e4ffe4525133b715",
+      "blockNumber": "221"
+    },
+    {
+      "label": "BidSubmitted",
+      "txHash": "0x9b7cf76ec5f1371f45ab7268bccec7f58e1c0cb607bcd777d471e27b0083ce3a",
+      "blockNumber": "222"
+    },
+    {
+      "label": "BidSubmitted",
+      "txHash": "0xf524dc1fe46ea3a846cd117583c49f3abfdb5923b7296ce6165c59add3ce4362",
+      "blockNumber": "223"
+    },
+    {
+      "label": "BidReplaced",
+      "txHash": "0x2c640b766fcb2946b0a78038b3942287d26dadebe01a86ce7baf3306f4243c98",
+      "blockNumber": "224"
+    },
+    {
+      "label": "BidRevealed",
+      "txHash": "0xef811713d48097fbfa0327d55d590a6ac5fbd878c31d6ede8115097786cf67ac",
+      "blockNumber": "226"
+    },
+    {
+      "label": "BidRevealed",
+      "txHash": "0x6d7f195288dc2aec054342986c3796144eceb0d8b9944127ac2662ecb4b01c88",
+      "blockNumber": "227"
+    },
+    {
+      "label": "BidRevealed",
+      "txHash": "0x43040b082edbbc43acfad1f79b9a5cc3da53bb753079d815f2ccf52b744193d8",
+      "blockNumber": "228"
+    },
+    {
+      "label": "TenderAwarded",
+      "txHash": "0x26685c713ce283e4219d8d7fcbed6dfeb601e9e62419d30fb66aa0da6b97eafc",
+      "blockNumber": "230"
+    },
+    {
+      "label": "BondWithdrawn",
+      "txHash": "0x88cb18da0fc32de729d87be43cd86ebb4305b586c9f21bb8cbe4261c1690531e",
+      "blockNumber": "231"
+    },
+    {
+      "label": "BondWithdrawn",
+      "txHash": "0x432afc34f4528f8ff67d79ddac2312e2f44f64d587a49902d6cbef3250b47a68",
+      "blockNumber": "232"
+    },
+    {
+      "label": "BondWithdrawn",
+      "txHash": "0x015ccb7b2f241db6c0b0049b3d812d92a55bd8151529f62242db862dd62b0dd9",
+      "blockNumber": "233"
+    },
+    {
+      "label": "ForfeitedBondsSwept",
+      "txHash": "0xca41dfdb2f69947c90ed4a93ef16ef407d51a642436394258d4f63aa095437a2",
+      "blockNumber": "234"
+    }
+  ],
+  "documents": [
+    {
+      "label": "Tender metadata",
+      "digest": "0x207311c5ff7fa94d7b442174639cc8bdf979413afb1f6144157ef8838c2389ff",
+      "cidRaw": "bafkreibaomi4l737vfgxwrbborrzzsf57f4ucox3d5quifl67cbyyi4j74",
+      "cidDagPb": "bafybeibaomi4l737vfgxwrbborrzzsf57f4ucox3d5quifl67cbyyi4j74"
+    },
+    {
+      "label": "Award reason",
+      "digest": "0x781899a361b8c2aff5b37a85606fbff2a53f2f7a9a2d6f8f76e49349f26fb183",
+      "cidRaw": "bafkreidydcm2gynyykx7lm32qvqg7p7suu7s66u2fvxy65xesne7e35rqm",
+      "cidDagPb": "bafybeidydcm2gynyykx7lm32qvqg7p7suu7s66u2fvxy65xesne7e35rqm"
+    }
+  ],
+  "evidence": {
+    "rpcCalls": 48,
+    "logCount": 14,
+    "fromBlock": "0",
+    "headBlock": "434",
+    "headTimestamp": "1793621706",
+    "finalizedBlock": "370"
+  },
+  "sealing": {
+    "amount": "Hidden until the bidder reveals: only a salted hash is on-chain. Public from the reveal onward, for ever. A bid never revealed stays hidden.",
+    "identity": "NOT hidden. The bidder's address is public from the first commitment, as are the time of the bid and any replacements.",
+    "proposal": "Encrypted in the browser; only ciphertext is on IPFS. The key is published at reveal, so a revealed proposal is readable by anyone, for ever. Size and upload time are not hidden."
+  },
+  "checks": [
+    {
+      "id": "chain_id",
+      "status": "PASS",
+      "required": true,
+      "detail": "chain 31337"
+    },
+    {
+      "id": "contract_identity",
+      "status": "PASS",
+      "required": true,
+      "detail": "local build of BlindBidMarket: runtime code matches (immutables read from chain: 0000000000000000000000009965507d1a55bcc2695c58ba16fb37d819b0a4dc)"
+    },
+    {
+      "id": "log_integrity",
+      "status": "PASS",
+      "required": true,
+      "detail": "14 logs: no duplicates, all from this contract and inside the queried range"
+    },
+    {
+      "id": "log_schema",
+      "status": "PASS",
+      "required": true,
+      "detail": "all 14 logs decode against the expected event signatures"
+    },
+    {
+      "id": "finality",
+      "status": "PASS",
+      "required": true,
+      "detail": "latest event in block 234, finalized head 370"
+    },
+    {
+      "id": "round_exists",
+      "status": "PASS",
+      "required": true,
+      "detail": "TenderCreated agrees with storage: buyer 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+    },
+    {
+      "id": "phase_order",
+      "status": "PASS",
+      "required": true,
+      "detail": "bids, reveals and the award appear in a legal order"
+    },
+    {
+      "id": "commitment_openings",
+      "status": "PASS",
+      "required": true,
+      "detail": "all 3 reveals open their sealed commitment"
+    },
+    {
+      "id": "timing",
+      "status": "PASS",
+      "required": false,
+      "detail": "all 10 events fall inside their phase by block time"
+    },
+    {
+      "id": "bid_count",
+      "status": "PASS",
+      "required": true,
+      "detail": "4 in logs, 4 in storage"
+    },
+    {
+      "id": "reveal_count",
+      "status": "PASS",
+      "required": true,
+      "detail": "3 in logs, 3 in storage"
+    },
+    {
+      "id": "bid_storage",
+      "status": "PASS",
+      "required": true,
+      "detail": "4 bid(s) agree with storage"
+    },
+    {
+      "id": "award",
+      "status": "PASS",
+      "required": true,
+      "detail": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8 was revealed, and the amount and storage agree; sent by the buyer"
+    },
+    {
+      "id": "budget",
+      "status": "PASS",
+      "required": true,
+      "detail": "winning amount is inside the published budget"
+    },
+    {
+      "id": "reveal_digest",
+      "status": "NOT_CHECKED",
+      "required": false,
+      "detail": "V1 keeps no digest on-chain; the one in this report is computed from logs only"
+    },
+    {
+      "id": "reason_document",
+      "status": "NOT_CHECKED",
+      "required": false,
+      "detail": "no document supplied (--reason-file); its text is not covered by this report"
+    },
+    {
+      "id": "bonds",
+      "status": "PASS",
+      "required": true,
+      "detail": "bond withdrawals and sweeps follow the rules"
+    }
+  ],
+  "limitations": [
+    "This report covers procedure, not merit: the buyer's choice among allowed bids is a judgement that logs cannot prove right or wrong.",
+    "Identity is an address. Logs cannot show that two addresses are unrelated, so collusion or a buyer bidding through another account stays invisible.",
+    "Evidence comes from one RPC endpoint. A dishonest RPC could serve false data; compare another endpoint or your own node where one exists.",
+    "Eligibility requirements live in the off-chain tender metadata and are not checked.",
+    "V1 contract: commitments are not bound to a chain or contract, and award() does not enforce the budget (docs/issues/ISSUE-001, ISSUE-002).",
+    "Bids never revealed stay sealed. Nobody can tell what they offered or why they were withheld."
+  ]
+}

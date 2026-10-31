@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/longbds0108/PortaldotL/tree/main/tools/fairness-verifier/schemas/proof-of-fairness-1.0.schema.json",
+  "title": "Proof of Fairness report",
+  "description": "What an independent tool could and could not establish about one sealed-bid round from public data. Not specific to Plinths: any commit-reveal selection can publish in this format. See docs/PROOF_OF_FAIRNESS_REPORT_FORMAT.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generator", "result", "exitCode", "subject", "outcome", "budget", "revealSet", "references", "documents", "evidence", "sealing", "checks", "limitations"],
+  "definitions": {
+    "hex32": { "type": "string", "pattern": "^0x[0-9a-fA-F]{64}$" },
+    "address": { "type": "string", "pattern": "^0x[0-9a-fA-F]{40}$" },
+    "uintString": { "type": "string", "pattern": "^[0-9]+$" }
+  },
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": { "name": { "type": "string" }, "version": { "type": "string" } }
+    },
+    "result": {
+      "enum": ["VERIFIED", "FAILED", "INCOMPLETE", "UNSUPPORTED"],
+      "description": "VERIFIED: every required check passed and the round is final. FAILED: a check found a contradiction. INCOMPLETE: nothing contradicts, but evidence is missing or the round is not over. UNSUPPORTED: the tool does not know this contract or event format."
+    },
+    "exitCode": { "enum": [0, 1, 2, 3] },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "roundId", "chainId", "contract", "contractVersion", "roundDocument"],
+      "properties": {
+        "kind": { "type": "string", "description": "The kind of round: tender, auction, or another application's term." },
+        "roundId": { "$ref": "#/definitions/uintString" },
+        "chainId": { "type": "integer" },
+        "contract": { "$ref": "#/definitions/address" },
+        "contractVersion": { "enum": [1, 2, null] },
+        "roundDocument": { "oneOf": [{ "$ref": "#/definitions/hex32" }, { "type": "null" }] }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "final", "winner", "winningAmount", "rule", "randomness"],
+      "properties": {
+        "status": { "type": "string" },
+        "final": { "type": "boolean" },
+        "winner": { "oneOf": [{ "$ref": "#/definitions/address" }, { "type": "null" }] },
+        "winningAmount": { "oneOf": [{ "$ref": "#/definitions/uintString" }, { "type": "null" }] },
+        "rule": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version", "deterministic", "description"],
+          "properties": {
+            "id": { "type": "string" },
+            "version": { "type": "integer" },
+            "deterministic": { "type": "boolean", "description": "true: a reader can recompute the winner. false: a person chose, and the report can only say the choice was allowed." },
+            "description": { "type": "string" }
+          }
+        },
+        "randomness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["used", "note"],
+          "properties": { "used": { "type": "boolean" }, "source": { "type": "string" }, "note": { "type": "string" } }
+        }
+      }
+    },
+    "budget": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min", "max"],
+          "properties": { "min": { "$ref": "#/definitions/uintString" }, "max": { "$ref": "#/definitions/uintString" } }
+        }
+      ]
+    },
+    "revealSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "digest", "onChainDigest", "count", "entries", "notRevealed"],
+      "properties": {
+        "algorithm": { "type": "string" },
+        "digest": { "$ref": "#/definitions/hex32" },
+        "onChainDigest": { "oneOf": [{ "$ref": "#/definitions/hex32" }, { "type": "null" }] },
+        "count": { "type": "integer", "minimum": 0 },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["bidder", "amount", "commitment", "blockNumber", "logIndex", "txHash"],
+            "properties": {
+              "bidder": { "$ref": "#/definitions/address" },
+              "amount": { "$ref": "#/definitions/uintString" },
+              "commitment": { "$ref": "#/definitions/hex32" },
+              "counted": { "type": "boolean" },
+              "blockNumber": { "$ref": "#/definitions/uintString" },
+              "logIndex": { "type": "integer", "minimum": 0 },
+              "txHash": { "$ref": "#/definitions/hex32" }
+            }
+          }
+        },
+        "notRevealed": { "type": "array", "items": { "$ref": "#/definitions/address" } }
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "txHash", "blockNumber"],
+        "properties": { "label": { "type": "string" }, "txHash": { "$ref": "#/definitions/hex32" }, "blockNumber": { "$ref": "#/definitions/uintString" } }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "description": "Off-chain documents by on-chain digest. Only the digest is on-chain; the document may no longer be retrievable.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "digest", "cidRaw", "cidDagPb"],
+        "properties": { "label": { "type": "string" }, "digest": { "$ref": "#/definitions/hex32" }, "cidRaw": { "type": "string" }, "cidDagPb": { "type": "string" } }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rpcCalls", "logCount", "fromBlock", "headBlock", "headTimestamp", "finalizedBlock"],
+      "properties": {
+        "rpcCalls": { "type": "integer", "minimum": 0, "description": "RPC calls used to collect the evidence: the audit's cost." },
+        "logCount": { "type": "integer", "minimum": 0 },
+        "fromBlock": { "$ref": "#/definitions/uintString" },
+        "headBlock": { "$ref": "#/definitions/uintString" },
+        "headTimestamp": { "$ref": "#/definitions/uintString" },
+        "finalizedBlock": { "oneOf": [{ "$ref": "#/definitions/uintString" }, { "type": "null" }] }
+      }
+    },
+    "sealing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "proposal", "identity"],
+      "description": "What was hidden, from whom, until when. Each item is independent.",
+      "properties": { "amount": { "type": "string" }, "proposal": { "type": "string" }, "identity": { "type": "string" } }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "required", "detail"],
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "enum": ["PASS", "FAIL", "INCOMPLETE", "NOT_CHECKED", "UNSUPPORTED"] },
+          "required": { "type": "boolean" },
+          "detail": { "type": "string" }
+        }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+  }
+}
