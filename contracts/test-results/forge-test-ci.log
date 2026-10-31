@@ -1,0 +1,288 @@
+No files changed, compilation skipped
+
+Ran 13 tests for test/regressions/SecurityRegressions.t.sol:SecurityRegressions
+[PASS] test_V1_award_acceptsBidAboveBudget() (gas: 311596)
+[PASS] test_V1_award_acceptsBidBelowBudget() (gas: 308863)
+[PASS] test_V1_commitment_replaysOnAnotherChain() (gas: 6902)
+[PASS] test_V1_commitment_replaysOnAnotherContract() (gas: 516799)
+[PASS] test_V1_phantomListing_trapsTheWinnersMoney() (gas: 439780)
+[PASS] test_V2_acceptedRisk_hostileCollectionTrapsTheWinnersMoney() (gas: 652426)
+[PASS] test_V2_award_rejectsBidAboveBudget() (gas: 348638)
+[PASS] test_V2_award_rejectsBidBelowBudget() (gas: 348758)
+[PASS] test_V2_commitment_rejectedOnAnotherChain() (gas: 280748)
+[PASS] test_V2_commitment_rejectedOnAnotherContract() (gas: 575737)
+[PASS] test_V2_listing_rejectsZeroSeller() (gas: 93113)
+[PASS] test_V2_phantomListing_rejectedFromAccountWithoutCode() (gas: 37963)
+[PASS] test_V2_phantomListing_rejectedWhenTokenIsNotInEscrow() (gas: 39242)
+Suite result: ok. 13 passed; 0 failed; 0 skipped; finished in 3.26ms (2.77ms CPU time)
+
+Ran 2 tests for test/NFTCommitmentLib.t.sol:NFTCommitmentLibTest
+[PASS] testFuzz_bindsEveryField(uint256,address,uint256,bytes32) (runs: 10000, μ: 5006, ~: 5006)
+[PASS] test_matchesSharedVectors() (gas: 70567)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 169.35ms (169.28ms CPU time)
+
+Ran 23 tests for test/v2/SealedNFTAuctionV2.t.sol:SealedNFTAuctionV2Test
+[PASS] testFuzz_accountingBalancesToZero(uint8,uint64[3],uint64[3]) (runs: 10000, μ: 820460, ~: 813134)
+[PASS] testFuzz_reveal_wrongOpeningReverts(uint112,bytes32,uint112,bytes32) (runs: 10000, μ: 358914, ~: 358966)
+[PASS] test_cancel_onlySellerOnlyOpenWithoutBids() (gas: 691000)
+[PASS] test_commitmentMatchesSharedVectors() (gas: 277971)
+[PASS] test_constructor_rejectsZeroTreasury() (gas: 4397)
+[PASS] test_fullLifecycle_sale() (gas: 1191764)
+[PASS] test_hook_directCallErrors() (gas: 60242)
+[PASS] test_list_escrowsNftAndEmits() (gas: 276699)
+[PASS] test_list_rejectsBadData() (gas: 286526)
+[PASS] test_noSale_returnsNftToSeller() (gas: 466921)
+[PASS] test_placeBid_againReplacesAndTopsUp() (gas: 535808)
+[PASS] test_placeBid_depositAboveLimitReverts() (gas: 274919)
+[PASS] test_placeBid_hidesAmount() (gas: 345678)
+[PASS] test_placeBid_rejects() (gas: 375100)
+[PASS] test_reveal_belowReserveNotCounted() (gas: 401327)
+[PASS] test_reveal_cannotReuseAnotherBiddersCommitment() (gas: 443550)
+[PASS] test_reveal_highestCountedWins_tieKeepsEarlier() (gas: 665030)
+[PASS] test_reveal_rejects() (gas: 545592)
+[PASS] test_reveal_rejectsCommitmentFromAnotherContract() (gas: 1343563)
+[PASS] test_storageLayoutMatchesApp() (gas: 722097)
+[PASS] test_unknownAuctionReverts() (gas: 81786)
+[PASS] test_withdraw_failedPaymentReverts() (gas: 490601)
+[PASS] test_withdraw_reentrancySafe() (gas: 850377)
+Suite result: ok. 23 passed; 0 failed; 0 skipped; finished in 3.17s (4.33s CPU time)
+
+Ran 10 tests for test/DisputeRegistry.t.sol:DisputeRegistryTest
+[PASS] testFuzz_onlyArbiterChangesStatus(address,uint8) (runs: 10000, μ: 107637, ~: 107663)
+[PASS] test_constructor_rejectsZeroArbiter() (gas: 111356)
+[PASS] test_open_rejectsBadInput() (gas: 82507)
+[PASS] test_open_storesAndEmits() (gas: 92827)
+[PASS] test_respond_anyoneUntilClosed() (gas: 239292)
+[PASS] test_respond_rejects() (gas: 128738)
+[PASS] test_status_closeDirectlyFromOpen() (gas: 122034)
+[PASS] test_status_onlyArbiter() (gas: 132201)
+[PASS] test_status_transitions() (gas: 266611)
+[PASS] test_storageLayoutMatchesApp() (gas: 182249)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 447.50ms (447.16ms CPU time)
+
+Ran 19 tests for test/SealedNFTAuction.t.sol:SealedNFTAuctionTest
+[PASS] testFuzz_accountingBalancesToZero(uint8,uint64[3],uint64[3]) (runs: 10000, μ: 817838, ~: 810453)
+[PASS] testFuzz_reveal_wrongOpeningReverts(uint112,bytes32,uint112,bytes32) (runs: 10000, μ: 357269, ~: 357321)
+[PASS] test_cancel_onlySellerOnlyOpenWithoutBids() (gas: 688676)
+[PASS] test_constructor_rejectsZeroTreasury() (gas: 141503)
+[PASS] test_fullLifecycle_sale() (gas: 1189187)
+[PASS] test_hook_directCallErrors() (gas: 60164)
+[PASS] test_list_escrowsNftAndEmits() (gas: 275706)
+[PASS] test_list_rejectsBadData() (gas: 286396)
+[PASS] test_noSale_returnsNftToSeller() (gas: 465530)
+[PASS] test_placeBid_againReplacesAndTopsUp() (gas: 533487)
+[PASS] test_placeBid_hidesAmount() (gas: 344263)
+[PASS] test_placeBid_rejects() (gas: 374041)
+[PASS] test_reveal_belowReserveNotCounted() (gas: 399740)
+[PASS] test_reveal_cannotReuseAnotherBiddersCommitment() (gas: 441949)
+[PASS] test_reveal_highestCountedWins_tieKeepsEarlier() (gas: 662243)
+[PASS] test_reveal_rejects() (gas: 543907)
+[PASS] test_storageLayoutMatchesApp() (gas: 719698)
+[PASS] test_unknownAuctionReverts() (gas: 81664)
+[PASS] test_withdraw_reentrancySafe() (gas: 848168)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 4.53s (4.53s CPU time)
+
+Ran 26 tests for test/BlindBidMarket.t.sol:BlindBidMarketTest
+[PASS] testFuzz_bondAccounting(uint8,uint8,bool,address) (runs: 10000, μ: 714991, ~: 628298)
+[PASS] testFuzz_reveal_insideWindowSucceeds(uint64) (runs: 10000, μ: 286755, ~: 286755)
+[PASS] testFuzz_reveal_outsideWindowReverts(uint256,bool) (runs: 10000, μ: 249863, ~: 250514)
+[PASS] testFuzz_reveal_wrongOpeningReverts(uint128,bytes32,bytes32,uint128,bytes32,bytes32) (runs: 10000, μ: 319907, ~: 320282)
+[PASS] test_award_onlyInEvaluation() (gas: 315166)
+[PASS] test_bond_revealedBidderWithdraws_unrevealedForfeitsToTreasury() (gas: 817605)
+[PASS] test_bond_withdrawIsReentrancySafe() (gas: 779015)
+[PASS] test_bond_zeroBondNothingToWithdraw() (gas: 310634)
+[PASS] test_cancel_onlyBuyerOnlyOpenWithoutBids() (gas: 458594)
+[PASS] test_commitmentMatchesSharedVectors() (gas: 115746)
+[PASS] test_constructor_rejectsZeroTreasury() (gas: 171155)
+[PASS] test_createTender_rejectsBadInput() (gas: 121719)
+[PASS] test_createTender_storesFieldsAndEmits() (gas: 168289)
+[PASS] test_fullLifecycle_award() (gas: 792308)
+[PASS] test_minRevealWindowIs24h() (gas: 159544)
+[PASS] test_noBidsAtAll_failed() (gas: 140681)
+[PASS] test_noRevealedBids_failed() (gas: 269159)
+[PASS] test_resubmit_replacesCommitmentWithoutSecondBond() (gas: 399111)
+[PASS] test_reveal_cannotReuseAnotherBiddersCommitment() (gas: 395746)
+[PASS] test_reveal_happyPath() (gas: 376044)
+[PASS] test_reveal_rejectsZeroAmountAndNoBid() (gas: 291028)
+[PASS] test_storageLayoutMatchesApp() (gas: 420924)
+[PASS] test_submitBid_closedAtDeadline() (gas: 165471)
+[PASS] test_submitBid_hidesAmountUntilReveal() (gas: 268174)
+[PASS] test_submitBid_rejects() (gas: 411727)
+[PASS] test_unknownTenderReverts() (gas: 62685)
+Suite result: ok. 26 passed; 0 failed; 0 skipped; finished in 4.53s (5.25s CPU time)
+
+Ran 27 tests for test/v2/BlindBidMarketV2.t.sol:BlindBidMarketV2Test
+[PASS] testFuzz_award_enforcesBudget(uint128) (runs: 10000, μ: 382752, ~: 382426)
+[PASS] testFuzz_commitmentBindsEveryField(uint256,address,uint256,address,bytes32,bytes32) (runs: 10000, μ: 7336, ~: 7336)
+[PASS] testFuzz_reveal_wrongOpeningReverts(uint128,bytes32,bytes32,uint128,bytes32,bytes32) (runs: 10000, μ: 310955, ~: 311124)
+[PASS] test_award_budgetBoundsAreInclusive() (gas: 812532)
+[PASS] test_award_buyerMayChooseAPricierBidInBudget() (gas: 580444)
+[PASS] test_award_rejectsJustOutsideBudget() (gas: 737174)
+[PASS] test_award_rejectsWrongCaller_phase_winner_reason_andRepeat() (gas: 708477)
+[PASS] test_bond_failedPaymentReverts() (gas: 1519546)
+[PASS] test_bond_reentrancyBlocked() (gas: 707549)
+[PASS] test_bond_withdrawOnceEvenWhenOutOfBudget() (gas: 412136)
+[PASS] test_bond_zeroBondHasNothingToWithdrawOrSweep() (gas: 486554)
+[PASS] test_cancel_onlyBuyerOnlyOpenWithoutBids() (gas: 521576)
+[PASS] test_commitmentMatchesSharedVectors() (gas: 392824)
+[PASS] test_constructor_rejectsZeroTreasury() (gas: 4583)
+[PASS] test_contractAcceptsSharedVectorOpening() (gas: 453254)
+[PASS] test_createTender_rejectsBadInput() (gas: 137542)
+[PASS] test_createTender_storesBudget() (gas: 208039)
+[PASS] test_domainTagMatchesInterface() (gas: 6020)
+[PASS] test_noReveal_failed_andBondSweptOnce() (gas: 466561)
+[PASS] test_resubmit_replacesWithoutSecondBond() (gas: 481646)
+[PASS] test_revealSetDigest_followsRevealOrder() (gas: 615610)
+[PASS] test_reveal_cannotReuseAnotherBiddersCommitment() (gas: 439161)
+[PASS] test_reveal_rejects() (gas: 516522)
+[PASS] test_reveal_rejectsCrossTenderReplay() (gas: 558556)
+[PASS] test_storageLayoutMatchesApp() (gas: 495272)
+[PASS] test_submitBid_rejects() (gas: 331068)
+[PASS] test_unknownTenderReverts() (gas: 62077)
+Suite result: ok. 27 passed; 0 failed; 0 skipped; finished in 3.20s (3.20s CPU time)
+
+Ran 1 test for test/invariant/MarketInvariants.t.sol:MarketV1Invariants
+[PASS]
+MarketV1Invariants invariants:
+[PASS] invariant_balanceEqualsLedger
+[PASS] invariant_forbiddenCallsNeverSucceed
+[PASS] invariant_liabilitiesAreCovered
+[PASS] invariant_lifecycle
+[PASS] invariant_treasuryOnlyGetsSweeps
+ MarketV1Invariants invariants (runs: 1000, calls: 128000, reverts: 64813)
+
+╭-----------------+--------------+-------+---------+----------╮
+| Contract        | Selector     | Calls | Reverts | Discards |
++=============================================================+
+| MarketV1Handler | attack       | 12848 | 0       | 9        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | award        | 12877 | 11868   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | cancel       | 12743 | 10850   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | createTender | 12708 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | donate       | 12661 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | revealBid    | 12727 | 11403   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | submitBid    | 12886 | 7273    | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | sweep        | 12868 | 11802   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | warp         | 12898 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV1Handler | withdrawBond | 12793 | 11617   | 0        |
+╰-----------------+--------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 33.13s (33.13s CPU time)
+
+Ran 1 test for test/invariant/AuctionInvariants.t.sol:AuctionV2Invariants
+[PASS]
+AuctionV2Invariants invariants:
+[PASS] invariant_balanceEqualsLedger
+[PASS] invariant_forbiddenCallsNeverSucceed
+[PASS] invariant_liabilitiesAreCovered
+[PASS] invariant_lifecycleAndWinner
+[PASS] invariant_nftCustody
+[PASS] invariant_treasuryOnlyGetsPenalties
+ AuctionV2Invariants invariants (runs: 1000, calls: 128000, reverts: 59388)
+
+╭------------------+----------------+-------+---------+----------╮
+| Contract         | Selector       | Calls | Reverts | Discards |
++================================================================+
+| AuctionV2Handler | attack         | 14237 | 0       | 9        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | donate         | 14330 | 0       | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | list           | 14148 | 0       | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | placeBid       | 14139 | 7941    | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | revealBid      | 14264 | 12962   | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | settle         | 14265 | 12284   | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | warp           | 14188 | 0       | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | withdrawBidder | 14212 | 13004   | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV2Handler | withdrawSeller | 14226 | 13197   | 0        |
+╰------------------+----------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 34.58s (34.58s CPU time)
+
+Ran 1 test for test/invariant/AuctionInvariants.t.sol:AuctionV1Invariants
+[PASS]
+AuctionV1Invariants invariants:
+[PASS] invariant_balanceEqualsLedger
+[PASS] invariant_forbiddenCallsNeverSucceed
+[PASS] invariant_liabilitiesAreCovered
+[PASS] invariant_lifecycleAndWinner
+[PASS] invariant_nftCustody
+[PASS] invariant_treasuryOnlyGetsPenalties
+ AuctionV1Invariants invariants (runs: 1000, calls: 128000, reverts: 59527)
+
+╭------------------+----------------+-------+---------+----------╮
+| Contract         | Selector       | Calls | Reverts | Discards |
++================================================================+
+| AuctionV1Handler | attack         | 14212 | 0       | 7        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | donate         | 14312 | 0       | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | list           | 14169 | 0       | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | placeBid       | 14138 | 8095    | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | revealBid      | 14267 | 12959   | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | settle         | 14258 | 12234   | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | warp           | 14208 | 0       | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | withdrawBidder | 14212 | 13028   | 0        |
+|------------------+----------------+-------+---------+----------|
+| AuctionV1Handler | withdrawSeller | 14231 | 13211   | 0        |
+╰------------------+----------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 34.59s (34.59s CPU time)
+
+Ran 1 test for test/invariant/MarketInvariants.t.sol:MarketV2Invariants
+[PASS]
+MarketV2Invariants invariants:
+[PASS] invariant_balanceEqualsLedger
+[PASS] invariant_forbiddenCallsNeverSucceed
+[PASS] invariant_liabilitiesAreCovered
+[PASS] invariant_lifecycle
+[PASS] invariant_treasuryOnlyGetsSweeps
+[PASS] invariant_winnerIsWithinBudget
+ MarketV2Invariants invariants (runs: 1000, calls: 128000, reverts: 64856)
+
+╭-----------------+--------------+-------+---------+----------╮
+| Contract        | Selector     | Calls | Reverts | Discards |
++=============================================================+
+| MarketV2Handler | attack       | 12850 | 0       | 12       |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | award        | 12866 | 11877   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | cancel       | 12750 | 10873   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | createTender | 12705 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | donate       | 12680 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | revealBid    | 12728 | 11431   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | submitBid    | 12882 | 7248    | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | sweep        | 12861 | 11804   | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | warp         | 12911 | 0       | 0        |
+|-----------------+--------------+-------+---------+----------|
+| MarketV2Handler | withdrawBond | 12779 | 11623   | 0        |
+╰-----------------+--------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 35.12s (35.11s CPU time)
+
+Ran 11 test suites in 35.12s (153.47s CPU time): 124 tests passed, 0 failed, 0 skipped (124 total tests)
+# forge exit code: 0

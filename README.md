@@ -16,11 +16,28 @@ Budgets, bid amounts, and bonds use the EVM's 18-decimal unit for tPOTv3 (the na
 
 **Deployed on PortaldotV3 Testnet:** `BlindBidMarket` at `0x6e79287f62B47307B5b7349072c51AdAF8833d54` (block `91531`, treasury `0xF9642B695D4DDf58599c953a791F94c2e96b6a57`).
 
+## Security and fairness evidence
+
+Self-assessed with automated tools; no external audit has been done.
+
+| Read | For |
+|---|---|
+| [docs/PROOF_OF_FAIRNESS.md](docs/PROOF_OF_FAIRNESS.md) | What is sealed, what can be proven, and the threat model |
+| [tools/fairness-verifier](tools/fairness-verifier/README.md) | Recheck a tender or auction from chain data, with no Plinths server |
+| [docs/PROOF_OF_FAIRNESS_REPORT_FORMAT.md](docs/PROOF_OF_FAIRNESS_REPORT_FORMAT.md) | The versioned report format |
+| [docs/BASELINE_AUDIT.md](docs/BASELINE_AUDIT.md), [docs/issues/](docs/issues/) | Findings, with file, line and reproduction |
+| [docs/SECURITY_CHANGES.md](docs/SECURITY_CHANGES.md) | V2 changes, cost, and the migration plan |
+| [docs/security/](docs/security/) | [Invariants](docs/security/INVARIANTS.md), [coverage](docs/security/COVERAGE.md), [Slither](docs/security/SLITHER_REPORT.md) |
+| [docs/DEMO_DAY_GUIDE.md](docs/DEMO_DAY_GUIDE.md) | Demo script and fallbacks |
+| [packages/commit-reveal](packages/commit-reveal/README.md) | The reusable commit-reveal module |
+
+**The live contracts are V1.** They carry the open issues listed in the audit. `BlindBidMarketV2` and `SealedNFTAuctionV2` in `contracts/src/v2/` fix them where possible, and are **not deployed**.
+
 ## Contract tests (Foundry)
 
 [![Contracts](https://github.com/longbds0108/PortaldotL/actions/workflows/contracts.yml/badge.svg)](https://github.com/longbds0108/PortaldotL/actions/workflows/contracts.yml)
 
-**CI:** every push runs [`.github/workflows/contracts.yml`](.github/workflows/contracts.yml) on a clean Ubuntu runner with forge 1.8.4: `forge build --sizes`, then `forge test -vvv` with the `ci` profile (10,000 fuzz runs each). Each run's full log is in the Actions tab, also downloadable as the `forge-test-log` artifact.
+**CI:** every push runs [`.github/workflows/contracts.yml`](.github/workflows/contracts.yml) on clean Ubuntu runners with forge 1.8.4: `forge build --sizes`, `forge test -vvv` with the `ci` profile (10,000 fuzz runs each, 128,000 calls per invariant suite), coverage, a Slither triage gate, and the verifier, module and web tests. Each run's full log is in the Actions tab, also downloadable as the `forge-test-log` artifact.
 
 The Foundry project lives in `contracts/`, not the repo root: config in [`contracts/foundry.toml`](contracts/foundry.toml), import paths in [`contracts/remappings.txt`](contracts/remappings.txt), and `forge-std` and OpenZeppelin committed under `contracts/lib/`. A plain clone is enough; no `forge install`, `npm install`, `.env` or network RPC is needed to run the tests.
 
@@ -39,7 +56,7 @@ The first build downloads solc 0.8.24 automatically (internet needed once).
 
 ```bash
 cd contracts
-forge test                  # all suites; expected: "57 tests passed, 0 failed, 0 skipped (57 total tests)"
+forge test                  # all suites; expected: "124 tests passed, 0 failed, 0 skipped (124 total tests)"
 # or, from the repo root:  forge test --root contracts
 ```
 
@@ -49,14 +66,20 @@ forge test                  # all suites; expected: "57 tests passed, 0 failed, 
 | `SealedNFTAuction` | `test/SealedNFTAuction.t.sol` | 19 (2 fuzz) |
 | `DisputeRegistry` | `test/DisputeRegistry.t.sol` | 10 (1 fuzz) |
 | `NFTCommitmentLib` (TS ↔ Solidity hash vectors) | `test/NFTCommitmentLib.t.sol` | 2 (1 fuzz) |
-| **Total** | | **57** (49 unit + 8 fuzz) |
+| `BlindBidMarketV2` | `test/v2/BlindBidMarketV2.t.sol` | 27 (3 fuzz) |
+| `SealedNFTAuctionV2` | `test/v2/SealedNFTAuctionV2.t.sol` | 23 (2 fuzz) |
+| V1 weakness and V2 fix, side by side | `test/regressions/SecurityRegressions.t.sol` | 13 |
+| Stateful invariants on V1 and V2 | `test/invariant/` | 4 suites, 23 invariants |
+| **Total** | | **124** |
 
-**Recorded run.** The full output of `forge test -vvv` from a clean build (`forge clean` first) is committed at [`contracts/test-results/forge-test-vvv.log`](contracts/test-results/forge-test-vvv.log): commit `02fa385`, forge 1.8.4, macOS arm64, 2026-10-26. Every test is listed as `[PASS]`, fuzz tests ran 512 times each, and forge exited with code 0:
+**Recorded run.** The full `ci` profile output is committed at [`contracts/test-results/forge-test-ci.log`](contracts/test-results/forge-test-ci.log): commit `50b5809`, forge 1.8.4, macOS arm64, 2026-10-31. Fuzz tests ran 10,000 times each, invariant suites 128,000 calls each, and forge exited with code 0:
 
 ```text
-Ran 4 test suites in 114.29ms (350.17ms CPU time): 57 tests passed, 0 failed, 0 skipped (57 total tests)
+Ran 11 test suites in 35.12s (153.47s CPU time): 124 tests passed, 0 failed, 0 skipped (124 total tests)
 # forge exit code: 0
 ```
+
+The earlier V1-only run is kept at [`forge-test-vvv.log`](contracts/test-results/forge-test-vvv.log) (57 tests, commit `02fa385`).
 
 **3. Useful variants:**
 
@@ -65,6 +88,8 @@ forge test -vvv                                  # traces for failing tests
 forge test --match-contract BlindBidMarketTest   # one suite
 forge test --match-test testFuzz                 # fuzz tests only (512 runs each by default)
 FOUNDRY_PROFILE=ci forge test                    # 10,000 fuzz runs each (about 2 s)
+forge test --match-path 'test/invariant/*'       # stateful invariants only
+python3 scripts/mutation-check.py /tmp/any-dir   # do the invariants catch deliberately broken code?
 forge coverage --ir-minimum --report summary     # line/branch coverage (via_ir needs --ir-minimum)
 forge build --sizes                              # bytecode size (PortaldotV3 charges deposit per byte)
 forge test --list                                # list every test function
@@ -74,7 +99,7 @@ forge test --list                                # list every test function
 
 ## Deployed bytecode matches this source
 
-The four contracts on PortaldotV3 Testnet were compiled from this repo, byte for byte. To check it yourself (needs internet for the public RPC, no wallet or `.env`):
+The four V1 contracts on PortaldotV3 Testnet were compiled from this repo, byte for byte. To check it yourself (needs internet for the public RPC, no wallet or `.env`):
 
 ```bash
 cd contracts
@@ -110,7 +135,7 @@ npm run deploy:portaldotv3
 
 After deployment, set the printed address as `BLINDBID_ADDRESS` in `contracts/.env`, reload it with `set -a; source .env; set +a`, then run `npm run seed:portaldotv3` for optional demo tenders. The guide documents Remix and Hardhat. Foundry is kept for local build/tests; it is not the documented PortaldotV3 deployment path.
 
-After any contract change, regenerate the frontend ABI with `cd web && pnpm sync-abi`.
+After any contract change, regenerate the frontend ABI with `cd web && pnpm sync-abi`. Its ABIs come from V2, a superset of V1 that the script checks, so the app reads either version. `NEXT_PUBLIC_BLINDBID_VERSION` and `NEXT_PUBLIC_NFT_AUCTION_VERSION` choose the commitment format and storage layout, and default to V1.
 
 ### NFT auctions
 

@@ -1,0 +1,20 @@
+[High/Medium] arbitrary-send-eth: BlindBidMarket._send(address,uint256) (src/BlindBidMarket.sol#156-159) sends eth to arbitrary user
+[High/Medium] arbitrary-send-eth: BlindBidMarketV2._send(address,uint256) (src/v2/BlindBidMarketV2.sol#168-171) sends eth to arbitrary user
+[High/Medium] arbitrary-send-eth: SealedNFTAuction._send(address,uint256) (src/SealedNFTAuction.sol#178-181) sends eth to arbitrary user
+[High/Medium] arbitrary-send-eth: SealedNFTAuctionV2._send(address,uint256) (src/v2/SealedNFTAuctionV2.sol#186-189) sends eth to arbitrary user
+[Low/Medium] missing-zero-check: PlinthsTestNFT.safeTransferFrom(address,address,uint256,bytes).from (src/PlinthsTestNFT.sol#53) lacks a zero-check on :
+[Low/Medium] timestamp: BlindBidMarket._state(IBlindBidMarket.Tender) (src/BlindBidMarket.sol#147-153) uses timestamp for comparisons
+[Low/Medium] timestamp: BlindBidMarket.createTender(bytes32,uint128,uint128,uint64,uint64,uint96) (src/BlindBidMarket.sol#33-58) uses timestamp for comparisons
+[Low/Medium] timestamp: BlindBidMarket.sweepForfeitedBonds(uint256) (src/BlindBidMarket.sol#79-86) uses timestamp for comparisons
+[Low/Medium] timestamp: BlindBidMarketV2._state(IBlindBidMarketV2.TenderV2) (src/v2/BlindBidMarketV2.sol#159-165) uses timestamp for comparisons
+[Low/Medium] timestamp: BlindBidMarketV2.createTender(bytes32,uint128,uint128,uint64,uint64,uint96) (src/v2/BlindBidMarketV2.sol#35-63) uses timestamp for comparisons
+[Low/Medium] timestamp: BlindBidMarketV2.sweepForfeitedBonds(uint256) (src/v2/BlindBidMarketV2.sol#87-94) uses timestamp for comparisons
+[Low/Medium] timestamp: SealedNFTAuction._state(ISealedNFTAuction.Auction) (src/SealedNFTAuction.sol#169-175) uses timestamp for comparisons
+[Low/Medium] timestamp: SealedNFTAuction.onERC721Received(address,address,uint256,bytes) (src/SealedNFTAuction.sol#36-60) uses timestamp for comparisons
+[Low/Medium] timestamp: SealedNFTAuction.withdraw(uint256) (src/SealedNFTAuction.sol#124-155) uses timestamp for comparisons
+[Low/Medium] timestamp: SealedNFTAuctionV2._state(ISealedNFTAuction.Auction) (src/v2/SealedNFTAuctionV2.sol#177-183) uses timestamp for comparisons
+[Low/Medium] timestamp: SealedNFTAuctionV2.onERC721Received(address,address,uint256,bytes) (src/v2/SealedNFTAuctionV2.sol#40-67) uses timestamp for comparisons
+[Low/Medium] timestamp: SealedNFTAuctionV2.withdraw(uint256) (src/v2/SealedNFTAuctionV2.sol#132-163) uses timestamp for comparisons
+[Medium/High] erc20-interface: IERC721Transfer (src/SealedNFTAuction.sol#7-9) has incorrect ERC20 function interface:IERC721Transfer.transferFrom(address,address,uint256) (src/SealedNFTAuction.sol#8)
+[Medium/Medium] uninitialized-local: SealedNFTAuction.withdraw(uint256).penalty (src/SealedNFTAuction.sol#128) is a local variable never initialized
+[Medium/Medium] uninitialized-local: SealedNFTAuctionV2.withdraw(uint256).penalty (src/v2/SealedNFTAuctionV2.sol#136) is a local variable never initialized

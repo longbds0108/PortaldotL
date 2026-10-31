@@ -15,6 +15,8 @@ File này là ngữ cảnh gốc cho Claude Code khi làm việc trong repo. Đ�
 4. Dữ liệu on-chain là công khai. Không đưa giá, salt hoặc khóa hồ sơ lên chain trước khi reveal.
 5. Thiết kế interface rõ ràng để có thể thay lớp lưu trữ/đấu thầu sau này mà không đổi UX.
 
+**Hai phiên bản contract.** V1 (`contracts/src/BlindBidMarket.sol`, `SealedNFTAuction.sol`) đã deploy và đóng băng: không sửa, vì `scripts/verify-deployment.mjs` so khớp từng byte. V2 (`contracts/src/v2/`) sửa các lỗi trong `docs/issues/`, chưa deploy. App chọn phiên bản qua `NEXT_PUBLIC_BLINDBID_VERSION` và `NEXT_PUBLIC_NFT_AUCTION_VERSION` (mặc định V1). Xem `docs/SECURITY_CHANGES.md`.
+
 ## 1. Thông tin mạng PortaldotV3 Testnet
 
 | Tham số | Giá trị |
@@ -106,6 +108,13 @@ commitment = keccak256(abi.encode(
 ```
 
 Trong TS dùng `encodeAbiParameters` + `keccak256` của viem. Viết test đối chiếu hash giữa Foundry và TS.
+
+V2 ràng buộc thêm chain, contract và phiên bản (`contracts/src/v2/CommitReveal.sol`, vector trong `test/fixtures/commitment-v2-vectors.json`):
+
+```solidity
+payload    = keccak256(abi.encode(amount, keccak256(docKey)));
+commitment = keccak256(abi.encode(keccak256("plinths.tender.commit.v2"), block.chainid, address(this), tenderId, bidder, payload, salt));
+```
 
 ### 4.3 Interface (đã triển khai — xem `contracts/src/interfaces/IBlindBidMarket.sol`)
 
@@ -224,7 +233,10 @@ Private key deploy chỉ đặt trong `contracts/.env`, không bao giờ trong `
 
 ## 8. Quy ước khi Claude làm việc trong repo
 
-- Thay đổi contract → cập nhật ABI trong `web/lib/contracts.ts` và test hash commitment TS↔Solidity.
+- Thay đổi contract → cập nhật ABI bằng `pnpm sync-abi` (ABI lấy từ V2, là tập cha của V1) và test hash commitment TS↔Solidity.
+- Không sửa `contracts/src/v2/CommitReveal.sol` riêng lẻ: nó phải giống hệt `packages/commit-reveal/src/CommitReveal.sol` (CI chạy `cmp`).
+- Sửa logic quỹ hoặc vòng đời → chạy `python3 scripts/mutation-check.py <thư mục trống>`: invariant phải bắt được lỗi cố ý gài vào.
+- Không ghi "trustless", "perfectly fair" hay "audited". Không gắn nhãn dữ liệu chain cục bộ là testnet (`/demo` đọc nhãn từ `web/public/demo/lifecycle.json`).
 - Không thêm tính năng Giai đoạn 2 khi chưa được yêu cầu.
 - Không bao giờ log/gửi `amount`, `salt`, `docKey` lên server, analytics hay console ở production.
 - Không hiển thị bất kỳ thông tin giá nào trong UI khi state ≠ Evaluation/Awarded, kể cả cho buyer.

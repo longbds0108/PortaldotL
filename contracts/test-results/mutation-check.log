@@ -1,0 +1,11 @@
+CAUGHT  double bond withdrawal  [MarketV2Invariants] ['invariant_liabilitiesAreCovered', 'invariant_lifecycle']
+CAUGHT  double sweep  [MarketV2Invariants] ['invariant_liabilitiesAreCovered', 'invariant_lifecycle']
+CAUGHT  budget check removed  [MarketV2Invariants] ['invariant_winnerIsWithinBudget']
+CAUGHT  unrevealed bond withdrawable  [MarketV2Invariants] ['invariant_liabilitiesAreCovered', 'invariant_lifecycle']
+CAUGHT  V1 double bond withdrawal  [MarketV1Invariants] ['invariant_liabilitiesAreCovered', 'invariant_lifecycle']
+CAUGHT  double seller proceeds  [AuctionV2Invariants] ['invariant_liabilitiesAreCovered']
+CAUGHT  double bidder withdraw  [AuctionV2Invariants] ['invariant_liabilitiesAreCovered', 'invariant_lifecycleAndWinner']
+CAUGHT  NFT delivered to seller instead of winner  [AuctionV2Invariants] ['invariant_nftCustody']
+CAUGHT  penalty skipped  [AuctionV2Invariants] ['invariant_liabilitiesAreCovered']
+CAUGHT  winner keeps price  [AuctionV1Invariants] ['invariant_liabilitiesAreCovered']
+10/10 mutants caught
