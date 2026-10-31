@@ -232,4 +232,47 @@ contract SecurityRegressions is Test {
         vm.expectRevert(ISealedNFTAuction.InvalidListingData.selector);
         auction.onERC721Received(address(0), address(0), 1, _listing());
     }
+
+    // ───────────── ISSUE-004 (accepted, not fixed): a hostile collection can refuse to hand over the token ─────────────
+
+    function test_V2_acceptedRisk_hostileCollectionTrapsTheWinnersMoney() public {
+        SealedNFTAuctionV2 auction = new SealedNFTAuctionV2(treasury);
+        HostileCollection collection = new HostileCollection();
+        collection.list(auction, _listing());
+
+        bytes32 payload = keccak256(abi.encode(uint256(2 ether)));
+        bytes32 c = CommitReveal.compute(
+            keccak256("plinths.nft-auction.commit.v2"), block.chainid, address(auction), 0, alice, payload, SALT
+        );
+        vm.prank(alice);
+        auction.placeBid{value: 3 ether}(0, c);
+        vm.warp(submissionDeadline);
+        vm.prank(alice);
+        auction.revealBid(0, 2 ether, SALT);
+        vm.warp(revealDeadline);
+
+        vm.expectRevert();
+        auction.settle(0); // the collection refuses, so settlement never completes
+        vm.prank(alice);
+        auction.withdraw(0);
+        assertEq(address(auction).balance, 2 ether, "the price stays locked: see docs/issues/ISSUE-004");
+    }
+}
+
+/// @dev Passes the custody check, then refuses every transfer out.
+contract HostileCollection {
+    SealedNFTAuctionV2 internal auction;
+
+    function list(SealedNFTAuctionV2 a, bytes memory data) external {
+        auction = a;
+        a.onERC721Received(msg.sender, msg.sender, 1, data);
+    }
+
+    function ownerOf(uint256) external view returns (address) {
+        return address(auction);
+    }
+
+    function transferFrom(address, address, uint256) external pure {
+        revert("no");
+    }
 }

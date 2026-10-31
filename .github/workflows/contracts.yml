@@ -1,5 +1,5 @@
-# Builds the contracts and runs the Foundry tests on a clean Ubuntu runner, so anyone can check the result
-# without installing anything. Dependencies are vendored in contracts/lib; no RPC or secrets are needed.
+# Builds the contracts and runs every test on a clean Ubuntu runner, so anyone can check the result without installing
+# anything. Contract dependencies are vendored in contracts/lib. No job needs an RPC, secrets or a wallet.
 name: Contracts
 
 on:
@@ -34,15 +34,87 @@ jobs:
       - name: Build and contract sizes
         run: forge build --sizes
 
-      - name: Test
+      - name: Test (unit, fuzz, regressions, stateful invariants)
         run: |
           set -o pipefail
           forge test -vvv 2>&1 | tee forge-test.log
+
+      - name: Coverage
+        run: |
+          set -o pipefail
+          forge coverage --ir-minimum --report summary --no-match-coverage "(^test/|script/)" 2>&1 | tee forge-coverage.log
+
+      - name: Shared commit-reveal module is identical
+        run: cmp src/v2/CommitReveal.sol ../packages/commit-reveal/src/CommitReveal.sol
+
+      - name: Commit-reveal module tests
+        working-directory: packages/commit-reveal
+        run: forge test
 
       - name: Upload test log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: forge-test-log
-          path: contracts/forge-test.log
+          path: |
+            contracts/forge-test.log
+            contracts/forge-coverage.log
           if-no-files-found: ignore
+
+  slither:
+    name: slither
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install slither-analyzer==0.11.6
+      # Slither exits non-zero whenever it has findings, so the triage check below decides pass or fail.
+      - run: slither . --json slither.json || true
+      - run: python3 scripts/slither-check.py slither.json
+
+  verifier:
+    name: fairness verifier
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/fairness-verifier
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Commit-reveal TypeScript vectors
+        working-directory: packages/commit-reveal
+        run: npm ci && npm test
+
+  web:
+    name: web checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test

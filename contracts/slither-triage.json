@@ -1,0 +1,12 @@
+{
+  "note": "Reviewed Medium and High findings, with reasons in docs/security/SLITHER_REPORT.md. scripts/slither-check.py fails CI on any Medium or High finding not listed here.",
+  "accepted": [
+    { "check": "arbitrary-send-eth", "element": "BlindBidMarket._send" },
+    { "check": "arbitrary-send-eth", "element": "BlindBidMarketV2._send" },
+    { "check": "arbitrary-send-eth", "element": "SealedNFTAuction._send" },
+    { "check": "arbitrary-send-eth", "element": "SealedNFTAuctionV2._send" },
+    { "check": "erc20-interface", "element": "IERC721Transfer" },
+    { "check": "uninitialized-local", "element": "SealedNFTAuction.withdraw" },
+    { "check": "uninitialized-local", "element": "SealedNFTAuctionV2.withdraw" }
+  ]
+}

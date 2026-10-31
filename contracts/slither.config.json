@@ -1,0 +1,4 @@
+{
+  "filter_paths": "lib/|test/|node_modules/",
+  "exclude_informational": true
+}

@@ -1,0 +1,20 @@
+{
+  "note": "Fictional. These people and businesses do not exist, and nobody has used Plinths this way. Keep the label on anything built from this file.",
+  "buyer": "Lotus Software (fictional), a five-person software business",
+  "need": [
+    "A new company website, with a budget of about $5,000. Testnet tPOTv3 stands in for the money: 3,000 to 5,000 tPOTv3.",
+    "Một trang web công ty mới, ngân sách khoảng 5.000 USD. tPOTv3 trên testnet được dùng thay tiền thật: 3.000 đến 5.000 tPOTv3."
+  ],
+  "criteria": [
+    ["Works well on phones", "Dùng tốt trên điện thoại"],
+    ["Includes 12 months of maintenance", "Kèm 12 tháng bảo trì"],
+    ["Relevant past work", "Có dự án tương tự đã làm"]
+  ],
+  "bidders": {
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8": { "name": "Northwind Studio", "note": ["Meets all three criteria. Not the cheapest, and it wins on merit.", "Đạt cả ba tiêu chí. Không rẻ nhất nhưng thắng nhờ chất lượng."] },
+    "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC": { "name": "Riverbank Digital", "note": ["Cheapest, but its proposal has no maintenance. It replaced its bid once before the deadline.", "Rẻ nhất nhưng hồ sơ không có bảo trì. Đã thay giá một lần trước hạn."] },
+    "0x90F79bf6EB2c4f870365E785982E1f101E93b906": { "name": "Summit Web", "note": ["Over budget. The contract refused an award to this bid.", "Vượt ngân sách. Contract đã từ chối trao thầu cho hồ sơ này."] },
+    "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65": { "name": "Delta Labs", "note": ["Never revealed. Its price stays secret, and its bond went to the treasury.", "Không công bố. Giá vẫn được giữ kín, tiền bảo đảm chuyển về treasury."] }
+  },
+  "reason": ["Strongest technical approach within budget, and it includes the required 12 months of maintenance.", "Giải pháp kỹ thuật tốt nhất trong ngân sách và có đủ 12 tháng bảo trì theo yêu cầu."]
+}

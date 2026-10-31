@@ -5,6 +5,7 @@
     "compile": "hardhat compile",
     "deploy:portaldotv3": "hardhat run scripts/deploy.cjs --network portaldotv3Testnet",
     "seed:portaldotv3": "hardhat run scripts/seed.cjs --network portaldotv3Testnet",
+    "deploy:v2:portaldotv3": "hardhat run scripts/deploy-v2.cjs --network portaldotv3Testnet",
     "nft:upload": "node scripts/test-nft/upload.mjs",
     "deploy:nft:portaldotv3": "hardhat run scripts/deploy-nft.cjs --network portaldotv3Testnet",
     "deploy:disputes:portaldotv3": "hardhat run scripts/deploy-disputes.cjs --network portaldotv3Testnet"
